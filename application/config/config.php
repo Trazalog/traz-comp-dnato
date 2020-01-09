@@ -23,9 +23,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | a PHP script and you can easily do that on your own.
 |
 */
-$base = "http://" . $_SERVER['HTTP_HOST'];
-$base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
-$config['base_url'] = $base;
+$config['base_url'] = 'http://adminweb.com/admin/'; //change link
 
 /*
 |--------------------------------------------------------------------------
@@ -225,7 +223,7 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] =2 ;
+$config['log_threshold'] = 0;
 
 /*
 |--------------------------------------------------------------------------
@@ -544,5 +542,5 @@ $config['banned_users'] = array('unban', 'ban');
 | This is about email sender
 |
 */
-$config['register'] = 'info@sedacreditaciones.com';
-$config['forgot'] = 'info@sedacreditaciones.com';
+$config['register'] = 'admin@gmail.com';
+$config['forgot'] = 'admin@gmail.com';

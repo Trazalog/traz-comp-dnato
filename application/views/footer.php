@@ -3,7 +3,7 @@
     <footer>
         <div class="col-md-12" style="text-align:center;">
             <hr>
-           Trazasoft - 2019</a>
+            Copyright - 2017 | <a href="https://connectwithdev.com/">connectwithdev.com</a>
         </div>
     </footer>
     </div><!-- /container -->  
