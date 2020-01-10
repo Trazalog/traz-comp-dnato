@@ -1,4 +1,4 @@
-	<?php
+<?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 /*
@@ -78,6 +78,7 @@ $db['default'] = array(
 	'hostname' => 'localhost',
 	'username' => 'root',
 	'password' => '',
+	#'password' => '!Password00',
 	'database' => 'usuarios',
 	'dbdriver' => 'mysqli',
 	'dbprefix' => '',

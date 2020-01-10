@@ -10,12 +10,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class ReCaptcha {
 
-    private $dataSitekey = "6Ld12aAUAAAAAEHYgyLGUaPstMTKz0jZJ8aKc7Io"; //Your SiteKey
+    private $dataSitekey = ""; //Your SiteKey
     private $lang = "en";
-    public $secret = '6Ld12aAUAAAAAFjGqZjlVPwU9w5p9QOWRKK9Thuu'; //Secret
+    public $secret = ''; //Secret
 
     public function render() {
-        $return = '<div class="g-recaptcha" data-sitekey="'.$this->dataSitekey.'"></div>
+        $return = '<div class="g-recaptcha" data-sitekey="' . $this->dataSitekey . '"></div>
             <script src="https://www.google.com/recaptcha/api.js?hl=' . $this->lang . '" async defer></script>';
         return $return;
     }

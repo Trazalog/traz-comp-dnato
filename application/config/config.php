@@ -225,7 +225,7 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] =2 ;
+$config['log_threshold'] = 0;
 
 /*
 |--------------------------------------------------------------------------
@@ -544,5 +544,7 @@ $config['banned_users'] = array('unban', 'ban');
 | This is about email sender
 |
 */
-$config['register'] = 'info@sedacreditaciones.com';
-$config['forgot'] = 'info@sedacreditaciones.com';
+$config['register'] = 'admin@gmail.com';
+$config['forgot'] = 'admin@gmail.com';
+
+
