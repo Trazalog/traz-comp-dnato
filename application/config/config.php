@@ -546,3 +546,5 @@ $config['banned_users'] = array('unban', 'ban');
 */
 $config['register'] = 'admin@gmail.com';
 $config['forgot'] = 'admin@gmail.com';
+
+

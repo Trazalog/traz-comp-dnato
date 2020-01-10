@@ -14,6 +14,14 @@ class Main extends CI_Controller {
         $this->status = $this->config->item('status');
         $this->roles = $this->config->item('roles');
         $this->load->library('userlevel');
+        $this->load->config('email');
+    }
+
+     public function setdir()
+    {
+        $this->session->set_userdata('direccion', $this->input->get('direccion'));
+        $this->session->set_userdata('direccionsalida', $this->input->get('direccionsalida'));
+        redirect('Main/index');
     }
 
     //index dasboard
@@ -37,11 +45,8 @@ class Main extends CI_Controller {
         if(empty($this->session->userdata['email'])){
             redirect(site_url().'main/login/');
         }else{
-            $this->load->view('header', $data);
-            $this->load->view('navbar', $data);
-            $this->load->view('container');
-            $this->load->view('index', $data);
-            $this->load->view('footer');
+            redirect($data['direccion']);
+
         }
 
 	}
@@ -700,8 +705,9 @@ class Main extends CI_Controller {
     //Logout
     public function logout()
     {
+       $dir = $this->session->userdata['direccionsalida'];
         $this->session->sess_destroy();
-        redirect(site_url().'main/login/');
+        redirect($dir);
     }
 
     //forgot password
