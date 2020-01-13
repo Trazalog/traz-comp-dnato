@@ -496,6 +496,19 @@ class Main extends CI_Controller {
                         exit;
                     }
                 }else{
+
+                    $config = array(
+                        'protocol' => 'smtp',
+                        'smtp_host' => 'ssl://smtp.gmail.com',
+                        'smtp_auth' => true,
+                        'smtp_port' => '465',
+                        'smtp_user' => 'soportetrazalog24@gmail.com',
+                        'smtp_pass' => '123trazalog24',
+                        'mailtype' => 'html',
+                        'newline' => "\r\n",
+                        'crlf' => "\r\n",
+                        'charset' => 'utf-8',
+                    );
                     //insert to database
                     $id = $this->user_model->insertUser($clean);
                     $token = $this->user_model->insertToken($id);
@@ -505,7 +518,7 @@ class Main extends CI_Controller {
                     $url = site_url() . 'main/complete/token/' . $qstring;
                     $link = '<a href="' . $url . '">' . $url . '</a>';
     
-                    $this->load->library('email');
+                    $this->load->library('email',$config);
                     $this->load->library('sendmail');
                     
                     $message = $this->sendmail->sendRegister($this->input->post('lastname'),$this->input->post('email'),$link,$sTl);
@@ -515,7 +528,9 @@ class Main extends CI_Controller {
                     $this->email->subject('Set Password Login');
                     $this->email->message($message);
                     $this->email->set_mailtype("html");
-    
+
+                    show_error($this->email->print_debugger());
+
                     //Sending mail
                     if($this->email->send()){
                         redirect(site_url().'main/successregister/');

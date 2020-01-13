@@ -758,7 +758,7 @@ if ( ! function_exists('html_escape'))
 			return $var;
 		}
 
-		return htmlspecialchars($var, ENT_QUOTES, config_item('charset'), $double_encode);
+		return htmlspecialchars($var, ENT_QUOTES, 'utf-8', $double_encode);
 	}
 }
 
