@@ -529,12 +529,12 @@ class Main extends CI_Controller {
                     $this->email->message($message);
                     $this->email->set_mailtype("html");
 
-                    show_error($this->email->print_debugger());
-
+                    
                     //Sending mail
                     if($this->email->send()){
                         redirect(site_url().'main/successregister/');
                     }else{
+                        show_error($this->email->print_debugger());
                         $this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
                         exit;
                     }
