@@ -41,7 +41,7 @@ class Test extends CI_Controller
         $this->load->library('sendmail');
 
         $message = 'Mail Test'; #$this->sendmail->sendRegister($this->input->post('lastname'), $this->input->post('email'), $link, $sTl);
-        $to_email = 'fer17916@gmail.com'; #$this->input->post('email');
+        $to_email = 'fleiva@trazalog.com'; #$this->input->post('email');
         $this->email->from($this->config->item('register'), 'Set Password Fernando Leiva'); //from sender, title email
         $this->email->to($to_email);
         $this->email->subject('Set Password Login');
