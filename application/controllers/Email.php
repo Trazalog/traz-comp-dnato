@@ -20,7 +20,7 @@ class Email extends CI_Controller
         // SMTP configuration
         $mail->isSMTP();
         $mail->SMTPDebug = 4;
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = 'ssl://smtp.gmail.com:465';
         $mail->SMTPAuth = true;
         $mail->Username = 'soportetrazalog24@gmail.com';
         $mail->Password = '123trazalog24';
