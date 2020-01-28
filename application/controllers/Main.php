@@ -190,6 +190,8 @@ class Main extends CI_Controller {
     	//change level user
 	public function changelevel()
 	{
+        $this->load->model('Roles');
+
         $data = $this->session->userdata;
         //check user level
 	    if(empty($data['role'])){
@@ -199,7 +201,9 @@ class Main extends CI_Controller {
 	    //check user level
 
 	    $data['title'] = "Change Level Admin";
-	    $data['groups'] = $this->user_model->getUserData();
+        $data['groups'] = $this->user_model->getUserData();
+        $data['dd_list'] = $this->Roles->obtener();
+        
 
 	    //check is admin or not
 	    if($dataLevel == "is_admin"){

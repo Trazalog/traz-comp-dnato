@@ -17,12 +17,6 @@
 
     <div class="form-group">
     <?php
-        $dd_list = array(
-                  '1'   => 'Admin',
-                  '2'   => 'Author',
-                  '3'   => 'Editor',
-                  '4'   => 'Subscriber',
-                );
         $dd_name = "level";
         echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="level"');
     ?>
@@ -31,3 +25,28 @@
     <a href="<?php echo site_url().'main/users/';?>"><button type="button" class="btn btn-default btn-lg btn-block">Cancel</button></a>
     <?php echo form_close(); ?>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+obtenerRoles();
+function obtenerRoles() {
+    $('#level').empty();
+    $.ajax({
+            type:'GET',
+            dataType:'JSON',
+            url:'<?php echo base_url() ?>Rol/obtener',
+            success:function(rsp){
+                console.log(rsp);
+                
+              Object.keys(rsp).forEach(function(e){
+                   $('#level').append(`<option value="${e}">${rsp[e]}</option>`);    
+              });
+            },
+            error: function(rsp){  
+                alert('Error');
+            }
+        });
+}
+</script>
+
+<?php $this->load->view('nuevo_rol'); ?>
