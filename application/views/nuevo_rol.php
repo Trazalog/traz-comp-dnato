@@ -25,7 +25,7 @@ function guardarRol(){
   $.ajax({
           type:'POST',
           dataType:'JSON',
-          url:'<?php echo base_url() ?>/Rol/guardar',
+          url:'<?php echo base_url() ?>Rol/guardar',
           data:{nombre, descripcion},
           success:function(rsp){
               alert('Hecho');
