@@ -181,6 +181,7 @@ class Main extends CI_Controller {
             $this->load->view('navbar', $data);
             $this->load->view('container');
             $this->load->view('user', $data);
+            $this->load->view('list_usuarios_externos', $data);
             $this->load->view('footer');
 	    }else{
 	        redirect(site_url().'main/');
@@ -410,6 +411,9 @@ class Main extends CI_Controller {
                     $cleanPost['role'] = $this->input->post('role');
                     $cleanPost['firstname'] = $this->input->post('firstname');
                     $cleanPost['lastname'] = $this->input->post('lastname');
+                    $cleanPost['telefono'] = $this->input->post('telefono');
+                    $cleanPost['usernick'] = $this->input->post('usernick');
+                    $cleanPost['dni'] = $this->input->post('dni');
                     $cleanPost['banned_users'] = 'unban';
                     $cleanPost['password'] = $hashed;
                     unset($cleanPost['passconf']);
@@ -426,6 +430,68 @@ class Main extends CI_Controller {
 	    }else{
 	        redirect(site_url().'main/');
 	    }
+    }
+
+    public function adduserexterno()
+    {
+        $data = $this->session->userdata;
+        if (empty($data['role'])) {
+            redirect(site_url() . 'main/login/');
+        }
+
+        //check user level
+        if (empty($data['role'])) {
+            redirect(site_url() . 'main/login/');
+        }
+        $dataLevel = $this->userlevel->checkLevel($data['role']);
+        //check user level
+
+        //check is admin or not
+        if ($dataLevel == "is_admin") {
+           
+            $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+            $this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
+            $this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+
+            $data['title'] = "Add User";
+            if ($this->form_validation->run() == false) {
+                $this->load->view('header', $data);
+                $this->load->view('navbar');
+                $this->load->view('container');
+                $this->load->view('usuario_externo', $data);
+                $this->load->view('footer');
+            } else {
+                if ($this->user_model->isDuplicate($this->input->post('email'))) {
+                    $this->session->set_flashdata('flash_message', 'User email already exists');
+                    redirect(site_url() . 'main/adduserexterno');
+                } else {
+                    $this->load->library('password');
+                    $post = $this->input->post(null, true);
+                    $cleanPost = $this->security->xss_clean($post);
+                    $hashed = $this->password->create_hash($cleanPost['password']);
+                    $cleanPost['nombre_razon'] = $this->input->post('nombre_razon');
+                    $cleanPost['email'] = $this->input->post('email');
+                    $cleanPost['telefono'] = $this->input->post('telefono');
+                    $cleanPost['cuit_empresa'] = $this->input->post('cuit_empresa');
+                    $cleanPost['usernick'] = $this->input->post('usernick');
+                    $cleanPost['banned_users'] = 'unban';
+                    $cleanPost['password'] = $hashed;
+                    unset($cleanPost['passconf']);
+
+                    //insert to database
+                    if (!$this->user_model->addUserExterno($cleanPost)) {
+                        $this->session->set_flashdata('flash_message', 'There was a problem add new user');
+                    } else {
+                        $this->session->set_flashdata('success_message', 'New user has been added.');
+                    }
+                    redirect(site_url() . 'main/users/');
+                }
+                ;
+            }
+        } else {
+            redirect(site_url() . 'main/');
+        }
+
     }
 
     //register new user from frontend

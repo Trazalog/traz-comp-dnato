@@ -30,10 +30,11 @@
                             <li class="dropdown">
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Users <span class="caret"></span></a>
                               <ul class="dropdown-menu">
-                                <li><a href="'.site_url().'main/users">Users List</a></li>
-                                <li><a href="'.site_url().'main/adduser">Add User</a></li>
-                                <li><a href="'.site_url().'main/banuser">Ban User</a></li>
-                                <li><a href="'.site_url().'main/changelevel">Role</a></li>
+                                <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
+                                <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
+                                <li><a href="'.site_url().'main/adduserexterno">Agregar Usuario Externo</a></li>
+                                <li><a href="'.site_url().'main/banuser">Baja Usuario</a></li>
+                                <li><a href="'.site_url().'main/changelevel">Roles</a></li>
                               </ul>
                             </li>
                             <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Setings</a></li>

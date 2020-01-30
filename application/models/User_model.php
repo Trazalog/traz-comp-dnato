@@ -208,8 +208,28 @@ class User_model extends CI_Model {
                 'first_name'=>$d['firstname'],
                 'last_name'=>$d['lastname'],
                 'email'=>$d['email'],
+                'telefono'=>$d['telefono'],
+                'dni'=>$d['dni'],
+                'usernick'=>$d['usernick'],
                 'password'=>$d['password'], 
                 'role'=>$d['role'], 
+                'status'=>$this->status[1]
+            );
+            $q = $this->db->insert_string('users',$string);             
+            $this->db->query($q);
+            return $this->db->insert_id();
+    }
+
+    public function addUserExterno($d)
+    {
+        $string = array(
+                'nombre_razon'=>$d['nombre_razon'],
+                'email'=>$d['email'],
+                'telefono'=>$d['telefono'],
+                'cuit_empresa'=>$d['cuit_empresa'],
+                'usernick'=>$d['usernick'],
+                'password'=>$d['password'], 
+                'role'=> USUARIO_EXTERNO, 
                 'status'=>$this->status[1]
             );
             $q = $this->db->insert_string('users',$string);             
