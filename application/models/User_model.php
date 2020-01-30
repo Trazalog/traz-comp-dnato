@@ -230,7 +230,8 @@ class User_model extends CI_Model {
                 'usernick'=>$d['usernick'],
                 'password'=>$d['password'], 
                 'role'=> USUARIO_EXTERNO, 
-                'status'=>$this->status[1]
+                'status'=>$this->status[1],
+                'banned_users' => 'unban'
             );
             $q = $this->db->insert_string('users',$string);             
             $this->db->query($q);

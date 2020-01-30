@@ -704,7 +704,7 @@ class Main extends CI_Controller {
             $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
             $this->form_validation->set_rules('password', 'Password', 'required');
             
-            $data['title'] = "Welcome Back!";
+            $data['title'] = "Trazalog Tools!";
             
             $result = $this->user_model->getAllSettings();
             $data['recaptcha'] = $result->recaptcha;
