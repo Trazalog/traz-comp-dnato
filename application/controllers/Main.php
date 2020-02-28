@@ -45,8 +45,11 @@ class Main extends CI_Controller {
         if(empty($this->session->userdata['email'])){
             redirect(site_url().'main/login/');
         }else{
-            redirect($data['direccion']);
-
+            if($data['direccion']){
+                redirect($data['direccion']);
+            }else{
+                echo 'Error de Redireccionamiento';
+            }
         }
 
 	}
@@ -58,16 +61,16 @@ class Main extends CI_Controller {
 	        redirect(site_url().'main/login/');
 	    }
 	    
-	$this->load->library('user_agent');
+    	$this->load->library('user_agent');
         $browser = $this->agent->browser();
         $os = $this->agent->platform();
         $getip = $this->input->ip_address();
         
         $result = $this->user_model->getAllSettings();
         $stLe = $result->site_title;
-	$tz = $result->timezone;
+	    $tz = $result->timezone;
 	    
-	$now = new DateTime();
+	    $now = new DateTime();
         $now->setTimezone(new DateTimezone($tz));
         $dTod =  $now->format('Y-m-d');
         $dTim =  $now->format('H:i:s');
@@ -791,8 +794,8 @@ class Main extends CI_Controller {
     public function logout()
     {
        $dir = $this->session->userdata['direccionsalida'];
-        $this->session->sess_destroy();
-        redirect($dir);
+       $this->session->sess_destroy();
+       redirect($dir);
     }
 
     //forgot password
