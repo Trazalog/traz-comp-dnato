@@ -49,11 +49,14 @@ class Main extends CI_Controller {
 	    $data['title'] = "Dashboard Admin";
 	    
         if(empty($this->session->userdata['email'])){
+            log_message('DEBUG','#Main/index | No email');
             redirect(site_url().'main/login/');
         }else{
             if($data['direccion']){
+                log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
                 redirect($data['direccion']);
             }else{
+                log_message('DEBUG','#Main/index | Error de Redireccionamiento');
                 echo 'Error de Redireccionamiento';
             }
         }
