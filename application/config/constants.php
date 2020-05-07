@@ -85,3 +85,5 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 define('USUARIO_EXTERNO', 8);
+define('DE', 'https://trazalog.com.ar/testtpt/traz-prod-trazasoft/dash');
+define('DS', 'https://trazalog.com.ar/testtpt/traz-prod-trazasoft/login');

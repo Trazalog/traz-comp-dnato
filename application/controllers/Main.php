@@ -19,10 +19,11 @@ class Main extends CI_Controller {
 
      public function setdir()
     {
-        $this->session->set_userdata('direccion', $this->input->get('direccion'));
-        $this->session->set_userdata('direccionsalida', $this->input->get('direccionsalida'));
-        log_message('DEBUG','#Main/setdir | '.json_encode($this->session->userdata()));    
-        redirect(base_url().'main/index');
+        // $this->session->set_userdata('direccion', );
+        // $this->session->set_userdata('direccionsalida', );
+        $this->login();
+        // log_message('DEBUG','#Main/setdir | '.json_encode($this->session->userdata()));    
+        // redirect(base_url().'main/index');
     }
 
     //index dasboard
@@ -706,7 +707,7 @@ class Main extends CI_Controller {
         log_message('DEBUG','#Main/login | '.json_encode($data));
         if($data['email']){
             log_message('DEBUG','#Main/login Sesion Existente');
-	        redirect(base_url().'main/index');
+	        redirect(DE);
 	    }else{
 	        $this->load->library('curl');
             $this->load->library('recaptcha');
@@ -714,6 +715,7 @@ class Main extends CI_Controller {
             $this->form_validation->set_rules('password', 'Password', 'required');
             
             $data['title'] = "Trazalog Tools!";
+
 
             if($this->form_validation->run() == FALSE) {
                 log_message('DEBUG','#Main/login | Carga Login');
@@ -746,7 +748,7 @@ class Main extends CI_Controller {
                     $this->session->set_userdata($key, $val);
                     }
                     log_message('DEBUG','#Main/checkLoginUser/');
-                    redirect(base_url().'main/checkLoginUser/');
+                    redirect(DE);
                 }
                 else
                 {
@@ -762,7 +764,7 @@ class Main extends CI_Controller {
     //Logout
     public function logout()
     {
-       $dir = $this->session->userdata['direccionsalida'];
+       $dir = DS;#$this->session->userdata['direccionsalida'];
        $this->session->sess_destroy();
        redirect($dir);
     }
