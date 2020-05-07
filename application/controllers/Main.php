@@ -19,29 +19,32 @@ class Main extends CI_Controller {
 
      public function setdir()
     {
-        if($this->input->get('direccion') && $this->input->get('direccionsalida')){
+        #if($this->input->get('direccion') && $this->input->get('direccionsalida')){
             $this->session->set_userdata('direccion', $this->input->get('direccion'));
             $this->session->set_userdata('direccionsalida', $this->input->get('direccionsalida'));
-            redirect(site_url().'Main/index');
-        }else{
-            redirect(site_url().'main/login/');
-        }
+            log_message('DEBUG','#Main/setdir | '.json_encode($this->session->userdata()));    
+            redirect(site_url().'Main/login');
+        #}else{
+        #    redirect(site_url().'main/login/');
+       # }
     }
 
     //index dasboard
 	public function index()
 	{
 	    //user data from session
-        $data = $this->session->userdata;
+        $data = $this->session->userdata();
         
         log_message('DEBUG','#Main/index | '.json_encode($data));
 
-	    if(empty($data)){
+	    if(empty($data['email'])){
+            log_message('DEBUG','#Main/index | No email');
 	        redirect(site_url().'main/login/');
 	    }
 
 	    //check user level
 	    if(empty($data['role'])){
+            log_message('DEBUG','#Main/index | No role');
 	        redirect(site_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
