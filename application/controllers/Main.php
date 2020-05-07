@@ -48,19 +48,14 @@ class Main extends CI_Controller {
         
 	    $data['title'] = "Dashboard Admin";
 	    
-        if(empty($this->session->userdata['email'])){
-            log_message('DEBUG','#Main/index | No email');
-            redirect(site_url().'main/login/');
+      
+        if($data['direccion']){
+            log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
+            redirect($data['direccion']);
         }else{
-            if($data['direccion']){
-                log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
-                redirect($data['direccion']);
-            }else{
-                log_message('DEBUG','#Main/index | Error de Redireccionamiento');
-                echo 'Error de Redireccionamiento';
-            }
+            log_message('DEBUG','#Main/index | Error de Redireccionamiento');
+            echo 'Error de Redireccionamiento';
         }
-
 	}
 	
 	public function checkLoginUser(){
@@ -707,7 +702,7 @@ class Main extends CI_Controller {
     //check login failed or success
     public function login()
     {
-        $data = $this->session->userdata;
+        $data = $this->session->userdata();
         log_message('DEBUG','#Main/login | '.json_encode($data));
         if($data['email']){
             log_message('DEBUG','#Main/login No email');
