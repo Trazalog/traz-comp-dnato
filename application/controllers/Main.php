@@ -717,7 +717,7 @@ class Main extends CI_Controller {
             $data['title'] = "Trazalog Tools!";
 
             if($this->form_validation->run() == FALSE) {
-                log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()));
+                log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()) . '| '.json_encode($this->input->post()));
                 $this->load->view('header', $data);
                 $this->load->view('container');
                 $this->load->view('login');
