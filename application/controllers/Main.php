@@ -714,11 +714,9 @@ class Main extends CI_Controller {
             $this->form_validation->set_rules('password', 'Password', 'required');
             
             $data['title'] = "Trazalog Tools!";
-            
-            $result = $this->user_model->getAllSettings();
-            $data['recaptcha'] = $result->recaptcha;
 
             if($this->form_validation->run() == FALSE) {
+                log_message('DEBUG','#Main/login | Carga Login');
                 $this->load->view('header', $data);
                 $this->load->view('container');
                 $this->load->view('login');
@@ -729,74 +727,33 @@ class Main extends CI_Controller {
                 $userInfo = $this->user_model->checkLogin($clean);
 
                 log_message('DEBUG','#Main/login | userInfo: '.json_encode($userInfo));
-                
-                if($data['recaptcha'] == 'yes'){
-                    //recaptcha
-                    $recaptchaResponse = $this->input->post('g-recaptcha-response');
-                    $userIp = $_SERVER['REMOTE_ADDR'];
-                    $key = $this->recaptcha->secret;
-                    $url = "https://www.google.com/recaptcha/api/siteverify?secret=".$key."&response=".$recaptchaResponse."&remoteip=".$userIp; //link
-                    $response = $this->curl->simple_get($url);
-                    $status= json_decode($response, true);
-    
-                    if(!$userInfo)
-                    {
-                        $this->session->set_flashdata('flash_message', 'Wrong password or email.');
-                        redirect(site_url().'main/login');
+        
+                if(!$userInfo)
+                {
+                    log_message('ERROR','#Main/login | Wrong password or email.');
+                    $this->session->set_flashdata('flash_message', 'Wrong password or email.');
+                    redirect(site_url().'main/login');
+                }
+                elseif($userInfo->banned_users == "ban")
+                {
+                    log_message('ERROR','#Main/login | You’re temporarily banned from our website!');
+                    $this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
+                    redirect(site_url().'main/login');
+                }
+                elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
+                {
+                    foreach($userInfo as $key=>$val){
+                    $this->session->set_userdata($key, $val);
                     }
-                    elseif($userInfo->banned_users == "ban")
-                    {
-                        $this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
-                        redirect(site_url().'main/login');
-                    }
-                    else if(!$status['success'])
-                    {
-                        //recaptcha failed
-                        $this->session->set_flashdata('flash_message', 'Error...! Google Recaptcha UnSuccessful!');
-                        redirect(site_url().'main/login/');
-                        exit;
-                    }
-                    elseif($status['success'] && $userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
-                    {
-                        foreach($userInfo as $key=>$val){
-                        $this->session->set_userdata($key, $val);
-                        }
-                        redirect(site_url().'main/checkLoginUser/');
-                    }
-                    else
-                    {
-                        $this->session->set_flashdata('flash_message', 'Something Error!');
-                        redirect(site_url().'main/login/');
-                        exit;
-                    }
-                }else{
-                    if(!$userInfo)
-                    {
-                        log_message('DEBUG','#Main/login | Wrong password or email.');
-                        $this->session->set_flashdata('flash_message', 'Wrong password or email.');
-                        redirect(site_url().'main/login');
-                    }
-                    elseif($userInfo->banned_users == "ban")
-                    {
-                        log_message('DEBUG','#Main/login | You’re temporarily banned from our website!');
-                        $this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
-                        redirect(site_url().'main/login');
-                    }
-                    elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
-                    {
-                        foreach($userInfo as $key=>$val){
-                        $this->session->set_userdata($key, $val);
-                        }
-                        log_message('DEBUG','main/checkLoginUser/');
-                        redirect(site_url().'main/checkLoginUser/');
-                    }
-                    else
-                    {
-                        log_message('DEBUG','Something Error!');
-                        $this->session->set_flashdata('flash_message', 'Something Error!');
-                        redirect(site_url().'main/login/');
-                        exit;
-                    }
+                    log_message('DEBUG','#Main/checkLoginUser/');
+                    redirect(site_url().'main/checkLoginUser/');
+                }
+                else
+                {
+                    log_message('ERROR','Something Error!');
+                    $this->session->set_flashdata('flash_message', 'Something Error!');
+                    redirect(site_url().'main/login/');
+                    exit;
                 }
             }
 	    }
