@@ -19,9 +19,13 @@ class Main extends CI_Controller {
 
      public function setdir()
     {
-        $this->session->set_userdata('direccion', $this->input->get('direccion'));
-        $this->session->set_userdata('direccionsalida', $this->input->get('direccionsalida'));
-        redirect('Main/index');
+        if($this->input->get('direccion') && $this->input->get('direccionsalida')){
+            $this->session->set_userdata('direccion', $this->input->get('direccion'));
+            $this->session->set_userdata('direccionsalida', $this->input->get('direccionsalida'));
+            redirect(site_url().'Main/index');
+        }else{
+            redirect(site_url().'main/login/');
+        }
     }
 
     //index dasboard
