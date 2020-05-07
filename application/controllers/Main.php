@@ -716,9 +716,8 @@ class Main extends CI_Controller {
             
             $data['title'] = "Trazalog Tools!";
 
-
             if($this->form_validation->run() == FALSE) {
-                log_message('DEBUG','#Main/login | Carga Login');
+                log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()));
                 $this->load->view('header', $data);
                 $this->load->view('container');
                 $this->load->view('login');
@@ -745,7 +744,7 @@ class Main extends CI_Controller {
                 elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
                 {
                     foreach($userInfo as $key=>$val){
-                    $this->session->set_userdata($key, $val);
+                       $this->session->set_userdata($key, $val);
                     }
                     log_message('DEBUG','#Main/checkLoginUser/');
                     redirect(DE);
