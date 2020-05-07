@@ -32,7 +32,10 @@ class Main extends CI_Controller {
 	public function index()
 	{
 	    //user data from session
-	    $data = $this->session->userdata;
+        $data = $this->session->userdata;
+        
+        log_message('#Main/index | '.json_encode($data));
+
 	    if(empty($data)){
 	        redirect(site_url().'main/login/');
 	    }
@@ -703,8 +706,9 @@ class Main extends CI_Controller {
     public function login()
     {
         $data = $this->session->userdata;
+        log_message('#Main/login | '.json_encode($data));
         if(!empty($data['email'])){
-	        redirect(site_url().'main/');
+	        redirect(site_url().'main/index');
 	    }else{
 	        $this->load->library('curl');
             $this->load->library('recaptcha');
