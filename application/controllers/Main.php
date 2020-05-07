@@ -709,7 +709,8 @@ class Main extends CI_Controller {
     {
         $data = $this->session->userdata;
         log_message('DEBUG','#Main/login | '.json_encode($data));
-        if(!empty($data['email'])){
+        if($data['email']){
+            log_message('DEBUG','#Main/login No email');
 	        redirect(site_url().'main/index');
 	    }else{
 	        $this->load->library('curl');
