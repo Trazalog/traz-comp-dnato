@@ -727,6 +727,8 @@ class Main extends CI_Controller {
                 $post = $this->input->post();
                 $clean = $this->security->xss_clean($post);
                 $userInfo = $this->user_model->checkLogin($clean);
+
+                log_message('DEBUG','#Main/login | userInfo: '.json_encode($userInfo));
                 
                 if($data['recaptcha'] == 'yes'){
                     //recaptcha
@@ -770,11 +772,13 @@ class Main extends CI_Controller {
                 }else{
                     if(!$userInfo)
                     {
+                        log_message('DEBUG','#Main/login | Wrong password or email.');
                         $this->session->set_flashdata('flash_message', 'Wrong password or email.');
                         redirect(site_url().'main/login');
                     }
                     elseif($userInfo->banned_users == "ban")
                     {
+                        log_message('DEBUG','#Main/login | You’re temporarily banned from our website!');
                         $this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
                         redirect(site_url().'main/login');
                     }
@@ -783,10 +787,12 @@ class Main extends CI_Controller {
                         foreach($userInfo as $key=>$val){
                         $this->session->set_userdata($key, $val);
                         }
+                        log_message('DEBUG','main/checkLoginUser/');
                         redirect(site_url().'main/checkLoginUser/');
                     }
                     else
                     {
+                        log_message('DEBUG','Something Error!');
                         $this->session->set_flashdata('flash_message', 'Something Error!');
                         redirect(site_url().'main/login/');
                         exit;
