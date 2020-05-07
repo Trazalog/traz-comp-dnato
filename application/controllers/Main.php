@@ -22,7 +22,7 @@ class Main extends CI_Controller {
         $this->session->set_userdata('direccion', $this->input->get('direccion'));
         $this->session->set_userdata('direccionsalida', $this->input->get('direccionsalida'));
         log_message('DEBUG','#Main/setdir | '.json_encode($this->session->userdata()));    
-        redirect(site_url().'Main/index');
+        redirect(base_url().'main/index');
     }
 
     //index dasboard
@@ -35,13 +35,13 @@ class Main extends CI_Controller {
 
 	    if(empty($data['email'])){
             log_message('DEBUG','#Main/index | No email');
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 
 	    //check user level
 	    if(empty($data['role'])){
             log_message('DEBUG','#Main/index | No role');
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -62,7 +62,7 @@ class Main extends CI_Controller {
 	     //user data from session
 	    $data = $this->session->userdata;
 	    if(empty($data)){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    
     	$this->load->library('user_agent');
@@ -104,17 +104,17 @@ class Main extends CI_Controller {
             $this->email->send();
             
             $this->input->set_cookie($setLogin, TRUE);
-            redirect(site_url().'main/');
+            redirect(base_url().'main/');
         }else{
             $this->input->set_cookie($setLogin, TRUE);
-            redirect(site_url().'main/');
+            redirect(base_url().'main/');
         }
 	}
 	
 	public function settings(){
 	    $data = $this->session->userdata;
         if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -162,7 +162,7 @@ class Main extends CI_Controller {
                 }else{
                     $this->session->set_flashdata('success_message', 'Your data has been updated.');
                 }
-                redirect(site_url().'main/settings/');
+                redirect(base_url().'main/settings/');
             }
 	    }
 
@@ -177,7 +177,7 @@ class Main extends CI_Controller {
 
 	    //check user level
 	    if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -191,7 +191,7 @@ class Main extends CI_Controller {
             $this->load->view('list_usuarios_externos', $data);
             $this->load->view('footer');
 	    }else{
-	        redirect(site_url().'main/');
+	        redirect(base_url().'main/');
 	    }
 	}
 
@@ -203,7 +203,7 @@ class Main extends CI_Controller {
         $data = $this->session->userdata;
         //check user level
 	    if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -233,10 +233,10 @@ class Main extends CI_Controller {
                 }else{
                     $this->session->set_flashdata('success_message', 'The level user has been updated.');
                 }
-                redirect(site_url().'main/changelevel');
+                redirect(base_url().'main/changelevel');
             }
 	    }else{
-	        redirect(site_url().'main/');
+	        redirect(base_url().'main/');
 	    }
 	}
     
@@ -246,7 +246,7 @@ class Main extends CI_Controller {
         $data = $this->session->userdata;
         //check user level
 	    if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -276,10 +276,10 @@ class Main extends CI_Controller {
                 }else{
                     $this->session->set_flashdata('success_message', 'The status user has been updated.');
                 }
-                redirect(site_url().'main/banuser');
+                redirect(base_url().'main/banuser');
             }
 	    }else{
-	        redirect(site_url().'main/');
+	        redirect(base_url().'main/');
 	    }
 	}
 
@@ -288,7 +288,7 @@ class Main extends CI_Controller {
     {
         $data = $this->session->userdata;
         if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 
         $dataInfo = array(
@@ -327,7 +327,7 @@ class Main extends CI_Controller {
             }else{
                 $this->session->set_flashdata('success_message', 'Your profile has been updated.');
             }
-            redirect(site_url().'main/');
+            redirect(base_url().'main/');
         }
     }
 
@@ -336,7 +336,7 @@ class Main extends CI_Controller {
     {
         $data = $this->session->userdata;
         if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 
         $data['title'] = "Profile";
@@ -352,7 +352,7 @@ class Main extends CI_Controller {
     public function deleteuser($id) {
             $data = $this->session->userdata;
             if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -368,9 +368,9 @@ class Main extends CI_Controller {
     		{
     		    $this->session->set_flashdata('success_message', 'Delete user was successful.');
     		}
-    		redirect(site_url().'main/users/');
+    		redirect(base_url().'main/users/');
 	    }else{
-		    redirect(site_url().'main/');
+		    redirect(base_url().'main/');
 	    }
     }
 
@@ -379,12 +379,12 @@ class Main extends CI_Controller {
     {
         $data = $this->session->userdata;
         if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 
         //check user level
 	    if(empty($data['role'])){
-	        redirect(site_url().'main/login/');
+	        redirect(base_url().'main/login/');
 	    }
 	    $dataLevel = $this->userlevel->checkLevel($data['role']);
 	    //check user level
@@ -408,7 +408,7 @@ class Main extends CI_Controller {
             }else{
                 if($this->user_model->isDuplicate($this->input->post('email'))){
                     $this->session->set_flashdata('flash_message', 'User email already exists');
-                    redirect(site_url().'main/adduser');
+                    redirect(base_url().'main/adduser');
                 }else{
                     $this->load->library('password');
                     $post = $this->input->post(NULL, TRUE);
@@ -431,11 +431,11 @@ class Main extends CI_Controller {
                     }else{
                         $this->session->set_flashdata('success_message', 'New user has been added.');
                     }
-                    redirect(site_url().'main/users/');
+                    redirect(base_url().'main/users/');
                 };
             }
 	    }else{
-	        redirect(site_url().'main/');
+	        redirect(base_url().'main/');
 	    }
     }
 
@@ -443,12 +443,12 @@ class Main extends CI_Controller {
     {
         $data = $this->session->userdata;
         if (empty($data['role'])) {
-            redirect(site_url() . 'main/login/');
+            redirect(base_url() . 'main/login/');
         }
 
         //check user level
         if (empty($data['role'])) {
-            redirect(site_url() . 'main/login/');
+            redirect(base_url() . 'main/login/');
         }
         $dataLevel = $this->userlevel->checkLevel($data['role']);
         //check user level
@@ -470,7 +470,7 @@ class Main extends CI_Controller {
             } else {
                 if ($this->user_model->isDuplicate($this->input->post('email'))) {
                     $this->session->set_flashdata('flash_message', 'User email already exists');
-                    redirect(site_url() . 'main/adduserexterno');
+                    redirect(base_url() . 'main/adduserexterno');
                 } else {
                     $this->load->library('password');
                     $post = $this->input->post(null, true);
@@ -491,12 +491,12 @@ class Main extends CI_Controller {
                     } else {
                         $this->session->set_flashdata('success_message', 'New user has been added.');
                     }
-                    redirect(site_url() . 'main/users/');
+                    redirect(base_url() . 'main/users/');
                 }
                 ;
             }
         } else {
-            redirect(site_url() . 'main/');
+            redirect(base_url() . 'main/');
         }
 
     }
@@ -523,7 +523,7 @@ class Main extends CI_Controller {
         }else{
             if($this->user_model->isDuplicate($this->input->post('email'))){
                 $this->session->set_flashdata('flash_message', 'User email already exists');
-                redirect(site_url().'main/register');
+                redirect(base_url().'main/register');
             }else{
                 $post = $this->input->post(NULL, TRUE);
                 $clean = $this->security->xss_clean($post);
@@ -545,7 +545,7 @@ class Main extends CI_Controller {
     
                         //generate token
                         $qstring = $this->base64url_encode($token);
-                        $url = site_url() . 'main/complete/token/' . $qstring;
+                        $url = base_url() . 'main/complete/token/' . $qstring;
                         $link = '<a href="' . $url . '">' . $url . '</a>';
     
                         $this->load->library('email');
@@ -561,7 +561,7 @@ class Main extends CI_Controller {
     
                         //Sending mail
                         if($this->email->send()){
-                            redirect(site_url().'main/successregister/');
+                            redirect(base_url().'main/successregister/');
                         }else{
                             $this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
                             exit;
@@ -569,7 +569,7 @@ class Main extends CI_Controller {
                     }else{
                         //recaptcha failed
                         $this->session->set_flashdata('flash_message', 'Error...! Google Recaptcha UnSuccessful!');
-                        redirect(site_url().'main/register/');
+                        redirect(base_url().'main/register/');
                         exit;
                     }
                 }else{
@@ -592,7 +592,7 @@ class Main extends CI_Controller {
     
                     //generate token
                     $qstring = $this->base64url_encode($token);
-                    $url = site_url() . 'main/complete/token/' . $qstring;
+                    $url = base_url() . 'main/complete/token/' . $qstring;
                     $link = '<a href="' . $url . '">' . $url . '</a>';
     
                     $this->load->library('email',$config);
@@ -609,7 +609,7 @@ class Main extends CI_Controller {
                     
                     //Sending mail
                     if($this->email->send()){
-                        redirect(site_url().'main/successregister/');
+                        redirect(base_url().'main/successregister/');
                     }else{
                         show_error($this->email->print_debugger());
                         $this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
@@ -654,7 +654,7 @@ class Main extends CI_Controller {
 
         if(!$user_info){
             $this->session->set_flashdata('flash_message', 'Token is invalid or expired');
-            redirect(site_url().'main/login');
+            redirect(base_url().'main/login');
         }
         $data = array(
             'firstName'=> $user_info->first_name,
@@ -686,7 +686,7 @@ class Main extends CI_Controller {
 
             if(!$userInfo){
                 $this->session->set_flashdata('flash_message', 'There was a problem updating your record');
-                redirect(site_url().'main/login');
+                redirect(base_url().'main/login');
             }
 
             unset($userInfo->password);
@@ -694,7 +694,7 @@ class Main extends CI_Controller {
             foreach($userInfo as $key=>$val){
                 $this->session->set_userdata($key, $val);
             }
-            redirect(site_url().'main/');
+            redirect(base_url().'main/');
 
         }
     }
@@ -705,8 +705,8 @@ class Main extends CI_Controller {
         $data = $this->session->userdata();
         log_message('DEBUG','#Main/login | '.json_encode($data));
         if($data['email']){
-            log_message('DEBUG','#Main/login No email');
-	        redirect(site_url().'main/index');
+            log_message('DEBUG','#Main/login Sesion Existente');
+	        redirect(base_url().'main/index');
 	    }else{
 	        $this->load->library('curl');
             $this->load->library('recaptcha');
@@ -732,13 +732,13 @@ class Main extends CI_Controller {
                 {
                     log_message('ERROR','#Main/login | Wrong password or email.');
                     $this->session->set_flashdata('flash_message', 'Wrong password or email.');
-                    redirect(site_url().'main/login');
+                    redirect(base_url().'main/login');
                 }
                 elseif($userInfo->banned_users == "ban")
                 {
                     log_message('ERROR','#Main/login | You’re temporarily banned from our website!');
                     $this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
-                    redirect(site_url().'main/login');
+                    redirect(base_url().'main/login');
                 }
                 elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
                 {
@@ -746,13 +746,13 @@ class Main extends CI_Controller {
                     $this->session->set_userdata($key, $val);
                     }
                     log_message('DEBUG','#Main/checkLoginUser/');
-                    redirect(site_url().'main/checkLoginUser/');
+                    redirect(base_url().'main/checkLoginUser/');
                 }
                 else
                 {
                     log_message('ERROR','Something Error!');
                     $this->session->set_flashdata('flash_message', 'Something Error!');
-                    redirect(site_url().'main/login/');
+                    redirect(base_url().'main/login/');
                     exit;
                 }
             }
@@ -791,12 +791,12 @@ class Main extends CI_Controller {
 
             if(!$userInfo){
                 $this->session->set_flashdata('flash_message', 'We cant find your email address');
-                redirect(site_url().'main/login');
+                redirect(base_url().'main/login');
             }
 
             if($userInfo->status != $this->status[1]){ //if status is not approved
                 $this->session->set_flashdata('flash_message', 'Your account is not in approved status');
-                redirect(site_url().'main/login');
+                redirect(base_url().'main/login');
             }
 
             if($data['recaptcha'] == 'yes'){
@@ -814,7 +814,7 @@ class Main extends CI_Controller {
                     //generate token
                     $token = $this->user_model->insertToken($userInfo->id);
                     $qstring = $this->base64url_encode($token);
-                    $url = site_url() . 'main/reset_password/token/' . $qstring;
+                    $url = base_url() . 'main/reset_password/token/' . $qstring;
                     $link = '<a href="' . $url . '">' . $url . '</a>';
     
                     $this->load->library('email');
@@ -829,7 +829,7 @@ class Main extends CI_Controller {
                     $this->email->set_mailtype("html");
     
                     if($this->email->send()){
-                        redirect(site_url().'main/successresetpassword/');
+                        redirect(base_url().'main/successresetpassword/');
                     }else{
                         $this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
                         exit;
@@ -837,14 +837,14 @@ class Main extends CI_Controller {
                 }else{
                     //recaptcha failed
                     $this->session->set_flashdata('flash_message', 'Error...! Google Recaptcha UnSuccessful!');
-                    redirect(site_url().'main/register/');
+                    redirect(base_url().'main/register/');
                     exit;
                 }
             }else{
                 //generate token
                 $token = $this->user_model->insertToken($userInfo->id);
                 $qstring = $this->base64url_encode($token);
-                $url = site_url() . 'main/reset_password/token/' . $qstring;
+                $url = base_url() . 'main/reset_password/token/' . $qstring;
                 $link = '<a href="' . $url . '">' . $url . '</a>';
 
                 $this->load->library('email');
@@ -859,7 +859,7 @@ class Main extends CI_Controller {
                 $this->email->set_mailtype("html");
 
                 if($this->email->send()){
-                    redirect(site_url().'main/successresetpassword/');
+                    redirect(base_url().'main/successresetpassword/');
                 }else{
                     $this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
                     exit;
@@ -879,7 +879,7 @@ class Main extends CI_Controller {
 
         if(!$user_info){
             $this->session->set_flashdata('flash_message', 'Token is invalid or expired');
-            redirect(site_url().'main/login');
+            redirect(base_url().'main/login');
         }
         $data = array(
             'firstName'=> $user_info->first_name,
@@ -910,7 +910,7 @@ class Main extends CI_Controller {
             }else{
                 $this->session->set_flashdata('success_message', 'Your password has been updated. You may now login');
             }
-            redirect(site_url().'main/checkLoginUser');
+            redirect(base_url().'main/checkLoginUser');
         }
     }
 
