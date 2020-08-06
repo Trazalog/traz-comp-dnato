@@ -1,6 +1,6 @@
 <div class="col-lg-4 col-lg-offset-4">
-    <h2>Welcome Back!</h2>
-    <h5>Please Login.</h5>
+    <h2>Bienvenido!</h2>
+    <h5>Ingrese por favor.</h5>
     <?php $fattr = array('class' => 'form-signin');
          echo form_open(base_url().'main/login/', $fattr); ?>
     <div class="form-group">
@@ -27,9 +27,9 @@
     </div>
     <?php
     }
-    echo form_submit(array('value'=>'Let me in!', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
+    echo form_submit(array('value'=>'Ingresar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
     <?php echo form_close(); ?>
     <br>
-    <p>Not registered? <a href="<?php echo base_url();?>main/register">Register</a></p>
-    <p>Forgot your password? <a href="<?php echo base_url();?>main/forgot">Forgot Password</a></p>
+    <p>No esta registrado? <a href="<?php echo base_url();?>main/register">Registrese por favor</a></p>
+    <p>Olvido su contraseña? <a href="<?php echo base_url();?>main/forgot">Recupere contraseña</a></p>
 </div>

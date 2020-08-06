@@ -20,5 +20,6 @@ class Rol extends CI_Controller {
        $res = $this->Roles->guardar($data);
        echo json_encode($res);
    }
+
 }
 ?>

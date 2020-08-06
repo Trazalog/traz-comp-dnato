@@ -1,6 +1,6 @@
 <div class="col-lg-4 col-lg-offset-4">
-    <h2>Ban User</h2>
-    <h5>Hi <span><?php echo $first_name; ?></span>, <br>Please choose the user.</h5>     
+    <h2>Borrar Usuarios</h2>
+    <h5>Hola <span><?php echo $first_name; ?></span>, <br>Por favor elija el usuario.</h5>     
     <?php $fattr = array('class' => 'form-signin');
          echo form_open(site_url().'main/banuser/', $fattr); ?>
     
@@ -25,7 +25,7 @@
         echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="banuser"');
     ?>
     </div>
-    <?php echo form_submit(array('value'=>'Submit', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
-    <a href="<?php echo site_url().'main/users/';?>"><button type="button" class="btn btn-default btn-lg btn-block">Cancel</button></a>
+    <?php echo form_submit(array('value'=>'Enviar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
+    <a href="<?php echo site_url().'main/banuser/';?>"><button type="button" class="btn btn-default btn-lg btn-block">Cancelar</button></a>
     <?php echo form_close(); ?>
 </div>

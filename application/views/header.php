@@ -23,6 +23,6 @@ $theme = $result->theme;
         <link rel="stylesheet" href="<?php echo $theme; ?>">
         <link rel="stylesheet" href="<?php echo base_url().'public/css/main.css' ?>">
         
-        <script src='https://www.google.com/recaptcha/api.js'></script>
+        <!-- <script src='https://www.google.com/recaptcha/api.js'></script> -->
     </head>
     <body>

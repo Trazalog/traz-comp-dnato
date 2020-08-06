@@ -1,8 +1,8 @@
 <div class="container">
 <div class="row">
     <div class="col-lg-8 col-lg-offset-2">
-        <h2>Settings</h2>
-        <h5>Hello <span><?php echo $first_name; ?></span>.</h5>
+        <h2>Configuracion</h2>
+        <h5>Hola <span><?php echo $first_name; ?></span>.</h5>
         <hr>
         <?php
         $fattr = array('class' => 'form-signin');
@@ -21,7 +21,7 @@
         
         <?php echo '<input type="hidden" name="id" value="'.$id.'">'; ?>
         <div class="form-group">
-        <span>Site Title</span>
+        <span>Titulo del sitio</span>
           <?php echo form_input(array('name'=>'site_title', 'id'=> 'site_title', 'placeholder'=>'Site Title', 'class'=>'form-control', 'value' => set_value('site_title', $site_title))); ?>
           <?php echo form_error('site_title');?>
         </div>
@@ -57,7 +57,7 @@
             <option value="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.7/yeti/bootstrap.min.css">Yeti</option>
         </select>
         </div>
-        <?php echo form_submit(array('value'=>'Save', 'name'=>'submit', 'class'=>'btn btn-primary btn-block')); ?>
+        <?php echo form_submit(array('value'=>'Guardar', 'name'=>'submit', 'class'=>'btn btn-primary btn-block')); ?>
         <?php echo form_close(); ?>
     </div>
 </div>

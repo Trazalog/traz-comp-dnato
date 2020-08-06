@@ -75,12 +75,13 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'localhost',
-	'username' => 'root',
+	'hostname' => '10.142.0.7',
+	'username' => 'postgres',
+	'port'   => 5432,
 	#'password' => '',
 	'password' => '!Password00',
-	'database' => 'usuarios',
-	'dbdriver' => 'mysqli',
+	'database' => 'tools_sema_t',
+	'dbdriver' => 'postgre',
 	'dbprefix' => '',
 	'pconnect' => FALSE,
 	'db_debug' => (ENVIRONMENT !== 'production'),

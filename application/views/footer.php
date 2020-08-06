@@ -1,9 +1,10 @@
-    </div><!--row-->   
+    </div> 
+    <!--row-->   
     
     <footer>
         <div class="col-md-12" style="text-align:center;">
             <hr>
-            Copyright - 2017 | <a href="https://connectwithdev.com/">connectwithdev.com</a>
+            Copyright - 2020 | <a href="http://trazalog.com/">TRAZALOG</a>
         </div>
     </footer>
     </div><!-- /container -->  

@@ -33,7 +33,7 @@ class User_model extends CI_Model {
     //check is duplicate
     public function isDuplicate($email)
     {     
-        $this->db->get_where('users', array('email' => $email), 1);
+        $this->db->get_where('seg.users', array('email' => $email), 1);
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
     }
     
@@ -48,7 +48,7 @@ class User_model extends CI_Model {
                 'user_id'=>$user_id,
                 'created'=>$date
             );
-        $query = $this->db->insert_string('tokens',$string);
+        $query = $this->db->insert_string('seg.tokens',$string);
         $this->db->query($query);
         return $token . $user_id;
         
@@ -102,7 +102,7 @@ class User_model extends CI_Model {
     public function getUserAllData($email)
     {
         $this->db->select('*');
-        $this->db->from('users');
+        $this->db->from('seg.users');
         $this->db->where('email', $email );
         $query = $this->db->get();
 
@@ -145,20 +145,22 @@ class User_model extends CI_Model {
         $this->load->library('password');       
         $this->db->select('*');
         $this->db->where('email', $post['email']);
-        $query = $this->db->get('users');
+        $query = $this->db->get('seg.users');
         $userInfo = $query->row();
         $count = $query->num_rows();
         
         if($count == 1){
             if(!$this->password->validate_password($post['password'], $userInfo->password))
-            {
-                error_log('Unsuccessful login attempt('.$post['email'].')');
+            {   
+                log_message('ERROR','#TRAZA|USER_MODEL|ERROR EN PAASSWORD >> PASSWORD-> '. $post['password']);
+                //error_log('Logueo Erróneo con el Email: ('.$post['email'].')');
                 return false;
             }else{
                 $this->updateLoginTime($userInfo->id);
             }
         }else{
-            error_log('Unsuccessful login attempt('.$post['email'].')');
+            log_message('ERROR','#TRAZA|USER_MODEL| >> NO HAY UN USUARIO CON EL EMAIL INGRESADO: '.$post['email']);
+            error_log('NO HAY UN USUARIO CON EL EMAIL INGRESADO : ('.$post['email'].')');
             return false;
         }
         
@@ -204,21 +206,108 @@ class User_model extends CI_Model {
     //add user login
     public function addUser($d)
     {  
-            $string = array(
-                'first_name'=>$d['firstname'],
-                'last_name'=>$d['lastname'],
-                'email'=>$d['email'],
-                'telefono'=>$d['telefono'],
-                'dni'=>$d['dni'],
-                'usernick'=>$d['usernick'],
-                'password'=>$d['password'], 
-                'role'=>$d['role'], 
-                'status'=>$this->status[1]
-            );
-            $q = $this->db->insert_string('users',$string);             
-            $this->db->query($q);
-            return $this->db->insert_id();
-    }
+				$string = array(
+						'first_name'=>$d['firstname'],		
+						'last_name'=>$d['lastname'],			
+						'email'=>$d['email'],							
+						'telefono'=>$d['telefono'],				
+						'dni'=>$d['dni'],									
+						'usernick'=>$d['usernick'],				
+						'password'=>$d['password'], 			
+						'role'=>$d['role'], 							
+						'status'=>'approved',
+						'banned_users'=>'unban'							
+				);
+				
+				$q = $this->db->insert('seg.users',$string);  
+				$error = $this->db->error();				
+				
+				$this->db->select_max('id');						
+				$query = $this->db->get('seg.users');
+				$userInfo = $query->row('id');
+
+				if($userInfo){
+					return $userInfo;
+				}else{
+					log_message('ERROR','#TRAZA|USER_MODEL|ASOCIATEBPMROL($data_rol) >> ERROR -> '.json_encode($error['message']));
+					return false;
+				}
+           
+		}
+
+		/**
+		* Crear usuarios en BPM
+		* @param array info de usr nuevos
+		* @return string status de servicio
+		*/	
+		function crearUsrBPM($cleanPost){
+			
+			//TODO: SACAR HARDCODEO ACA
+			$session = '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"';
+			$datos["userName"] = $cleanPost['usernick'];
+			$datos["password"] = BPM_USER_PASS;
+			$datos["password_confirm"] = BPM_USER_PASS;
+			$datos["icon"] = "";
+			$datos["firstname"] = $cleanPost['firstname'];
+			$datos["lastname"] = $cleanPost['lastname'];
+			$datos["title"] = "Sr";
+			$datos["job_title"] = "Human resources benefits";
+			$datos["manager_id"] = "";			
+			$post["session"] = $session;
+			$post["payload"] = $datos;
+											
+			$aux = $this->rest->callAPI("POST",REST_BPM."/users", $post);
+			$aux =json_decode($aux["status"]);
+			return $aux;
+		}
+		
+		/**
+		* Asociar 
+		* @param 
+		* @return 
+		*/
+
+		
+
+		/**
+		* Asocia usuario a roles y grupos de BPM en BD
+		* @param $usr_id, $group, $rol
+		* @return int id de asociacion insertado
+		*/
+		public function guardarMembership($membership){
+
+			$query = $this->db->insert('seg.memberships_users',$membership);   
+			$error = $this->db->error();
+			
+			if($error['message'] == ""){
+				return true;
+			}else{
+				log_message('ERROR','#TRAZA|USER_MODEL|GUARDARUSRBPM($membership) >> ERROR -> '.json_encode($error['message']));
+				return false;
+			}
+		}
+
+		/**
+		* Borra membership en BD
+		* @param array con datos de usuario
+		* @return string resultado del borrado		
+		*/
+		function borrarMembership($membership){
+			
+			$this->db->where('role', $membership['role']);
+			$this->db->where('group', $membership['group']);
+			$this->db->where('email', $membership['email']);
+			$this->db->delete('seg.memberships_users', $membership);
+			$error = $this->db->error();
+
+			if($error['message'] == ""){
+				return true;
+			}else{
+				log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
+				return false;
+			}
+
+		}
 
     public function addUserExterno($d)
     {
@@ -233,7 +322,7 @@ class User_model extends CI_Model {
                 'status'=>$this->status[1],
                 'banned_users' => 'unban'
             );
-            $q = $this->db->insert_string('users',$string);             
+            $q = $this->db->insert_string('seg.users',$string);             
             $this->db->query($q);
             return $this->db->insert_id();
     }
@@ -242,7 +331,7 @@ class User_model extends CI_Model {
     public function updateProfile($post)
     {   
         $this->db->where('id', $post['user_id']);
-        $this->db->update('users', array('password' => $post['password'], 'email' => $post['email'], 'first_name' => $post['firstname'], 'last_name' => $post['lastname'])); 
+        $this->db->update('seg.users', array('password' => $post['password'], 'email' => $post['email'], 'first_name' => $post['firstname'], 'last_name' => $post['lastname'])); 
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -256,7 +345,7 @@ class User_model extends CI_Model {
     public function updateUserLevel($post)
     {   
         $this->db->where('email', $post['email']);
-        $this->db->update('users', array('role' => $post['level'])); 
+        $this->db->update('seg.users', array('role' => $post['level'])); 
         $success = $this->db->affected_rows();
         
         if(!$success){
@@ -269,7 +358,7 @@ class User_model extends CI_Model {
     public function updateUserban($post)
     {   
         $this->db->where('email', $post['email']);
-        $this->db->update('users', array('banned_users' => $post['banuser'])); 
+        $this->db->update('seg.users', array('banned_users' => $post['banuser'])); 
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -281,15 +370,15 @@ class User_model extends CI_Model {
     //get email user
     public function getUserData()
     {   
-        $query = $this->db->get('users');
-        return $query->result();
+        $query = $this->db->get('seg.users');
+        return $query->result();       
     }
     
     //delete user
     public function deleteUser($id)
     {   
         $this->db->where('id', $id);
-        $this->db->delete('users');
+        $this->db->delete('seg.users');
         
         if ($this->db->affected_rows() == '1') {
             return FALSE;
@@ -301,18 +390,18 @@ class User_model extends CI_Model {
     
     //get settings
     public function getAllSettings()
-    {
-        $this->db->select('*');
-        $this->db->from('settings');
-        return $this->db->get()->row();
-
+    {        
+			$this->db->select('*');        
+			$query = $this->db->get('seg.settings');
+			$info = $query->result_object();
+			return $info[0];
     }
     
     //do change settings
     public function settings($post)
     {   
         $this->db->where('id', $post['id']);
-        $this->db->update('settings', 
+        $this->db->update('seg.settings', 
             array(
                 'site_title' => $post['site_title'], 
                 'timezone' => $post['timezone'],

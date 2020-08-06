@@ -3,22 +3,22 @@
         <table class="table table-hover table-bordered table-striped">
           <tr>
               <th>
-                  Name
+                  Nombre
               </th>
               <th>
-                  User Name
+                  Usuario
               </th>
               <th>
-                  Last Login
+                  Ultimo login
               </th>
               <th>
-                  Level Name
+                  Nivel de Usuario
               </th>
               <th>
-                  Status
+                  Estado
               </th>
               <th colspan="2">
-                  Edit
+                  Editar
               </th>
           </tr>
                 <?php
@@ -37,13 +37,13 @@
                     }
                     
                     echo '<tr>';
-                    echo '<td>'.$row->first_name.'</td>';
+                    echo '<td>'.$row->first_name.' '.$row->last_name.'</td>';
                     echo '<td>'.$row->email.'</td>';
                     echo '<td>'.$row->last_login.'</td>';
                     echo '<td>'.$rolename.'</td>';
                     echo '<td>'.$row->status.'</td>';
-                    echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Role</button></a></td>';
-                    echo '<td><a href="'.site_url().'main/deleteuser/'.$row->id.'"><button type="button" class="btn btn-danger">Delete</button></a></td>';
+                    echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Rol</button></a></td>';
+                    echo '<td><a href="'.site_url().'main/deleteuser/'.$row->id.'"><button type="button" class="btn btn-danger">Borrar</button></a></td>';
                     echo '</tr>';
                     }
                 ?>
