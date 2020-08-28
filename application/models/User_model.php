@@ -142,7 +142,7 @@ class User_model extends CI_Model {
     //check login
     public function checkLogin($post)
     {
-        $this->load->library('password');       
+        $this->load->library('password');
         $this->db->select('*');
         $this->db->where('email', $post['email']);
         $query = $this->db->get('seg.users');
@@ -165,9 +165,9 @@ class User_model extends CI_Model {
         }
         
         unset($userInfo->password);
-        return $userInfo; 
+        return $userInfo;
     }
-    
+
     //update time login
     public function updateLoginTime($id)
     {
@@ -176,10 +176,14 @@ class User_model extends CI_Model {
         return;
     }
     
-    //get user from email
+    /**
+		* devuelve array con info de Usuario de sistema
+		* @param string email
+		* @return arrray con info de usuario de sistema
+		*/
     public function getUserInfoByEmail($email)
     {
-        $q = $this->db->get_where('users', array('email' => $email), 1);  
+        $q = $this->db->get_where('seg.users', array('email' => $email), 1);
         if($this->db->affected_rows() > 0){
             $row = $q->row();
             return $row;
@@ -206,22 +210,30 @@ class User_model extends CI_Model {
     //add user login
     public function addUser($d)
     {  
+				if ($d['depo_id']) {
+					$depo = $d['depo_id'];
+				} else {
+					$depo = NULL;
+				}
+
 				$string = array(
-						'first_name'=>$d['firstname'],		
-						'last_name'=>$d['lastname'],			
+						'first_name'=>$d['firstname'],
+						'last_name'=>$d['lastname'],
 						'email'=>$d['email'],							
 						'telefono'=>$d['telefono'],				
 						'dni'=>$d['dni'],									
-						'usernick'=>$d['usernick'],				
+						'usernick'=>$d['usernick'],
 						'password'=>$d['password'], 			
 						'role'=>$d['role'], 							
 						'status'=>'approved',
-						'banned_users'=>'unban'							
+						'banned_users'=>'unban',
+						'depo_id'=> $depo
 				);
-				
-				$q = $this->db->insert('seg.users',$string);  
-				$error = $this->db->error();				
-				
+
+				$q = $this->db->insert('seg.users',$string);
+
+				$error = $this->db->error();
+
 				$this->db->select_max('id');						
 				$query = $this->db->get('seg.users');
 				$userInfo = $query->row('id');
@@ -229,7 +241,7 @@ class User_model extends CI_Model {
 				if($userInfo){
 					return $userInfo;
 				}else{
-					log_message('ERROR','#TRAZA|USER_MODEL|ASOCIATEBPMROL($data_rol) >> ERROR -> '.json_encode($error['message']));
+					log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
 					return false;
 				}
            
@@ -239,7 +251,7 @@ class User_model extends CI_Model {
 		* Crear usuarios en BPM
 		* @param array info de usr nuevos
 		* @return string status de servicio
-		*/	
+		*/
 		function crearUsrBPM($cleanPost){
 			
 			//TODO: SACAR HARDCODEO ACA
@@ -260,14 +272,6 @@ class User_model extends CI_Model {
 			$aux =json_decode($aux["status"]);
 			return $aux;
 		}
-		
-		/**
-		* Asociar 
-		* @param 
-		* @return 
-		*/
-
-		
 
 		/**
 		* Asocia usuario a roles y grupos de BPM en BD
@@ -276,9 +280,9 @@ class User_model extends CI_Model {
 		*/
 		public function guardarMembership($membership){
 
-			$query = $this->db->insert('seg.memberships_users',$membership);   
+			$query = $this->db->insert('seg.memberships_users',$membership);
 			$error = $this->db->error();
-			
+
 			if($error['message'] == ""){
 				return true;
 			}else{
@@ -326,7 +330,7 @@ class User_model extends CI_Model {
             $this->db->query($q);
             return $this->db->insert_id();
     }
-    
+
     //update profile user
     public function updateProfile($post)
     {   
@@ -366,7 +370,7 @@ class User_model extends CI_Model {
         }        
         return true;
     }
-    
+
     //get email user
     public function getUserData()
     {   

@@ -63,3 +63,31 @@ DEBUG - 2020-08-06 15:14:04 --> Global POST, GET and COOKIE data sanitized
 DEBUG - 2020-08-06 15:14:06 --> Session: "sess_save_path" is empty; using "session.save_path" value from php.ini.
 DEBUG - 2020-08-06 15:14:06 --> Config file loaded: D:\xampp\htdocs\login\application\config/email.php
 DEBUG - 2020-08-06 15:14:06 --> Total execution time: 2.4371
+DEBUG - 2020-08-06 16:40:47 --> UTF-8 Support Enabled
+DEBUG - 2020-08-06 16:40:47 --> Global POST, GET and COOKIE data sanitized
+DEBUG - 2020-08-06 16:40:48 --> Session: "sess_save_path" is empty; using "session.save_path" value from php.ini.
+DEBUG - 2020-08-06 16:40:48 --> Config file loaded: D:\xampp\htdocs\login\application\config/email.php
+DEBUG - 2020-08-06 16:40:48 --> UTF-8 Support Enabled
+DEBUG - 2020-08-06 16:40:48 --> Global POST, GET and COOKIE data sanitized
+DEBUG - 2020-08-06 16:40:49 --> Session: "sess_save_path" is empty; using "session.save_path" value from php.ini.
+DEBUG - 2020-08-06 16:40:49 --> Config file loaded: D:\xampp\htdocs\login\application\config/email.php
+DEBUG - 2020-08-06 16:40:49 --> #Main/login | {"__ci_last_regenerate":1596742849}
+DEBUG - 2020-08-06 16:40:49 --> cURL Class Initialized
+DEBUG - 2020-08-06 16:40:49 --> #Main/login | Carga Login |false| []
+DEBUG - 2020-08-06 16:40:50 --> Total execution time: 1.4191
+DEBUG - 2020-08-06 18:14:16 --> UTF-8 Support Enabled
+DEBUG - 2020-08-06 18:14:16 --> Global POST, GET and COOKIE data sanitized
+DEBUG - 2020-08-06 18:14:17 --> Session: "sess_save_path" is empty; using "session.save_path" value from php.ini.
+DEBUG - 2020-08-06 18:14:17 --> Config file loaded: D:\xampp\htdocs\login\application\config/email.php
+DEBUG - 2020-08-06 18:14:17 --> #Main/login | {"__ci_last_regenerate":1596748455}
+DEBUG - 2020-08-06 18:14:17 --> cURL Class Initialized
+DEBUG - 2020-08-06 18:14:17 --> #Main/login | Carga Login |false| []
+DEBUG - 2020-08-06 18:14:17 --> Total execution time: 1.3781
+DEBUG - 2020-08-06 18:14:32 --> UTF-8 Support Enabled
+DEBUG - 2020-08-06 18:14:32 --> Global POST, GET and COOKIE data sanitized
+DEBUG - 2020-08-06 18:14:33 --> Session: "sess_save_path" is empty; using "session.save_path" value from php.ini.
+DEBUG - 2020-08-06 18:14:33 --> Config file loaded: D:\xampp\htdocs\login\application\config/email.php
+DEBUG - 2020-08-06 18:14:33 --> #Main/login | {"__ci_last_regenerate":1596748455}
+DEBUG - 2020-08-06 18:14:33 --> cURL Class Initialized
+DEBUG - 2020-08-06 18:14:33 --> #Main/login | Carga Login |false| []
+DEBUG - 2020-08-06 18:14:33 --> Total execution time: 1.3331

@@ -48,7 +48,7 @@ class Main extends CI_Controller {
 		//check user level
 			
 		$data['title'] = "Dashboard Admin";
-		
+
 		
 		if($data['direccion']){
 				log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
@@ -287,7 +287,7 @@ class Main extends CI_Controller {
 	}
 
 	//edit user
-	public function changeuser() 
+	public function changeuser()
 	{
 			$data = $this->session->userdata;
 			if(empty($data['role'])){
@@ -390,7 +390,7 @@ class Main extends CI_Controller {
 				redirect(base_url().'main/login/');
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
-		
+
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -403,7 +403,10 @@ class Main extends CI_Controller {
 
 					$data['title'] = "Agregar Usuario";
 					if ($this->form_validation->run() == FALSE) {
-						
+							// trae depositos para asignar a usuarios depositos
+							$this->load->model('Roles');
+							$data['depo_list'] = $this->Roles->obtenerDepositos();
+
 							$this->load->view('header', $data);
 							$this->load->view('navbar');
 							$this->load->view('container');
@@ -427,13 +430,14 @@ class Main extends CI_Controller {
 									$cleanPost['dni'] = $this->input->post('dni');
 									$cleanPost['banned_users'] = 'unban';
 									$cleanPost['password'] = $hashed;
-									unset($cleanPost['passconf']);	
+									$cleanPost['depo_id'] = $this->input->post('depo_id');
+									unset($cleanPost['passconf']);
 									
 									//insert to database
 									$usr_id = $this->user_model->addUser($cleanPost);
 
-									// crea usr en BPM
-									if($usr_id){										
+									//crea usr en BPM
+									if($usr_id){
 											$status = $this->user_model->crearUsrBPM($cleanPost);
 											if ($status) {
 												$this->session->set_flashdata('flash_message', 'Usuario creado exitosamente...');
@@ -441,7 +445,7 @@ class Main extends CI_Controller {
 											} else {
 												log_message('ERROR','#TRAZA|MAIN|ADDUSER >> ERROR: NO SE PUDO CREAR USUARIO EN BPM');
 												$this->session->set_flashdata('danger_message', 'Error al crear usuario en BPM');
-											}		
+											}
 									}
 
 									redirect(base_url().'main/users/'.$usr_id);
@@ -534,7 +538,7 @@ class Main extends CI_Controller {
 	}
 
 	/**
-	* View para asociar rol BPM con usuario de sistema
+	* View para asociar rol BPM con usuario de sistema levanta pantalla
 	* @param array usuario
 	* @return int 
 	*/
@@ -562,29 +566,26 @@ class Main extends CI_Controller {
 		return $roles;
 	}
 
-
-
 	/**
-	* Asociar id usuario con roles de BPM 
+	* Asociar id usuario con roles de BPM
 	* @param 
-	* @return 
+	* @return
 	*/
 	function guardarMembership(){
 
 		$membership = $this->input->post('membership');
 		$membership['usuario_app'] = userNick();
 		$user = userNick();
+
+		// guarda membership en BD (para menues y manejo local de usr)
 		$resp = $this->user_model->guardarMembership($membership);
 
+		// guarda membership en BPM
 		$membershipBPM = $this->input->post('membershipBPM');
-		if ($resp) {
-
-			$this->load->model('Roles');
-			$this->Roles->guardarMembershipBPM($membershipBPM);
-		} else {
-			echo false;
-			return;
-		}
+		//obtiene el nick de un usuario por email
+		$infoUser = $this->user_model->getUserInfoByEmail($membership['email']);
+		$this->load->model('Roles');
+		$resp = $this->Roles->guardarMembershipBPM($membershipBPM, $infoUser->usernick);
 
 		echo $resp;
 	}
@@ -599,8 +600,6 @@ class Main extends CI_Controller {
 		$resp = $this->user_model->borrarMembership($membership[0]);
 		echo $resp;
 	}
-
-
 
 	//register new user from frontend
 	public function register()
@@ -844,12 +843,12 @@ class Main extends CI_Controller {
 							}
 							// correcto el usuario y no esta baneado
 							elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
-							{																
+							{
 									$usernick = $userInfo->usernick;
-									// Trae id de usr en BPM a partir de Nick 
+									// Trae id de usr en BPM a partir de Nick
 									$infoUser = $this->bpm->getUser($usernick);
 									$userbpm = $infoUser['data']['id'];
-							
+
 									if ($userbpm) {
 										$userInfo->userIdBpm = $userbpm;
 									} else {
@@ -859,7 +858,7 @@ class Main extends CI_Controller {
 									foreach($userInfo as $key=>$val){
 											$this->session->set_userdata($key, $val);
 									}
-									log_message('DEBUG','#Main/checkLoginUser/');									
+									log_message('DEBUG','#Main/checkLoginUser/');
 									redirect(DE);
 							}
 							else
