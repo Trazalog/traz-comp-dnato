@@ -115,7 +115,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 <script>
-	
+
 	function guardar(){
 	
 		var fila = $("#tbl_temporal tbody tr");
@@ -139,8 +139,7 @@
 				type: 'POST',
 				data:{email:email,
 							level:level},
-				url:"http://localhost/login/main/cambiarNivelUsr",
-				
+				url: '<?php echo base_url() ?>/main/cambiarNivelUsr',
 				success: function($result){
 
 							$(".selec_habilitar").attr('disabled', 'disabled');
@@ -186,7 +185,8 @@
 
 						type: 'POST',
 						data:{ membership, membershipBPM },
-						url: "http://localhost/login/main/guardarMembership",
+						//url: "http://localhost/login/main/guardarMembership",
+						url: '<?php echo base_url() ?>/main/guardarMembership',
 						success: function(result) {
 
 										$("#tbl_temporal tbody").append(row);
@@ -220,7 +220,8 @@
 			$.ajax({
 					type: 'POST',
 					data:{ membership },
-					url: "http://localhost/login/main/borrarMembership",
+					//url: "http://localhost/login/main/borrarMembership",
+					url: '<?php echo base_url() ?>/main/borrarMembership',
 					success: function(result) {							
 									row.remove();
 					},
