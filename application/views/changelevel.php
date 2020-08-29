@@ -115,7 +115,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 <script>
-
+	
 	function guardar(){
 	
 		var fila = $("#tbl_temporal tbody tr");
@@ -139,7 +139,8 @@
 				type: 'POST',
 				data:{email:email,
 							level:level},
-				url: '<?php echo base_url() ?>/main/cambiarNivelUsr',
+				url:"http://localhost/traz-comp-dnato/main/cambiarNivelUsr",
+				
 				success: function($result){
 
 							$(".selec_habilitar").attr('disabled', 'disabled');
@@ -159,8 +160,8 @@
 		var role_id = $("#roles option:selected").val();
 		
 		if ((group_id != -1) || (role_id != -1)) {			
-		
-				var user_id = $("#email").val();	
+
+				var user_id = $("#email").val();
 				var icon = "<i class='fa fa-trash' aria-hidden='true'></i>";
 				var goup_nombre = $("#groups option:selected").text();
 				var role_nombre = $("#roles option:selected").text();
@@ -185,8 +186,7 @@
 
 						type: 'POST',
 						data:{ membership, membershipBPM },
-						//url: "http://localhost/login/main/guardarMembership",
-						url: '<?php echo base_url() ?>/main/guardarMembership',
+						url: "http://localhost/traz-comp-dnato/main/guardarMembership",
 						success: function(result) {
 
 										$("#tbl_temporal tbody").append(row);
@@ -220,8 +220,7 @@
 			$.ajax({
 					type: 'POST',
 					data:{ membership },
-					//url: "http://localhost/login/main/borrarMembership",
-					url: '<?php echo base_url() ?>/main/borrarMembership',
+					url: "http://localhost/traz-comp-dnato/main/borrarMembership",
 					success: function(result) {							
 									row.remove();
 					},
