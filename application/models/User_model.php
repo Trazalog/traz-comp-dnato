@@ -25,7 +25,7 @@ class User_model extends CI_Model {
                 'status'=>$this->status[0],
                 'banned_users'=>$this->banned_users[0]
             );
-            $q = $this->db->insert_string('users',$string);             
+            $q = $this->db->insert_string('users',$string);
             $this->db->query($q);
             return $this->db->insert_id();
     }
@@ -88,7 +88,7 @@ class User_model extends CI_Model {
     //get user info
     public function getUserInfo($id)
     {
-        $q = $this->db->get_where('users', array('id' => $id), 1);  
+        $q = $this->db->get_where('seg.users', array('id' => $id), 1);
         if($this->db->affected_rows() > 0){
             $row = $q->row();
             return $row;
@@ -123,11 +123,11 @@ class User_model extends CI_Model {
     {
         $data = array(
                'password' => $post['password'],
-               'last_login' => date('Y-m-d h:i:s A'), 
+               'last_login' => date('Y-m-d h:i:s A'),
                'status' => $this->status[1]
             );
         $this->db->where('id', $post['user_id']);
-        $this->db->update('users', $data); 
+        $this->db->update('seg.users', $data);
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -135,7 +135,7 @@ class User_model extends CI_Model {
             return false;
         }
         
-        $user_info = $this->getUserInfo($post['user_id']); 
+        $user_info = $this->getUserInfo($post['user_id']);
         return $user_info; 
     }
     
@@ -197,7 +197,7 @@ class User_model extends CI_Model {
     public function updatePassword($post)
     {   
         $this->db->where('id', $post['user_id']);
-        $this->db->update('users', array('password' => $post['password'])); 
+        $this->db->update('users', array('password' => $post['password']));
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -326,7 +326,7 @@ class User_model extends CI_Model {
                 'status'=>$this->status[1],
                 'banned_users' => 'unban'
             );
-            $q = $this->db->insert_string('seg.users',$string);             
+            $q = $this->db->insert_string('seg.users',$string);
             $this->db->query($q);
             return $this->db->insert_id();
     }
@@ -335,7 +335,7 @@ class User_model extends CI_Model {
     public function updateProfile($post)
     {   
         $this->db->where('id', $post['user_id']);
-        $this->db->update('seg.users', array('password' => $post['password'], 'email' => $post['email'], 'first_name' => $post['firstname'], 'last_name' => $post['lastname'])); 
+        $this->db->update('seg.users', array('password' => $post['password'], 'email' => $post['email'], 'first_name' => $post['firstname'], 'last_name' => $post['lastname']));
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -349,9 +349,9 @@ class User_model extends CI_Model {
     public function updateUserLevel($post)
     {   
         $this->db->where('email', $post['email']);
-        $this->db->update('seg.users', array('role' => $post['level'])); 
+        $this->db->update('seg.users', array('role' => $post['level']));
         $success = $this->db->affected_rows();
-        
+
         if(!$success){
             return false;
         }        
@@ -362,7 +362,7 @@ class User_model extends CI_Model {
     public function updateUserban($post)
     {   
         $this->db->where('email', $post['email']);
-        $this->db->update('seg.users', array('banned_users' => $post['banuser'])); 
+        $this->db->update('seg.users', array('banned_users' => $post['banuser']));
         $success = $this->db->affected_rows(); 
         
         if(!$success){
