@@ -8,13 +8,14 @@ class Main extends CI_Controller {
 
 	function __construct(){
 		parent::__construct();
-		$this->load->model('User_model', 'user_model', TRUE);	
+		$this->load->model('User_model', 'user_model', TRUE);
 		$this->load->library('form_validation');
 		$this->form_validation->set_error_delimiters('<div class="error">', '</div>');
 		$this->status = $this->config->item('status');
 		$this->roles = $this->config->item('roles');
 		$this->load->library('userlevel');
 		$this->load->config('email');
+		$this->load->model('Roles');
 
 	}
 
@@ -23,7 +24,7 @@ class Main extends CI_Controller {
 		// $this->session->set_userdata('direccion', );
 		// $this->session->set_userdata('direccionsalida', );
 		$this->login();
-		// log_message('DEBUG','#Main/setdir | '.json_encode($this->session->userdata()));    
+		// log_message('DEBUG','#Main/setdir | '.json_encode($this->session->userdata()));
 		// redirect(base_url().'main/index');
 	}
 
@@ -49,7 +50,7 @@ class Main extends CI_Controller {
 			
 		$data['title'] = "Dashboard Admin";
 
-		
+
 		if($data['direccion']){
 				log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
 				redirect($data['direccion']);
@@ -804,6 +805,7 @@ class Main extends CI_Controller {
 	{
 			$data = $this->session->userdata();
 			log_message('DEBUG','#Main/login | '.json_encode($data));
+			// si la sesion existe redirige a sistema
 			if($data['email']){
 				log_message('DEBUG','#Main/login Sesion Existente');
 				redirect(DE);
@@ -812,19 +814,28 @@ class Main extends CI_Controller {
 					$this->load->library('recaptcha');
 					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
 					$this->form_validation->set_rules('password', 'Password', 'required');
-					
+
 					$data['title'] = "Trazalog Tools!";
 
+					// si esan vacios los campos, carga pantalla login
 					if($this->form_validation->run() == FALSE) {
+
 							log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()) . '| '.json_encode($this->input->post()));
+							// traigo los groups de BPM para lleba
+							$data['empresas'] = $this->Roles->getBpmGroups();
 							$this->load->view('header', $data);
 							$this->load->view('container');
 							$this->load->view('login');
 							$this->load->view('footer');
 					}else{
+
+							// toma los datos del form loguin y los procesa
 							$post = $this->input->post();
 							$clean = $this->security->xss_clean($post);
 							$userInfo = $this->user_model->checkLogin($clean);
+
+							// guardo id de empresa paa agregar a la variable de sesion
+							$userInfo->empr_id = $clean['empr_id'];
 
 							log_message('DEBUG','#Main/login | userInfo: '.json_encode($userInfo));
 							//email o contraseña erroneo
@@ -853,8 +864,10 @@ class Main extends CI_Controller {
 										$userInfo->userIdBpm = $userbpm;
 									} else {
 										log_message('ERROR','#TRAZA|MAIN|LOGIN|NO HAY USUARIO EN BPM CON EL NICK >> '.$usernick);
+										$this->session->set_flashdata('flash_message', 'Error en logueo de BPM...');
+										redirect(base_url().'main/login/');
 									}
-
+									// guardo info en variable de sesion
 									foreach($userInfo as $key=>$val){
 											$this->session->set_userdata($key, $val);
 									}
