@@ -147,13 +147,20 @@ class User_model extends CI_Model {
         $this->db->where('email', $post['email']);
         $query = $this->db->get('seg.users');
         $userInfo = $query->row();
-        $count = $query->num_rows();
-        
-        if($count == 1){
+				$countUs = $query->num_rows();
+
+				//FIXME: VALIDAR LA EMPRESA
+				// $this->db->select('*');
+				// $this->db->where('group');
+				// $query = $this->db->get('seg.membership_users');
+        // $userMemb = $query->row();
+				// $countMem = $query->num_rows();
+
+        // if( ($countUs == 1) && ($countMem == 1) ){
+					if( ($countUs == 1) ){
             if(!$this->password->validate_password($post['password'], $userInfo->password))
-            {   
+            {
                 log_message('ERROR','#TRAZA|USER_MODEL|ERROR EN PAASSWORD >> PASSWORD-> '. $post['password']);
-                //error_log('Logueo Erróneo con el Email: ('.$post['email'].')');
                 return false;
             }else{
                 $this->updateLoginTime($userInfo->id);
@@ -164,7 +171,10 @@ class User_model extends CI_Model {
             return false;
         }
         
-        unset($userInfo->password);
+				unset($userInfo->password);
+				// $user_info->group = $userMemb['group'];
+				// $user_info->rol = $userMemb['role'];
+
         return $userInfo;
     }
 

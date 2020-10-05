@@ -3,6 +3,25 @@
     <h5>Ingrese por favor.</h5>
     <?php $fattr = array('class' => 'form-signin');
          echo form_open(base_url().'main/login/', $fattr); ?>
+
+
+    <div class="form-group">
+      <?php
+          // groups de BPM
+          $opciones= array('' => 'Seleccione Empresa...');
+          foreach ($empresas as $value) {
+
+            $nom = explode("-", $value->name);
+            $empr_id = $nom[0];
+            $key = $empr_id;
+            $opciones[$key] = $value->displayName;
+          }
+          $empr_id = 'empr_id';
+          echo form_dropdown($empr_id, $opciones, set_value($empr_id),'class = "form-control" id="empr_id"');
+          //echo form_dropdown('name', 'opciones', 'opcion seleccionada', 'atributos del select(id,onChange, etc')
+      ?>
+    </div>
+
     <div class="form-group">
       <?php echo form_input(array(
           'name'=>'email', 
@@ -14,10 +33,10 @@
     </div>
     <div class="form-group">
       <?php echo form_password(array(
-          'name'=>'password', 
-          'id'=> 'password', 
-          'placeholder'=>'Password', 
-          'class'=>'form-control', 
+          'name'=>'password',
+          'id'=> 'password',
+          'placeholder'=>'Password',
+          'class'=>'form-control',
           'value'=> set_value('password'))); ?>
       <?php echo form_error('password') ?>
     </div>
