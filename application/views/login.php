@@ -11,9 +11,10 @@
           $opciones= array('' => 'Seleccione Empresa...');
           foreach ($empresas as $value) {
 
-            $nom = explode("-", $value->name);
-            $empr_id = $nom[0];
-            $key = $empr_id;
+            // $nom = explode("-", $value->name);
+            // $empr_id = $nom[0];
+            // $key = $empr_id;
+            $key = $value->name;
             $opciones[$key] = $value->displayName;
           }
           $empr_id = 'empr_id';
