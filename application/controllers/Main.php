@@ -142,7 +142,7 @@ class Main extends CI_Controller {
 				$data['timezonevalue'] = "";
 					$data['timezone'] = "Select a time zone";
 		}
-		
+
 		if($dataLevel == "is_admin"){
 					if ($this->form_validation->run() == FALSE) {
 							$this->load->view('header', $data);
@@ -594,7 +594,7 @@ class Main extends CI_Controller {
 	/**
 	* Borra membresia en DB
 	* @param array con datos de usuario
-	* @return strig true o false respuesta de borrado 
+	* @return strig true o false respuesta de borrado
 	*/	
 	function borrarMembership(){
 		$membership = $this->input->post('membership');
@@ -832,11 +832,26 @@ class Main extends CI_Controller {
 							// toma los datos del form loguin y los procesa
 							$post = $this->input->post();
 							$clean = $this->security->xss_clean($post);
+							// tomo empr_id y nombre
+							$nom = explode("-", $clean['empr_id']);
+							$empr_id = $nom[0];
+							$empresa = $nom[1];
+							$email = $clean['email'];
+
+							// chequea si pertence el usuario a la empresa
+							$logEmpresa = $this->user_model->chekEmpresa($empresa, $email);
+							if(!$logEmpresa)
+							{
+								log_message('ERROR','#Main/login | El usuario no corresponde a la empresa .');
+								$this->session->set_flashdata('flash_message', 'El usuario no corresponde a la empresa seleccionada.');
+								redirect(base_url().'main/login');
+							}else{
+								// guardo id de empresa paa agregar a la variable de sesion
+								$userInfo->empr_id = $empr_id;
+							}
+
+							// guardo info de usuario
 							$userInfo = $this->user_model->checkLogin($clean);
-
-							// guardo id de empresa paa agregar a la variable de sesion
-							$userInfo->empr_id = $clean['empr_id'];
-
 							log_message('DEBUG','#Main/login | userInfo: '.json_encode($userInfo));
 							//email o contraseña erroneo
 							if(!$userInfo)

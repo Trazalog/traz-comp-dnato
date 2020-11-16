@@ -149,14 +149,6 @@ class User_model extends CI_Model {
         $userInfo = $query->row();
 				$countUs = $query->num_rows();
 
-				//FIXME: VALIDAR LA EMPRESA
-				// $this->db->select('*');
-				// $this->db->where('group');
-				// $query = $this->db->get('seg.membership_users');
-        // $userMemb = $query->row();
-				// $countMem = $query->num_rows();
-
-        // if( ($countUs == 1) && ($countMem == 1) ){
 					if( ($countUs == 1) ){
             if(!$this->password->validate_password($post['password'], $userInfo->password))
             {
@@ -170,13 +162,34 @@ class User_model extends CI_Model {
             error_log('NO HAY UN USUARIO CON EL EMAIL INGRESADO : ('.$post['email'].')');
             return false;
         }
-        
+
 				unset($userInfo->password);
-				// $user_info->group = $userMemb['group'];
-				// $user_info->rol = $userMemb['role'];
 
         return $userInfo;
-    }
+		}
+
+		/**
+		* chequea si corresponde el usuario con la empresa elegida en el login
+		* @param int $empresa , varchar $email
+		* @return bool true o false
+		*/
+		function chekEmpresa($empresa, $email){
+
+			$this->db->select("*");
+			$this->db->where("email", $email);
+			$this->db->where("group", $empresa);
+			$query = $this->db->get("seg.memberships_users");
+			$userInfo = $query->row();
+			$countUs = $query->num_rows();
+
+			if( $countUs == 1 ){
+				return true;
+			}else{
+				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
+				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $email  >> '.json_encode($email));
+        return false;
+			}
+		}
 
     //update time login
     public function updateLoginTime($id)
@@ -185,7 +198,7 @@ class User_model extends CI_Model {
         $this->db->update('users', array('last_login' => date('Y-m-d h:i:s A')));
         return;
     }
-    
+
     /**
 		* devuelve array con info de Usuario de sistema
 		* @param string email
