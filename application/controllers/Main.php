@@ -845,9 +845,6 @@ class Main extends CI_Controller {
 								log_message('ERROR','#Main/login | El usuario no corresponde a la empresa .');
 								$this->session->set_flashdata('flash_message', 'El usuario no corresponde a la empresa seleccionada.');
 								redirect(base_url().'main/login');
-							}else{
-								// guardo id de empresa paa agregar a la variable de sesion
-								$userInfo->empr_id = $empr_id;
 							}
 
 							// guardo info de usuario
@@ -869,7 +866,8 @@ class Main extends CI_Controller {
 							}
 							// correcto el usuario y no esta baneado
 							elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
-							{
+							{		// guardo id de empresa para agregar a la variable de sesion
+									$userInfo->empr_id = $empr_id;
 									$usernick = $userInfo->usernick;
 									// Trae id de usr en BPM a partir de Nick
 									$infoUser = $this->bpm->getUser($usernick);
