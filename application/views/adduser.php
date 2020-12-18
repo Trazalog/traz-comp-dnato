@@ -35,14 +35,15 @@
 
     <div class="form-group">
     <?php
+
     // rol de Dnato
-        $dd_list = array(
-                  '0'   => 'Seleccione Rol de Sistema...',
-                  '1'   => 'Admin',
-                  '2'   => 'Author',
-                  '3'   => 'Editor',
-                  '4'   => 'Subscriber',
-                );
+        // $dd_list = array(
+        //           '0'   => 'Seleccione Rol de Sistema...',
+        //           '1'   => 'Admin',
+        //           '2'   => 'Author',
+        //           '3'   => 'Editor',
+        //           '4'   => 'Subscriber',
+        //         );
         $dd_name = "role";
         echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="role"');
     ?>

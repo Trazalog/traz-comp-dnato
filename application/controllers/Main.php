@@ -47,7 +47,7 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		//check user level
-			
+
 		$data['title'] = "Dashboard Admin";
 
 
@@ -215,7 +215,8 @@ class Main extends CI_Controller {
 		$data['dd_list'] = $this->Roles->obtener();
 		$data['groups'] = $this->Roles->getBpmGroups();
 		$data['roles'] = $this->Roles->getBpmRoles();
-			
+			log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
+			log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO->$dataLevel: >> '.json_encode($dataLevel));
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -224,12 +225,15 @@ class Main extends CI_Controller {
 					$this->form_validation->set_rules('level', 'User Level', 'required');
 
 					if ($this->form_validation->run() == FALSE) {
+						log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALS
+						E ');
 							$this->load->view('header', $data);
 							$this->load->view('navbar', $data);
 							$this->load->view('container');
 							$this->load->view('changelevel', $data);
 							$this->load->view('footer');
 					}else{
+							log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> TRUE ');
 							$cleanPost['email'] = $this->input->post('email');
 							$cleanPost['level'] = $this->input->post('level');
 							if(!$this->user_model->updateUserLevel($cleanPost)){
@@ -245,7 +249,7 @@ class Main extends CI_Controller {
 	}
 
 	//ban or unban user
-	public function banuser() 
+	public function banuser()
 	{
 		$data = $this->session->userdata;
 		//check user level
@@ -255,8 +259,8 @@ class Main extends CI_Controller {
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		//check user level
 
-		$data['title'] = "Borrar usuario";
-		$data['groups'] = $this->user_model->getUserData();
+		$data['title'] = "Habilitar/Deshabilitar Usuarios";
+		$data['groups'] = $this->user_model->getUserDataAll();
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -406,6 +410,8 @@ class Main extends CI_Controller {
 					if ($this->form_validation->run() == FALSE) {
 							// trae depositos para asignar a usuarios depositos
 							$this->load->model('Roles');
+							$data['dd_list'] = $this->Roles->obtener();
+							//var_dump($data);
 							$data['depo_list'] = $this->Roles->obtenerDepositos();
 
 							$this->load->view('header', $data);
@@ -522,7 +528,7 @@ class Main extends CI_Controller {
 	/**
 	* Cambia nivel de usuario de Login
 	* @param array email y nivel usuario
-	* @return 
+	* @return
 	*/
 	public function cambiarNivelUsr(){
 
@@ -578,7 +584,7 @@ class Main extends CI_Controller {
 		$membership['usuario_app'] = userNick();
 		$user = userNick();
 
-		// guarda membership en BD (para menues y manejo local de usr)
+		//guarda membership en BD (para menues y manejo local de usr)
 		$resp = $this->user_model->guardarMembership($membership);
 
 		// guarda membership en BPM
@@ -857,11 +863,11 @@ class Main extends CI_Controller {
 									$this->session->set_flashdata('flash_message', 'Email o contraseña erroneo.');
 									redirect(base_url().'main/login');
 							}
-							// usuario baneado o no 
+							// usuario baneado o no
 							elseif($userInfo->banned_users == "ban")
 							{
-									log_message('ERROR','#Main/login | You’re temporarily banned from our website!');
-									$this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
+									log_message('ERROR','MAIN|LOGIN >> USUARIO BANEADO EN EL SISTEMA');
+									$this->session->set_flashdata('danger_message', 'Ud se encuentra temporalmente inhabilitado para este Sistema...');
 									redirect(base_url().'main/login');
 							}
 							// correcto el usuario y no esta baneado

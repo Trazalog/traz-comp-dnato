@@ -23,8 +23,8 @@
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                   <ul class="nav navbar-nav">
                     <!-- <li><a href="<?php //echo site_url();?>main/"><i class="fa fa-tachometer" aria-hidden="true"></i> Dashboard</a></li> -->
-                    <li><a href="<?php echo DE;?>"><i class="fa fa-tachometer" aria-hidden="true"></i> RSU</a></li>
-                  
+                    <li><a href="<?php echo DE;?>"><i class="fa fa-tachometer" aria-hidden="true"></i> <?php echo SIS_NAME; ?></a></li>
+
                     <?php
                         if($dataLevel == 'is_admin'){ //Check user level if is Admin
                             echo'
@@ -33,7 +33,7 @@
                               <ul class="dropdown-menu">
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
                                 <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
-                                <li><a href="'.site_url().'main/banuser">Baja Usuario</a></li>
+                                <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>
                                 <li><a href="'.site_url().'main/changelevel">Roles</a></li>
                               </ul>
                             </li>

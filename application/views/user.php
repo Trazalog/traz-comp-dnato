@@ -2,30 +2,18 @@
         <h2>Usuarios</h2>
         <table class="table table-hover table-bordered table-striped">
           <tr>
-              <th>
-                  Nombre
-              </th>
-              <th>
-                  Usuario
-              </th>
-              <th>
-                  Ultimo login
-              </th>
-              <th>
-                  Nivel de Usuario
-              </th>
-              <th>
-                  Estado
-              </th>
-              <th colspan="2">
-                  Editar
-              </th>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Ultimo login</th>
+              <th>Nivel de Usuario</th>
+              <th>Estado</th>
+              <th colspan="2">Editar</th>
           </tr>
                 <?php
                     foreach($groups as $row)
                     { 
 
-                    if($row->role == USUARIO_EXTERNO) continue;
+                    //if($row->role == USUARIO_EXTERNO) continue;
                     if($row->role == 1){
                         $rolename = "Admin";
                     }elseif($row->role == 2){

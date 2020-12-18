@@ -32,7 +32,7 @@ class User_model extends CI_Model {
     
     //check is duplicate
     public function isDuplicate($email)
-    {     
+    {
         $this->db->get_where('seg.users', array('email' => $email), 1);
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
     }
@@ -60,7 +60,7 @@ class User_model extends CI_Model {
        $tkn = substr($token,0,30);
        $uid = substr($token,30);      
        
-        $q = $this->db->get_where('tokens', array(
+        $q = $this->db->get_where('seg.tokens', array(
             'tokens.token' => $tkn, 
             'tokens.user_id' => $uid), 1);                         
                
@@ -232,7 +232,7 @@ class User_model extends CI_Model {
     
     //add user login
     public function addUser($d)
-    {  
+    {
 				if ($d['depo_id']) {
 					$depo = $d['depo_id'];
 				} else {
@@ -370,11 +370,12 @@ class User_model extends CI_Model {
     
     //update user level
     public function updateUserLevel($post)
-    {   
+    {
+        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
         $this->db->where('email', $post['email']);
         $this->db->update('seg.users', array('role' => $post['level']));
         $success = $this->db->affected_rows();
-
+        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
         if(!$success){
             return false;
         }        
@@ -394,12 +395,30 @@ class User_model extends CI_Model {
         return true;
     }
 
-    //get email user
+    /**
+		* Devuelve los usuarios activos
+		* @param
+		* @return array usuarios activos
+		*/
     public function getUserData()
-    {   
-        $query = $this->db->get('seg.users');
-        return $query->result();       
-    }
+    {
+        $query = $this->db->get_where('seg.users', array('banned_users' => 'unban'));
+        return $query->result();
+		}
+
+		/**
+		* Devuelve listado de TODOS los usuarios del sistema
+		* @param
+		* @return array con usuarios del sistema
+		*/
+		function getUserDataAll()
+		{     
+			$query = $this->db->get('seg.users');
+        return $query->result();
+			
+		}
+
+
     
     //delete user
     public function deleteUser($id)
