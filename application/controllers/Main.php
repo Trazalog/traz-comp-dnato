@@ -7,6 +7,7 @@ class Main extends CI_Controller {
 	public $roles;
 
 	function __construct(){
+
 		parent::__construct();
 		$this->load->model('User_model', 'user_model', TRUE);
 		$this->load->library('form_validation');
@@ -16,7 +17,6 @@ class Main extends CI_Controller {
 		$this->load->library('userlevel');
 		$this->load->config('email');
 		$this->load->model('Roles');
-
 	}
 
 	public function setdir()
@@ -32,7 +32,7 @@ class Main extends CI_Controller {
 	public function index()
 	{
 		//user data from session
-		$data = $this->session->userdata();		
+		$data = $this->session->userdata();
 		log_message('DEBUG','#Main/index | '.json_encode($data));
 
 		if(empty($data['email'])){
@@ -49,7 +49,6 @@ class Main extends CI_Controller {
 		//check user level
 
 		$data['title'] = "Dashboard Admin";
-
 
 		if($data['direccion']){
 				log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
@@ -611,25 +610,27 @@ class Main extends CI_Controller {
 	//register new user from frontend
 	public function register()
 	{
-			$data['title'] = "Register to Admin";
+			$data['title'] = "Registro Nuevo Usuario";
 			$this->load->library('curl');
 			$this->load->library('recaptcha');
 			$this->form_validation->set_rules('firstname', 'First Name', 'required');
 			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
 			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-			
+
 			$result = $this->user_model->getAllSettings();
 			$sTl = $result->site_title;
 			$data['recaptcha'] = $result->recaptcha;
-
+			// Si esprimera vez al entrar carga pantalla ara registrarse
 			if ($this->form_validation->run() == FALSE) {
+					// traigo los groups de BPM para lleba
+					$data['empresas'] = $this->Roles->getBpmGroups();
 					$this->load->view('header', $data);
 					$this->load->view('container');
 					$this->load->view('register');
 					$this->load->view('footer');
 			}else{
 					if($this->user_model->isDuplicate($this->input->post('email'))){
-							$this->session->set_flashdata('flash_message', 'User email already exists');
+							$this->session->set_flashdata('flash_message', 'El email que intenta registrar ya existe...');
 							redirect(base_url().'main/register');
 					}else{
 							$post = $this->input->post(NULL, TRUE);
@@ -704,7 +705,7 @@ class Main extends CI_Controller {
 
 									$this->load->library('email',$config);
 									$this->load->library('sendmail');
-									
+
 									$message = $this->sendmail->sendRegister($this->input->post('lastname'),$this->input->post('email'),$link,$sTl);
 									$to_email = $this->input->post('email');
 									$this->email->from($this->config->item('register'), 'Set Password ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
@@ -719,7 +720,7 @@ class Main extends CI_Controller {
 											redirect(base_url().'main/successregister/');
 									}else{
 											show_error($this->email->print_debugger());
-											$this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
+											$this->session->set_flashdata('flash_message', 'Hbo un problema al enviar el email.');
 											exit;
 									}
 							}
@@ -760,7 +761,7 @@ class Main extends CI_Controller {
 			$user_info = $this->user_model->isTokenValid($cleanToken); //either false or array();
 
 			if(!$user_info){
-					$this->session->set_flashdata('flash_message', 'Token is invalid or expired');
+					$this->session->set_flashdata('flash_message', 'Token invalido o expirado...');
 					redirect(base_url().'main/login');
 			}
 			$data = array(
@@ -770,7 +771,7 @@ class Main extends CI_Controller {
 					'token'=>$this->base64url_encode($token)
 			);
 
-			$data['title'] = "Set the Password";
+			$data['title'] = "Establecer Password";
 
 			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
 			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
@@ -792,7 +793,7 @@ class Main extends CI_Controller {
 					$userInfo = $this->user_model->updateUserInfo($cleanPost);
 
 					if(!$userInfo){
-							$this->session->set_flashdata('flash_message', 'There was a problem updating your record');
+							$this->session->set_flashdata('flash_message', 'Hubo un problema actualizando su Usuario...');
 							redirect(base_url().'main/login');
 					}
 

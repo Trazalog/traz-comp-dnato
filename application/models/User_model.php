@@ -17,17 +17,17 @@ class User_model extends CI_Model {
     //insert user into database
     public function insertUser($d)
     {  
-            $string = array(
-                'first_name'=>$d['firstname'],
-                'last_name'=>$d['lastname'],
-                'email'=>$d['email'],
-                'role'=>$this->roles[0], 
-                'status'=>$this->status[0],
-                'banned_users'=>$this->banned_users[0]
-            );
-            $q = $this->db->insert_string('users',$string);
-            $this->db->query($q);
-            return $this->db->insert_id();
+				$string = array(
+						'first_name'=>$d['firstname'],
+						'last_name'=>$d['lastname'],
+						'email'=>$d['email'],
+						'role'=>$this->roles[0],
+						'status'=>$this->status[0],
+						'banned_users'=>$this->banned_users[0]
+				);
+				$q = $this->db->insert_string('seg.users',$string);
+				$this->db->query($q);
+				return $this->db->insert_id();
     }
     
     //check is duplicate
