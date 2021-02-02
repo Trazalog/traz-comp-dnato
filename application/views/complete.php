@@ -1,7 +1,7 @@
 <div class="col-lg-4 col-lg-offset-4">
     <h2>Almost There!</h2>
-    <h5>Hello <span><?php echo $firstName; ?></span>. <br>Your username is <span><?php echo $email;?></span>.</h5>
-    <small>Please enter a password to begin using the site.</small>
+    <h5>Hola <span><?php echo $firstName; ?></span>. <br>Your username is <span><?php echo $email;?></span>.</h5>
+    <small>Por favor elija su password para comenzar a usar el Sitio.</small>
     <br>
     <br>
 <?php 
@@ -12,7 +12,7 @@
       <?php echo form_error('password') ?>
     </div>
     <div class="form-group">
-      <?php echo form_password(array('name'=>'passconf', 'id'=> 'passconf', 'placeholder'=>'Confirm Password', 'class'=>'form-control', 'value'=> set_value('passconf'))); ?>
+      <?php echo form_password(array('name'=>'passconf', 'id'=> 'passconf', 'placeholder'=>'Confirme Password...', 'class'=>'form-control', 'value'=> set_value('passconf'))); ?>
       <?php echo form_error('passconf') ?>
     </div>
     <?php echo form_hidden('user_id', $user_id);?>
