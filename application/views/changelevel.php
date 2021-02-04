@@ -53,7 +53,7 @@
 						<?php
 								foreach($groups as $gr)
 								{
-									echo '<option value="'.$gr->name.'">'.$gr->displayName.'</option>';
+									echo '<option value="'.$gr->id.'-'.$gr->name.'">'.$gr->displayName.'</option>';
 								}
 						?>
 					</select>
@@ -65,7 +65,7 @@
 						<?php
 								foreach($roles as $rol)
 								{
-									echo '<option value="'.$rol->name.'">'.$rol->displayName.'</option>';
+									echo '<option value="'.$rol->id.'-'.$rol->name.'">'.$rol->displayName.'</option>';
 								}
 						?>
 					</select>
@@ -161,7 +161,7 @@
 		var role_id = $("#roles option:selected").val();
 		
 		if ((group_id != -1) || (role_id != -1)) {
-
+debugger;
 				var user_id = $("#email").val();
 				var icon = "<i class='fa fa-trash' aria-hidden='true'></i>";
 				var goup_nombre = $("#groups option:selected").text();
@@ -177,13 +177,14 @@
 				var membership = {};
 				membership.email = user_id;
 				var grupo = group_id.split("-");
-				var id_grupo = grupo[1];
-				membership.group = id_grupo;
+				var name = grupo[2];
+				membership.group = name;
 				membership.role = role_nombre;
 
 				var membershipBPM = {};
-				membershipBPM.group_id = group_id;
-				membershipBPM.role_id = role_id;
+				membershipBPM.group_id = grupo[0];
+				var rolarray = role_id.split("-");
+				membershipBPM.role_id = rolarray[0];
 
 				$.ajax({
 
