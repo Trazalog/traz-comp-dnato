@@ -182,7 +182,7 @@ class User_model extends CI_Model {
 			$userInfo = $query->row();
 			$countUs = $query->num_rows();
 
-			if( $countUs == 1 ){
+			if( $countUs > 0 ){
 				return true;
 			}else{
 				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
@@ -381,7 +381,7 @@ class User_model extends CI_Model {
         }        
         return true;
     }
-    
+
     //update user ban
     public function updateUserban($post)
     {   
