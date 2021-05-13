@@ -878,10 +878,13 @@ class Main extends CI_Controller {
 									$usernick = $userInfo->usernick;
 									// Trae id de usr en BPM a partir de Nick
 									$infoUser = $this->bpm->getUser($usernick);
+									var_dump($infoUser);
 									$userbpm = $infoUser['data']['id'];
+									$groupbpm = $empresa;
 
 									if ($userbpm) {
 										$userInfo->userIdBpm = $userbpm;
+										$userInfo->groupBpm = $groupbpm;
 									} else {
 										log_message('ERROR','#TRAZA|MAIN|LOGIN|NO HAY USUARIO EN BPM CON EL NICK >> '.$usernick);
 										$this->session->set_flashdata('flash_message', 'Error en logueo de BPM...');
