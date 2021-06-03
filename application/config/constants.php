@@ -84,17 +84,19 @@ defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
-define('BONITA_URL', 'http://10.142.0.7:8080/bonita/');
-define('REST_BPM', 'http://10.142.0.7:8280/tools/bpm');
+define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
+define('REST_BPM', 'http://10.142.0.13:8280/tools/bpm');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('BPM_USER_PASS', 'bpm');
 
-define('REST', 'http://10.142.0.7:8280/services/semaresiduosDS');
+define('REST', 'http://10.142.0.13:8280/services/semaresiduosDS');
 
+#SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
 define('DE', 'http://localhost/traz-tools/');
 define('DS', 'http://localhost/traz-comp-dnato/main/login');
+define('SIS_NAME', 'TOOLS');
 
 #ERRORES DE BONITA
 define('ASP_100', 'Fallo Conexión BPM');

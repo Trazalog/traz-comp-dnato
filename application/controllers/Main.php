@@ -7,6 +7,7 @@ class Main extends CI_Controller {
 	public $roles;
 
 	function __construct(){
+
 		parent::__construct();
 		$this->load->model('User_model', 'user_model', TRUE);
 		$this->load->library('form_validation');
@@ -16,7 +17,6 @@ class Main extends CI_Controller {
 		$this->load->library('userlevel');
 		$this->load->config('email');
 		$this->load->model('Roles');
-
 	}
 
 	public function setdir()
@@ -32,7 +32,7 @@ class Main extends CI_Controller {
 	public function index()
 	{
 		//user data from session
-		$data = $this->session->userdata();		
+		$data = $this->session->userdata();
 		log_message('DEBUG','#Main/index | '.json_encode($data));
 
 		if(empty($data['email'])){
@@ -47,9 +47,8 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		//check user level
-			
-		$data['title'] = "Dashboard Admin";
 
+		$data['title'] = "Dashboard Admin";
 
 		if($data['direccion']){
 				log_message('DEBUG','#Main/index | Redireccion: '.$data['direccion']);
@@ -142,7 +141,7 @@ class Main extends CI_Controller {
 				$data['timezonevalue'] = "";
 					$data['timezone'] = "Select a time zone";
 		}
-		
+
 		if($dataLevel == "is_admin"){
 					if ($this->form_validation->run() == FALSE) {
 							$this->load->view('header', $data);
@@ -215,7 +214,8 @@ class Main extends CI_Controller {
 		$data['dd_list'] = $this->Roles->obtener();
 		$data['groups'] = $this->Roles->getBpmGroups();
 		$data['roles'] = $this->Roles->getBpmRoles();
-			
+			log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
+			log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO->$dataLevel: >> '.json_encode($dataLevel));
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -224,12 +224,15 @@ class Main extends CI_Controller {
 					$this->form_validation->set_rules('level', 'User Level', 'required');
 
 					if ($this->form_validation->run() == FALSE) {
+						log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALS
+						E ');
 							$this->load->view('header', $data);
 							$this->load->view('navbar', $data);
 							$this->load->view('container');
 							$this->load->view('changelevel', $data);
 							$this->load->view('footer');
 					}else{
+							log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> TRUE ');
 							$cleanPost['email'] = $this->input->post('email');
 							$cleanPost['level'] = $this->input->post('level');
 							if(!$this->user_model->updateUserLevel($cleanPost)){
@@ -245,7 +248,7 @@ class Main extends CI_Controller {
 	}
 
 	//ban or unban user
-	public function banuser() 
+	public function banuser()
 	{
 		$data = $this->session->userdata;
 		//check user level
@@ -255,8 +258,8 @@ class Main extends CI_Controller {
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		//check user level
 
-		$data['title'] = "Borrar usuario";
-		$data['groups'] = $this->user_model->getUserData();
+		$data['title'] = "Habilitar/Deshabilitar Usuarios";
+		$data['groups'] = $this->user_model->getUserDataAll();
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -406,6 +409,8 @@ class Main extends CI_Controller {
 					if ($this->form_validation->run() == FALSE) {
 							// trae depositos para asignar a usuarios depositos
 							$this->load->model('Roles');
+							$data['dd_list'] = $this->Roles->obtener();
+							//var_dump($data);
 							$data['depo_list'] = $this->Roles->obtenerDepositos();
 
 							$this->load->view('header', $data);
@@ -522,7 +527,7 @@ class Main extends CI_Controller {
 	/**
 	* Cambia nivel de usuario de Login
 	* @param array email y nivel usuario
-	* @return 
+	* @return
 	*/
 	public function cambiarNivelUsr(){
 
@@ -578,7 +583,7 @@ class Main extends CI_Controller {
 		$membership['usuario_app'] = userNick();
 		$user = userNick();
 
-		// guarda membership en BD (para menues y manejo local de usr)
+		//guarda membership en BD (para menues y manejo local de usr)
 		$resp = $this->user_model->guardarMembership($membership);
 
 		// guarda membership en BPM
@@ -594,7 +599,7 @@ class Main extends CI_Controller {
 	/**
 	* Borra membresia en DB
 	* @param array con datos de usuario
-	* @return strig true o false respuesta de borrado 
+	* @return strig true o false respuesta de borrado
 	*/	
 	function borrarMembership(){
 		$membership = $this->input->post('membership');
@@ -605,25 +610,27 @@ class Main extends CI_Controller {
 	//register new user from frontend
 	public function register()
 	{
-			$data['title'] = "Register to Admin";
+			$data['title'] = "Registro Nuevo Usuario";
 			$this->load->library('curl');
 			$this->load->library('recaptcha');
 			$this->form_validation->set_rules('firstname', 'First Name', 'required');
 			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
 			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-			
+
 			$result = $this->user_model->getAllSettings();
 			$sTl = $result->site_title;
 			$data['recaptcha'] = $result->recaptcha;
-
+			// Si esprimera vez al entrar carga pantalla ara registrarse
 			if ($this->form_validation->run() == FALSE) {
+					// traigo los groups de BPM para lleba
+					$data['empresas'] = $this->Roles->getBpmGroups();
 					$this->load->view('header', $data);
 					$this->load->view('container');
 					$this->load->view('register');
 					$this->load->view('footer');
 			}else{
 					if($this->user_model->isDuplicate($this->input->post('email'))){
-							$this->session->set_flashdata('flash_message', 'User email already exists');
+							$this->session->set_flashdata('flash_message', 'El email que intenta registrar ya existe...');
 							redirect(base_url().'main/register');
 					}else{
 							$post = $this->input->post(NULL, TRUE);
@@ -698,7 +705,7 @@ class Main extends CI_Controller {
 
 									$this->load->library('email',$config);
 									$this->load->library('sendmail');
-									
+
 									$message = $this->sendmail->sendRegister($this->input->post('lastname'),$this->input->post('email'),$link,$sTl);
 									$to_email = $this->input->post('email');
 									$this->email->from($this->config->item('register'), 'Set Password ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
@@ -713,7 +720,7 @@ class Main extends CI_Controller {
 											redirect(base_url().'main/successregister/');
 									}else{
 											show_error($this->email->print_debugger());
-											$this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
+											$this->session->set_flashdata('flash_message', 'Hbo un problema al enviar el email.');
 											exit;
 									}
 							}
@@ -754,7 +761,7 @@ class Main extends CI_Controller {
 			$user_info = $this->user_model->isTokenValid($cleanToken); //either false or array();
 
 			if(!$user_info){
-					$this->session->set_flashdata('flash_message', 'Token is invalid or expired');
+					$this->session->set_flashdata('flash_message', 'Token invalido o expirado...');
 					redirect(base_url().'main/login');
 			}
 			$data = array(
@@ -764,7 +771,7 @@ class Main extends CI_Controller {
 					'token'=>$this->base64url_encode($token)
 			);
 
-			$data['title'] = "Set the Password";
+			$data['title'] = "Establecer Password";
 
 			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
 			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
@@ -786,7 +793,7 @@ class Main extends CI_Controller {
 					$userInfo = $this->user_model->updateUserInfo($cleanPost);
 
 					if(!$userInfo){
-							$this->session->set_flashdata('flash_message', 'There was a problem updating your record');
+							$this->session->set_flashdata('flash_message', 'Hubo un problema actualizando su Usuario...');
 							redirect(base_url().'main/login');
 					}
 
@@ -832,11 +839,23 @@ class Main extends CI_Controller {
 							// toma los datos del form loguin y los procesa
 							$post = $this->input->post();
 							$clean = $this->security->xss_clean($post);
+							// tomo empr_id y nombre
+							$nom = explode("-", $clean['empr_id']);
+							$empr_id = $nom[0];
+							$empresa = $nom[1];
+							$email = $clean['email'];
+
+							// chequea si pertence el usuario a la empresa
+							$logEmpresa = $this->user_model->chekEmpresa($empresa, $email);
+							if(!$logEmpresa)
+							{
+								log_message('ERROR','#Main/login | El usuario no corresponde a la empresa .');
+								$this->session->set_flashdata('flash_message', 'El usuario no corresponde a la empresa seleccionada.');
+								redirect(base_url().'main/login');
+							}
+
+							// guardo info de usuario
 							$userInfo = $this->user_model->checkLogin($clean);
-
-							// guardo id de empresa paa agregar a la variable de sesion
-							$userInfo->empr_id = $clean['empr_id'];
-
 							log_message('DEBUG','#Main/login | userInfo: '.json_encode($userInfo));
 							//email o contraseña erroneo
 							if(!$userInfo)
@@ -845,23 +864,27 @@ class Main extends CI_Controller {
 									$this->session->set_flashdata('flash_message', 'Email o contraseña erroneo.');
 									redirect(base_url().'main/login');
 							}
-							// usuario baneado o no 
+							// usuario baneado o no
 							elseif($userInfo->banned_users == "ban")
 							{
-									log_message('ERROR','#Main/login | You’re temporarily banned from our website!');
-									$this->session->set_flashdata('danger_message', 'You’re temporarily banned from our website!');
+									log_message('ERROR','MAIN|LOGIN >> USUARIO BANEADO EN EL SISTEMA');
+									$this->session->set_flashdata('danger_message', 'Ud se encuentra temporalmente inhabilitado para este Sistema...');
 									redirect(base_url().'main/login');
 							}
 							// correcto el usuario y no esta baneado
 							elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
-							{
+							{		// guardo id de empresa para agregar a la variable de sesion
+									$userInfo->empr_id = $empr_id;
 									$usernick = $userInfo->usernick;
 									// Trae id de usr en BPM a partir de Nick
 									$infoUser = $this->bpm->getUser($usernick);
+									var_dump($infoUser);
 									$userbpm = $infoUser['data']['id'];
+									$groupbpm = $empresa;
 
 									if ($userbpm) {
 										$userInfo->userIdBpm = $userbpm;
+										$userInfo->groupBpm = $groupbpm;
 									} else {
 										log_message('ERROR','#TRAZA|MAIN|LOGIN|NO HAY USUARIO EN BPM CON EL NICK >> '.$usernick);
 										$this->session->set_flashdata('flash_message', 'Error en logueo de BPM...');

@@ -6,7 +6,7 @@ class Roles extends CI_Model
     {
         parent::__construct();
     }
-    
+
     public function obtener($id = false)
     {
         $this->db->where('eliminado', 0);
@@ -53,7 +53,7 @@ class Roles extends CI_Model
 				$token = 123;
 				$aux = $this->rest->callAPI("GET",REST_BPM."/roles/".$token);
 				$aux =json_decode($aux["data"]);
-				return $aux->payload;				
+				return $aux->payload;
 		}
 
 		/**

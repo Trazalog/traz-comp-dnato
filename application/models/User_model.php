@@ -17,22 +17,22 @@ class User_model extends CI_Model {
     //insert user into database
     public function insertUser($d)
     {  
-            $string = array(
-                'first_name'=>$d['firstname'],
-                'last_name'=>$d['lastname'],
-                'email'=>$d['email'],
-                'role'=>$this->roles[0], 
-                'status'=>$this->status[0],
-                'banned_users'=>$this->banned_users[0]
-            );
-            $q = $this->db->insert_string('users',$string);
-            $this->db->query($q);
-            return $this->db->insert_id();
+				$string = array(
+						'first_name'=>$d['firstname'],
+						'last_name'=>$d['lastname'],
+						'email'=>$d['email'],
+						'role'=>$this->roles[0],
+						'status'=>$this->status[0],
+						'banned_users'=>$this->banned_users[0]
+				);
+				$q = $this->db->insert_string('seg.users',$string);
+				$this->db->query($q);
+				return $this->db->insert_id();
     }
     
     //check is duplicate
     public function isDuplicate($email)
-    {     
+    {
         $this->db->get_where('seg.users', array('email' => $email), 1);
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
     }
@@ -60,7 +60,7 @@ class User_model extends CI_Model {
        $tkn = substr($token,0,30);
        $uid = substr($token,30);      
        
-        $q = $this->db->get_where('tokens', array(
+        $q = $this->db->get_where('seg.tokens', array(
             'tokens.token' => $tkn, 
             'tokens.user_id' => $uid), 1);                         
                
@@ -149,14 +149,6 @@ class User_model extends CI_Model {
         $userInfo = $query->row();
 				$countUs = $query->num_rows();
 
-				//FIXME: VALIDAR LA EMPRESA
-				// $this->db->select('*');
-				// $this->db->where('group');
-				// $query = $this->db->get('seg.membership_users');
-        // $userMemb = $query->row();
-				// $countMem = $query->num_rows();
-
-        // if( ($countUs == 1) && ($countMem == 1) ){
 					if( ($countUs == 1) ){
             if(!$this->password->validate_password($post['password'], $userInfo->password))
             {
@@ -170,13 +162,34 @@ class User_model extends CI_Model {
             error_log('NO HAY UN USUARIO CON EL EMAIL INGRESADO : ('.$post['email'].')');
             return false;
         }
-        
+
 				unset($userInfo->password);
-				// $user_info->group = $userMemb['group'];
-				// $user_info->rol = $userMemb['role'];
 
         return $userInfo;
-    }
+		}
+
+		/**
+		* chequea si corresponde el usuario con la empresa elegida en el login
+		* @param int $empresa , varchar $email
+		* @return bool true o false
+		*/
+		function chekEmpresa($empresa, $email){
+
+			$this->db->select("*");
+			$this->db->where("email", $email);
+			$this->db->where("group", $empresa);
+			$query = $this->db->get("seg.memberships_users");
+			$userInfo = $query->row();
+			$countUs = $query->num_rows();
+
+			if( $countUs > 0 ){
+				return true;
+			}else{
+				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
+				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $email  >> '.json_encode($email));
+        return false;
+			}
+		}
 
     //update time login
     public function updateLoginTime($id)
@@ -185,7 +198,7 @@ class User_model extends CI_Model {
         $this->db->update('users', array('last_login' => date('Y-m-d h:i:s A')));
         return;
     }
-    
+
     /**
 		* devuelve array con info de Usuario de sistema
 		* @param string email
@@ -219,7 +232,7 @@ class User_model extends CI_Model {
     
     //add user login
     public function addUser($d)
-    {  
+    {
 				if ($d['depo_id']) {
 					$depo = $d['depo_id'];
 				} else {
@@ -357,17 +370,18 @@ class User_model extends CI_Model {
     
     //update user level
     public function updateUserLevel($post)
-    {   
+    {
+        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
         $this->db->where('email', $post['email']);
         $this->db->update('seg.users', array('role' => $post['level']));
         $success = $this->db->affected_rows();
-
+        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
         if(!$success){
             return false;
         }        
         return true;
     }
-    
+
     //update user ban
     public function updateUserban($post)
     {   
@@ -381,12 +395,30 @@ class User_model extends CI_Model {
         return true;
     }
 
-    //get email user
+    /**
+		* Devuelve los usuarios activos
+		* @param
+		* @return array usuarios activos
+		*/
     public function getUserData()
-    {   
-        $query = $this->db->get('seg.users');
-        return $query->result();       
-    }
+    {
+        $query = $this->db->get_where('seg.users', array('banned_users' => 'unban'));
+        return $query->result();
+		}
+
+		/**
+		* Devuelve listado de TODOS los usuarios del sistema
+		* @param
+		* @return array con usuarios del sistema
+		*/
+		function getUserDataAll()
+		{     
+			$query = $this->db->get('seg.users');
+        return $query->result();
+			
+		}
+
+
     
     //delete user
     public function deleteUser($id)

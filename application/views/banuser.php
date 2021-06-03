@@ -1,5 +1,5 @@
 <div class="col-lg-4 col-lg-offset-4">
-    <h2>Borrar Usuarios</h2>
+    <h2>Habilitar/Deshabilitar Usuarios</h2>
     <h5>Hola <span><?php echo $first_name; ?></span>, <br>Por favor elija el usuario.</h5>     
     <?php $fattr = array('class' => 'form-signin');
          echo form_open(site_url().'main/banuser/', $fattr); ?>

@@ -35,20 +35,21 @@
 
     <div class="form-group">
     <?php
+
     // rol de Dnato
-        $dd_list = array(
-                  '0'   => 'Seleccione Rol de Sistema...',
-                  '1'   => 'Admin',
-                  '2'   => 'Author',
-                  '3'   => 'Editor',
-                  '4'   => 'Subscriber',
-                );
+        // $dd_list = array(
+        //           '0'   => 'Seleccione Rol de Sistema...',
+        //           '1'   => 'Admin',
+        //           '2'   => 'Author',
+        //           '3'   => 'Editor',
+        //           '4'   => 'Subscriber',
+        //         );
         $dd_name = "role";
         echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="role"');
     ?>
     </div>
 
-    <div class="form-group">
+    <!-- <div class="form-group"> -->
       <?php
         // rol de Depositos
           $opciones= array('' => 'Seleccione Deposito si corresponde...');
@@ -57,9 +58,9 @@
             $opciones[$key] = $value->descripcion;
           }
           $depo_name = "depo_id";
-          echo form_dropdown($depo_name, $opciones, set_value($depo_name),'class = "form-control" id="deposito"');
+        //  echo form_dropdown($depo_name, $opciones, set_value($depo_name),'class = "form-control" id="deposito"');
       ?>
-    </div>
+    <!-- </div> -->
     <div class="form-group">
       <?php echo form_password(array('name'=>'password', 'id'=> 'password', 'placeholder'=>'Password', 'class'=>'form-control', 'value' => set_value('password'))); ?>
       <?php echo form_error('password') ?>

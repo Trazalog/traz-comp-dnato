@@ -53,10 +53,10 @@
 						<?php
 								foreach($groups as $gr)
 								{
-									echo '<option value="'.$gr->id.'">'.$gr->displayName.'</option>';
+									echo '<option value="'.$gr->id.'-'.$gr->name.'">'.$gr->displayName.'</option>';
 								}
 						?>
-							</select>
+					</select>
 			</div>
 			<div class="form-group">
 					<label for="roles" name="roles">Rol:</label>
@@ -65,7 +65,7 @@
 						<?php
 								foreach($roles as $rol)
 								{
-									echo '<option value="'.$rol->id.'">'.$rol->displayName.'</option>';
+									echo '<option value="'.$rol->id.'-'.$rol->name.'">'.$rol->displayName.'</option>';
 								}
 						?>
 					</select>
@@ -139,7 +139,7 @@
 				type: 'POST',
 				data:{email:email,
 							level:level},
-				url:"http://localhost/traz-comp-dnato/main/cambiarNivelUsr",
+				url:'<?php echo base_url() ?>/main/cambiarNivelUsr',
 				
 				success: function($result){
 
@@ -154,39 +154,43 @@
 		});		
 	}
 
+
 	function agregar(){
-	
+
 		var group_id = $("#groups option:selected").val();
 		var role_id = $("#roles option:selected").val();
 		
-		if ((group_id != -1) || (role_id != -1)) {			
-
+		if ((group_id != -1) || (role_id != -1)) {
+debugger;
 				var user_id = $("#email").val();
 				var icon = "<i class='fa fa-trash' aria-hidden='true'></i>";
 				var goup_nombre = $("#groups option:selected").text();
 				var role_nombre = $("#roles option:selected").text();
 
 				var row = '<tr>'+ 
-												'<td class="hidden">' + user_id + '</td>'+										
-												'<td>' + icon + '</td>'+			
+												'<td class="hidden">' + user_id + '</td>'+
+												'<td>' + icon + '</td>'+
 												'<td>'+ goup_nombre  +'</td>'+
 												'<td>'+ role_nombre  +'</td>'+
 									'</tr>';
 
 				var membership = {};
 				membership.email = user_id;
-				membership.group = goup_nombre;
+				var grupo = group_id.split("-");
+				var name = grupo[2];
+				membership.group = name;
 				membership.role = role_nombre;
 
 				var membershipBPM = {};
-				membershipBPM.group_id = group_id;
-				membershipBPM.role_id = role_id;
+				membershipBPM.group_id = grupo[0];
+				var rolarray = role_id.split("-");
+				membershipBPM.role_id = rolarray[0];
 
 				$.ajax({
 
 						type: 'POST',
 						data:{ membership, membershipBPM },
-						url: "http://localhost/traz-comp-dnato/main/guardarMembership",
+						url: '<?php echo base_url() ?>/main/guardarMembership',
 						success: function(result) {
 
 										$("#tbl_temporal tbody").append(row);
@@ -197,21 +201,22 @@
 						complete: function(){
 
 						}
-				});				
+				});
+
 		
 		}else{
 				alert("Seleccione un Grupo y un rol antes de agregar por favor...");
 				return;
-		}					
-	}	
+		}
+	}
 
-	$(document).on("click",".fa-trash",function() {	
+	$(document).on("click",".fa-trash",function() {
 			var row = $(this).parents("tr");
 			var membership = [];
 			var user_id = $(this).parents("tr").find("td").eq(0).html();
 			var group_id = $(this).parents("tr").find("td").eq(2).html();
 			var role_id	= $(this).parents("tr").find("td").eq(3).html();
-			tmp = {};		
+			tmp = {};
 			tmp.email = user_id;
 			tmp.group = group_id;
 			tmp.role  = role_id;
@@ -220,8 +225,8 @@
 			$.ajax({
 					type: 'POST',
 					data:{ membership },
-					url: "http://localhost/traz-comp-dnato/main/borrarMembership",
-					success: function(result) {							
+					url: '<?php echo base_url() ?>/main/borrarMembership',
+					success: function(result) {
 									row.remove();
 					},
 					error: function(result){

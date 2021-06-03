@@ -11,9 +11,10 @@
           $opciones= array('' => 'Seleccione Empresa...');
           foreach ($empresas as $value) {
 
-            $nom = explode("-", $value->name);
-            $empr_id = $nom[0];
-            $key = $empr_id;
+            // $nom = explode("-", $value->name);
+            // $empr_id = $nom[0];
+            // $key = $empr_id;
+            $key = $value->name;
             $opciones[$key] = $value->displayName;
           }
           $empr_id = 'empr_id';
@@ -49,6 +50,6 @@
     echo form_submit(array('value'=>'Ingresar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
     <?php echo form_close(); ?>
     <br>
-    <p>No esta registrado? <a href="<?php echo base_url();?>main/register">Registrese por favor</a></p>
-    <p>Olvido su contraseña? <a href="<?php echo base_url();?>main/forgot">Recupere contraseña</a></p>
+    <!-- <p>No esta registrado? <a href="<?php //echo base_url();?>main/register">Registrese por favor</a></p>
+    <p>Olvido su contraseña? <a href="<?php //echo base_url();?>main/forgot">Recupere contraseña</a></p> -->
 </div>
