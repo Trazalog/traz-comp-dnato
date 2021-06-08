@@ -536,10 +536,10 @@ class Main extends CI_Controller {
 
 		if(!$this->user_model->updateUserLevel($cleanPost)){
 				$this->session->set_flashdata('flash_message', 'Fallo cambio de nivel');
-				echo false;
+				return false;
 		}else{
 				$this->session->set_flashdata('success_message', 'nivelCambiado con exito.');
-				echo true;
+				return true;
 		}
 	}
 
