@@ -196,6 +196,61 @@ class Main extends CI_Controller {
 		}
 	}
 
+	//change level user id
+	public function changeleveluser($id){
+
+		$this->load->model('Roles');
+
+		$data = $this->session->userdata;
+		//check user level
+		if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+		}
+		$dataLevel = $this->userlevel->checkLevel($data['role']);
+		//check user level
+
+		$data['title'] = "Cambiar Niveles de Usuarios";
+		//$data['users'] = $this->user_model->getUserData();
+		$data['user'] = $this->user_model->getUserInfo($id);
+		$data['dd_list'] = $this->Roles->obtener();
+		$data['groups'] = $this->Roles->getBpmGroups();
+		$data['roles'] = $this->Roles->getBpmRoles();
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO ->$dataLevel: >> '.json_encode($dataLevel));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE LISTADO USUARIOS ->$data[users]: >> '.json_encode($data['users']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']));
+ 
+		//check is admin or not
+		if($dataLevel == "is_admin"){
+
+			$this->form_validation->set_rules('email', 'Your Email', 'required');
+			$this->form_validation->set_rules('level', 'User Level', 'required');
+
+			if ($this->form_validation->run() == FALSE) {
+				log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALSE ');
+					$this->load->view('header', $data);
+					$this->load->view('navbar', $data);
+					$this->load->view('container');
+					//$this->load->view('changelevel', $data);
+					$this->load->view('changeleveluser', $data);
+					$this->load->view('footer');
+			}else{
+					log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> TRUE ');
+					$cleanPost['email'] = $this->input->post('email');
+					$cleanPost['level'] = $this->input->post('level');
+					if(!$this->user_model->updateUserLevel($cleanPost)){
+							$this->session->set_flashdata('flash_message', 'There was a problem updating the level user');
+					}else{
+							$this->session->set_flashdata('success_message', 'The level user has been updated.');
+					}
+					redirect(base_url().'main/changelevel');
+			}
+		}else{
+				redirect(base_url().'main/');
+		}
+
+
+	}
 	//change level user
 	public function changelevel()
 	{
@@ -224,8 +279,7 @@ class Main extends CI_Controller {
 					$this->form_validation->set_rules('level', 'User Level', 'required');
 
 					if ($this->form_validation->run() == FALSE) {
-						log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALS
-						E ');
+						log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALSE ');
 							$this->load->view('header', $data);
 							$this->load->view('navbar', $data);
 							$this->load->view('container');
@@ -357,8 +411,8 @@ class Main extends CI_Controller {
 
 	//delete user
 	public function deleteuser($id) {
-					$data = $this->session->userdata;
-					if(empty($data['role'])){
+		$data = $this->session->userdata;
+		if(empty($data['role'])){
 				redirect(base_url().'main/login/');
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);

@@ -94,8 +94,8 @@ define('REST', 'http://10.142.0.13:8280/services/semaresiduosDS');
 
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
-define('DE', 'http://localhost/traz-tools/');
-define('DS', 'http://localhost/traz-comp-dnato/main/login');
+define('DE', 'http://localhost:8081/traz-tools/');
+define('DS', 'http://localhost:8081/traz-comp-dnato/main/login');
 define('SIS_NAME', 'TOOLS');
 
 #ERRORES DE BONITA
