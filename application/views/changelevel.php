@@ -107,8 +107,6 @@
 		
 </div>
     
-    <!-- <?php //echo form_submit(array('value'=>'Enviar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
-    <a href="<?php// echo site_url().'main/users/';?>"><button type="button" class="btn btn-default btn-lg btn-block">Cancelar</button></a> -->
 
 </div> 
 

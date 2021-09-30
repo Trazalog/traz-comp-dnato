@@ -212,13 +212,15 @@ class Main extends CI_Controller {
 		$data['title'] = "Cambiar Niveles de Usuarios";
 		//$data['users'] = $this->user_model->getUserData();
 		$data['user'] = $this->user_model->getUserInfo($id);
+		$data['mem_user']['emp_ro'] = $this->user_model->gestMembershipsUserInfo($data['user']->email);
 		$data['dd_list'] = $this->Roles->obtener();
 		$data['groups'] = $this->Roles->getBpmGroups();
 		$data['roles'] = $this->Roles->getBpmRoles();
 		//log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO ->$dataLevel: >> '.json_encode($dataLevel));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE LISTADO USUARIOS ->$data[users]: >> '.json_encode($data['users']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO ->$dataLevel: >> '.json_encode($dataLevel));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']->email));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[mem_user]: >> '.json_encode($data['mem_user']));
+
  
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -243,7 +245,7 @@ class Main extends CI_Controller {
 					}else{
 							$this->session->set_flashdata('success_message', 'The level user has been updated.');
 					}
-					redirect(base_url().'main/changelevel');
+					redirect(base_url().'main/changeleveluser');
 			}
 		}else{
 				redirect(base_url().'main/');

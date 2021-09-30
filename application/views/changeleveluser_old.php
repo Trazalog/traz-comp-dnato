@@ -2,9 +2,10 @@
 <div class="col-lg-12 col-lg-offset-0">
 	<h2>Cambio de Rol</h2>
 	<h5>Hola <span><?php echo $first_name; ?></span>. Aquí puede realizar cambios de roles de usuario para el usuario. </h5>
-    <hr> 
-<!-- /.box-header -->
-<div class="box-body">
+    <hr>     
+
+    <!-- /.box-header -->
+    <div class="box-body">
         <div class="row">
             <div class="col-md-4">
                 <h4>Edición de Roles</h4>
@@ -73,7 +74,8 @@
 
 </div>
 
-<!--_______ MODAL ______-->
+
+ <!--_______ MODAL ______-->
 <div class="modal fade" id="mdlRolEmpresa">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -140,49 +142,54 @@
 
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
-
 <script>
 
-function modalRol(){
-    $("#mdlRolEmpresa").modal('show');
-    $("#groups").val('-1');
-    $("#roles").val('-1');  
-    document.getElementById('errorModal').style.display = 'none';
+//<--_______ PAGE ______-->
+                                    
+ //<--_______ MODAL _____-->
+ function modalRol(){
+
+$("#modalRolEmpresa").modal('show');
+$("#groups").val('-1');
+$("#roles").val('-1');  
+document.getElementById('errorModal').style.display = 'none';
 }
 
-function agregarRoles(userId){
-    
-    var groupId = $("#groups option:selected").val();
+    function agregarRoles(userId){
+
+        var groupId = $("#groups option:selected").val();
         var roleId = $("#roles option:selected").val();
         var email = $("#emailuser").val();
-        
+        console.log('0 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
+
         if((groupId !== '-1') && (roleId !== '-1')){
             
-            //console.log('1 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
             document.getElementById('errorModal').style.display = 'none';
+        
             
             var icon = "<i class='fa fa-trash' aria-hidden='true'></i>";
             var goup_nombre = $("#groups option:selected").text();
             var role_nombre = $("#roles option:selected").text();
 
-            //console.log('1 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
+            console.log('1 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
             var rowCount = $("#tbl_temporal > tbody > tr").length;
-            //console.log(rowCount);
-            
+            var rows = $("#tbl_temporal > tbody > tr");
+            console.log(rowCount);
+            console.log(rows);
+
+
             var row =   '<tr>'+ 
                         '<td class="hidden">' + email + '</td>'+
+                        '<td>' + icon + '</td>'+
                         '<td>'+ goup_nombre  +'</td>'+
                         '<td>'+ role_nombre  +'</td>'+
-                        '<td>' + icon + '</td>'+
             '</tr>';
             $("#tbl_temporal tbody").append(row);
-
-        }else{  
-            //console.log('2 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
+        }else{
+            console.log('2 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
             document.getElementById('errorModal').style.display = 'block';
-            return;
+        
         }
-
-}
+    }
 
 </script>

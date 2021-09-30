@@ -83,7 +83,21 @@ class User_model extends CI_Model {
             return false;
         }
         
-    }    
+    } 
+    
+    //get user memberships_users info
+    public function gestMembershipsUserInfo($email){
+
+        $query = $this->db->get_where('seg.memberships_users', array('email' => $email), 1);
+
+        if($this->db->affected_rows() > 0){
+            $row = $query->row();
+            return $row;
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }
+    }
     
     //get user info
     public function getUserInfo($id)
