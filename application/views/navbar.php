@@ -37,8 +37,7 @@
                                 <li><a href="'.site_url().'main/changelevel">Roles</a></li>
                               </ul>
                             </li>
-                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>
-                            ';
+                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>';
                         }
                     ?>
                   </ul>
@@ -49,6 +48,18 @@
                         <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li>
                         <li><a href="<?php echo site_url();?>main/changeuser">Editar Perfil</a></li>
                         <li role="separator" class="divider"></li>
+
+                        <?php
+                            foreach($groups as $group){
+                              list($id_group, $group_name) = explode ("-",$group->name);
+                              if($groupBpm == $group_name){
+                                echo "  "."<li><a><i class='fa fa-check'></i>  ".$group->displayName."</a></li>";
+                                echo "<li role='separator' class='divider'></li>";
+                              }
+                              
+                            }
+                        ?>
+                                                
                         <li><a href="<?php echo base_url().'main/logout' ?>">Salir</a></li>
                       </ul>
                     </li>

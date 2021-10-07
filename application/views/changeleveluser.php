@@ -6,7 +6,7 @@
 <!-- /.box-header -->
 <div class="box-body">
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-4 col-lg-offset-0">
                 <h4>Edición de Roles</h4>
                 <div class="form-group">
                     <label>Email: </label>  <?php echo ' '.$user->email; ?><br>
@@ -32,7 +32,7 @@
                 <!-- /.form-group -->
             </div>
             <!-- /.col -->
-            <div class="col-md-8 col-lg-offset-0">
+            <div class="col-md-7 col-lg-offset-1">
                 <h4>Roles en el Sistema
                     <button type="button" class="btn pull-right btn-primary" data-toggle="modal" onclick="modalRol();" >Agregar Rol</button>
                 </h4>
@@ -41,20 +41,32 @@
                     <table id="tbl_temporal" class="table table-striped">
                             <thead >					
                                     <th class="hidden">email</th>					
+                                    <th class="hidden">group_id</th>					
                                     <th>Empresa</th>					
                                     <th>Rol</th>					
                                     <th>Acción</th>
                             </thead>
                             <tbody >
-                                <?php foreach($mem_user as $members){ ?>
-                                    <tr>
-                                        <td class="hidden"><?php echo $members->email ?></td>
-                                        <td><?php echo $members->group ?></td>
-                                        <td><?php echo $members->role ?></td>
-                                        <td><i class='fa fa-trash' aria-hidden='true'></i></td>
-                                        
-                                    </tr>
-                                <?php } ?>
+                                <?php  
+                                    foreach($mem_user as $members){ 
+                                        foreach($groups as $group){
+                                            list($id_group, $group_name) = explode ("-",$group->name);
+                                            if($members->group === $group_name){
+
+                                                if($members->email !== null){    
+                                                     
+                                                    echo '<tr>';
+                                                    echo '<td class="hidden">'. $members->email. '</td>';
+                                                    echo '<td class="hidden">'.$group->id.'-'.$group->name. '</td>';
+                                                    echo '<td>'. $group->displayName. '</td>';
+                                                    echo '<td>'. $members->role. '</td>';
+                                                    echo '<td><i class="fa fa-trash text-red" aria-hidden="true" style="cursor: pointer;" onclick="EliminarRolUsuario()"></i></td>';
+                                                    echo '</tr>';
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    } ?>
                             </tbody>
                     </table>											
 
@@ -68,7 +80,7 @@
     <br>
     <div class="modal-footer">
         <a href= <?php echo site_url().'main/users' ?>><button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button></a>
-        <button type="button" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarRolesUsuario();">Guardar</button>
     </div>
 
 </div>
@@ -86,11 +98,14 @@
             <div class="modal-body">
 
 				<div class="alert alert-danger alert-dismissable" id="errorModal" style="display: none">
-				    <h4><i class="icon fa fa-ban"></i> Error!</h4>
 					Revise que todos los campos esten completos
 				</div>
+				
+                <div class="alert alert-danger alert-dismissable" id="errorModalAsig" style="display: none">
+                    Revise. El rol seleccionado ya ha sido asignado
+				</div>
 
-				<form class="form-horizontal" id="frm-NoConsumible">
+				<form class="form-horizontal" id="formRolEmprresa">
                 
 					<div class="form-group">
                         <label >email: </label>
@@ -101,10 +116,25 @@
 						<select class="form-control " name="groups" id="groups" >
 						<option value="-1" disabled selected>-Seleccione Grupos BPM-</option>
 						<?php
-								foreach($groups as $gr)
-								{
-									echo '<option value="'.$gr->id.'-'.$gr->name.'">'.$gr->displayName.'</option>';
-								}
+                            if(empty($mem_user->emp_core)){
+                                foreach($groups as $group){
+    
+                                    list($id_group, $group_name) = explode ("-",$group->name);
+                                    if($members->group === $group_name){
+                                        echo '<option value="'.$group->id.'-'.$group->name.'">'.$group->displayName.'</option>';
+                                    }
+                                }
+                            }else{
+                                foreach($mem_user as $members){ 
+                                    foreach($groups as $group){
+    
+                                        list($id_group, $group_name) = explode ("-",$group->name);
+                                        if($members->group === $group_name){
+                                            echo '<option value="'.$group->id.'-'.$group->name.'">'.$group->displayName.'</option>';
+                                        }
+                                    }
+                                }
+                            }
 						?>
 					</select>
 					</div>                    
@@ -114,8 +144,7 @@
 						<select class="form-control " name="roles" id="roles" >
                                 <option value="-1" disabled selected >-Seleccione Roles BPM-</option>
                                 <?php
-                                        foreach($roles as $rol)
-                                        {
+                                        foreach($roles as $rol){
                                             echo '<option value="'.$rol->id.'-'.$rol->name.'">'.$rol->displayName.'</option>';
                                         }
                                 ?>
@@ -126,7 +155,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="agregarRoles(<?php echo $user->id; ?>);">Agregar</button>
+                <button type="button" class="btn btn-primary" onclick="agregarRoles('<?php echo $user->id; ?>');">Agregar</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Finalizar</button>
             </div>
         </div>
@@ -143,46 +172,128 @@
 
 <script>
 
-function modalRol(){
-    $("#mdlRolEmpresa").modal('show');
-    $("#groups").val('-1');
-    $("#roles").val('-1');  
-    document.getElementById('errorModal').style.display = 'none';
-}
+    function modalRol(){
+        $("#mdlRolEmpresa").modal('show');
+        $("#groups").val('-1');
+        $("#roles").val('-1');  
+        document.getElementById('errorModal').style.display = 'none';
+        document.getElementById('errorModalAsig').style.display = 'none';
+    }
 
-function agregarRoles(userId){
-    
-    var groupId = $("#groups option:selected").val();
-        var roleId = $("#roles option:selected").val();
+    function agregarRoles(userId){
+
         var email = $("#emailuser").val();
+        var groupId = $("#groups option:selected").val();
+        var roleId = $("#roles option:selected").val();
         
         if((groupId !== '-1') && (roleId !== '-1')){
             
-            //console.log('1 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
+            /*console.log('1 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email); */
             document.getElementById('errorModal').style.display = 'none';
-            
-            var icon = "<i class='fa fa-trash' aria-hidden='true'></i>";
-            var goup_nombre = $("#groups option:selected").text();
-            var role_nombre = $("#roles option:selected").text();
+                     
+            /** Extrae la tabla HTML */
+            var table = new Array();
+            $('#tbl_temporal tr').each(function(row, tr) {
 
-            //console.log('1 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
-            var rowCount = $("#tbl_temporal > tbody > tr").length;
-            //console.log(rowCount);
+                var email = $(tr).find('td:eq(0)').text();
+                var group = $(tr).find('td:eq(1)').text();
+                var role  = $(tr).find('td:eq(2)').text();
+                if(email !== '' && group !== '' && role !== '')
+                    table[row] = {
+                        "email": $(tr).find('td:eq(0)').text(),
+                        "group_id": $(tr).find('td:eq(1)').text(),
+                        "group": $(tr).find('td:eq(2)').text(),
+                        "role": $(tr).find('td:eq(3)').text()
+                    }
+            });  
+            var data = table.filter(Boolean);
+            var dataRole = JSON.stringify(data);
+            console.log(data);
             
+            var icon = '<i class="fa fa-trash text-red" aria-hidden="true" style="cursor: pointer;" onclick="EliminarRolUsuario()"></i>';
+            var group_nombre = $("#groups option:selected").text();
+            var role_nombre = $("#roles option:selected").text();
             var row =   '<tr>'+ 
-                        '<td class="hidden">' + email + '</td>'+
-                        '<td>'+ goup_nombre  +'</td>'+
+                        '<td class="hidden" >' + email + '</td>'+
+                        '<td class="hidden" >' + groupId + '</td>'+
+                        '<td>'+ group_nombre  +'</td>'+
                         '<td>'+ role_nombre  +'</td>'+
                         '<td>' + icon + '</td>'+
-            '</tr>';
-            $("#tbl_temporal tbody").append(row);
+            '</tr>';  
+           /**console.log(row);*/
 
+            /** Revisa que no esten repetidos los roles */
+            var sw = true;
+            for (let i = 0; i < data.length; i++) {
+                 /**console.log(data[i].group +' '+data[i].role); */
+                 /**console.log(data[i].group === group_nombre && data[i].role === role_nombre);*/
+                if(data[i].group === group_nombre && data[i].role === role_nombre ){
+                    sw = false;
+                    break;
+                }
+            }
+
+            if(sw){
+                document.getElementById('errorModalAsig').style.display = 'none';
+                $("#tbl_temporal tbody").append(row);
+            }else{
+                document.getElementById('errorModalAsig').style.display = 'block';
+            }
+            
         }else{  
-            //console.log('2 Grupo: '+groupId+' Rol: '+roleId+' User: '+userId+' Email: '+email);
             document.getElementById('errorModal').style.display = 'block';
             return;
         }
 
-}
+    }
+
+    
+
+    function EliminarRolUsuario(email,group,role){
+        console.log(email+' '+group+' '+role);    
+    }
+
+    function guardarRolesUsuario(){
+
+        var email = $("#emailuser").val();
+        var level = $("#level option:selected").val();
+        
+        var table = new Array();
+        $('#tbl_temporal tr').each(function(row, tr) {
+
+            var email = $(tr).find('td:eq(0)').text();
+            var group = $(tr).find('td:eq(1)').text();
+            var role  = $(tr).find('td:eq(2)').text();
+            if(email !== '' && group !== '' && role !== '')
+                table[row] = {
+                    "email": $(tr).find('td:eq(0)').text(),
+                    "group": $(tr).find('td:eq(1)').text(),
+                    "role": $(tr).find('td:eq(2)').text()
+                }
+        });  
+        var data = table.filter(Boolean);
+        var dataRole = JSON.stringify(data);
+        console.log(dataRole);
+
+        $.ajax({
+			type: "POST",
+			/*url:'<?php echo base_url() ?>/main/changeLevelRolUser',*/
+			data: {
+				dataRole: dataRole,
+				email: email,
+				level: level
+			},
+			success: function(rsp) {
+				alert("Guarado correctamente.");
+			},
+			error: function() {
+				alert("Se produjo un error al guardar rol/nivel del usuario.");
+			},
+			complete: function() {
+
+			}
+		});
+
+    }
 
 </script>

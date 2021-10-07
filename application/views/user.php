@@ -1,4 +1,4 @@
-    <div class="container">
+<div class="container">
         <h2>Usuarios</h2>
         <table class="table table-hover table-bordered table-striped">
           <tr>

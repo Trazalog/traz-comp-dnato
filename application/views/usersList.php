@@ -1,0 +1,33 @@
+<div class="container">
+        <h2><?php echo $title; ?></h2>
+        <table class="table table-hover table-bordered table-striped">
+          <tr>
+              <th>Nombre</th>
+              <th>Usuario</th>
+              <th>Ultimo login</th>
+              <th>Nivel de Usuario</th>
+              <th>Estado</th>
+              <th colspan="2">Editar</th>
+          </tr>
+                <?php
+                    foreach($userList as $row){ 
+                        
+                        
+                        if($groupBpm === $row->group || empty($row->group) ){ /** USUARIOS DE LA MISMA EMPRESA DEL CONECTADO */
+
+                            
+                            echo '<tr>';
+                            echo '<td>'.$row->first_name.' '.$row->last_name.'</td>';
+                            echo '<td>'.$row->email.'</td>';
+                            echo '<td>'.$row->last_login.'</td>';
+                            echo '<td>'.$row->nombre.'</td>';
+                            echo '<td>'.$row->status.'</td>';
+                            //echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Rol</button></a></td>';
+                            echo '<td><a href="'.site_url().'main/changeleveluser/'.$row->id.'"><button type="button" class="btn btn-primary">Rol</button></a></td>';
+                            echo '<td><a href="'.site_url().'main/deleteuser/'.$row->id.'"><button type="button" class="btn btn-danger">Borrar</button></a></td>';
+                            echo '</tr>';
+                        }
+                    }
+                ?>
+        </table>
+    </div>

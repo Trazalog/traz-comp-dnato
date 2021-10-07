@@ -174,21 +174,26 @@ class Main extends CI_Controller {
 	{
 		$data = $this->session->userdata;
 		$data['title'] = "Lista de Usuarios";
-		$data['groups'] = $this->user_model->getUserData();
+		$data['userList'] = $this->user_model->getListUserData();
+		$data['groups'] = $this->Roles->getBpmGroups();
+
+		log_message('DEBUG','#TRAZA|MAIN|users()  $data: >> '.json_encode($data));
 
 		//check user level
 		if(empty($data['role'])){
 				redirect(base_url().'main/login/');
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
+		log_message('DEBUG','#TRAZA|MAIN|users()  $data[role]: >> '.json_encode($dataLevel));
 		//check user level
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
 					$this->load->view('header', $data);
 					$this->load->view('navbar', $data);
-					$this->load->view('container');
-					$this->load->view('user', $data);
+					$this->load->view('container',$data);
+					//$this->load->view('user', $data);
+					$this->load->view('usersList', $data);
 					//$this->load->view('list_usuarios_externos', $data);
 					$this->load->view('footer');
 		}else{
@@ -216,10 +221,12 @@ class Main extends CI_Controller {
 		$data['dd_list'] = $this->Roles->obtener();
 		$data['groups'] = $this->Roles->getBpmGroups();
 		$data['roles'] = $this->Roles->getBpmRoles();
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO ->$dataLevel: >> '.json_encode($dataLevel));
+		$data['emp_core'] = $this->user_model->getInfoEmpCore();
+		log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO LOGUEADO ->$dataLevel: >> '.json_encode($dataLevel));
 		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']->email));
 		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[mem_user]: >> '.json_encode($data['mem_user']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[emp_core]: >> '.json_encode($data['emp_core']));
 
  
 		//check is admin or not
@@ -413,23 +420,36 @@ class Main extends CI_Controller {
 
 	//delete user
 	public function deleteuser($id) {
+
 		$data = $this->session->userdata;
 		if(empty($data['role'])){
 				redirect(base_url().'main/login/');
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
-		//check user level
+		$emplevel = $data['groupBpm'];
+		log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.json_encode($data)); 
+		log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.$emplevel); 
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
-			$this->user_model->deleteUser($id);
-			if($this->user_model->deleteUser($id) == FALSE )
-			{
-					$this->session->set_flashdata('flash_message', 'Error, cant delete the user!');
-			}
-			else
-			{
-					$this->session->set_flashdata('success_message', 'Delete user was successful.');
+
+			$data['user'] = $this->user_model->getUserInfo($id);
+			$data['memberships'] = $this->user_model->getMembershipsUserInfoEmpresa($data['user']->email, $emplevel);
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[memberships]: >> '.json_encode($data['memberships'])); 
+
+			if($data['memberships']){
+				$this->session->set_flashdata('flash_message', 'Error, Este Usuario tiene roles de sistema en la empresa asignados!');
+			}else{	
+
+				$this->user_model->deleteUser($id);
+				if($this->user_model->deleteUser($id) == FALSE )
+				{
+						$this->session->set_flashdata('flash_message', 'Error, no se puede elminar el usuario');
+				}
+				else
+				{
+						$this->session->set_flashdata('success_message', 'Eliminado Correctamente.');
+				}
 			}
 			redirect(base_url().'main/users/');
 		}else{
@@ -440,6 +460,7 @@ class Main extends CI_Controller {
 	//add new user from backend
 	public function adduser()
 	{
+
 		$data = $this->session->userdata;
 		if(empty($data['role'])){
 				redirect(base_url().'main/login/');
@@ -468,9 +489,11 @@ class Main extends CI_Controller {
 							$data['dd_list'] = $this->Roles->obtener();
 							//var_dump($data);
 							$data['depo_list'] = $this->Roles->obtenerDepositos();
+							$data['groups'] = $this->Roles->getBpmGroups();
+
 
 							$this->load->view('header', $data);
-							$this->load->view('navbar');
+							$this->load->view('navbar',$data);
 							$this->load->view('container');
 							$this->load->view('adduser', $data);
 							$this->load->view('footer');
@@ -511,6 +534,7 @@ class Main extends CI_Controller {
 									}
 
 									redirect(base_url().'main/users/'.$usr_id);
+									//redirect(base_url().'main/users/');
 							};
 					}
 		}else{
@@ -577,6 +601,35 @@ class Main extends CI_Controller {
 			} else {
 					redirect(base_url() . 'main/');
 			}
+
+	}
+
+	public function changeLevelRolUser(){
+		# code...
+		$dataLevel['email'] =  $this->input->post('email');
+		$dataLevel['level'] =  $this->input->post('level');
+		$dataLevel['dataRol'] = $this->input->post('dataRole');
+		log_message('ERROR','#TRAZA|MAIN|LEVEL ROL| >> '. $dataLevel);
+
+		#Chequear que no existe en memberships_users
+
+		#Guardar memberships_users
+
+		#Guardar Bonita
+
+		#Chequear que todo Salio bien
+
+		#Sino se guardó Echar para atras
+
+		
+		/*
+		if(!$this->user_model->updateUserRole($dataLevel)){
+			$this->session->set_flashdata('flash_message', 'Fallo cambio de nivel');
+			return false;
+		}else{
+			$this->session->set_flashdata('success_message', 'nivelCambiado con exito.');
+			return true;
+		}*/
 
 	}
 
@@ -1127,4 +1180,6 @@ class Main extends CI_Controller {
 	public function base64url_decode($data) {
 		return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
 	}
+
+
 }
