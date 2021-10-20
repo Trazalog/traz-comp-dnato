@@ -50,7 +50,7 @@
                         <li role="separator" class="divider"></li>
 
                         <?php
-                            foreach($groups as $group){
+                            foreach($groupsBpm as $group){
                               list($id_group, $group_name) = explode ("-",$group->name);
                               if($groupBpm == $group_name){
                                 echo "  "."<li><a><i class='fa fa-check'></i>  ".$group->displayName."</a></li>";

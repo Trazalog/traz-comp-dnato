@@ -86,17 +86,29 @@ class User_model extends CI_Model {
     } 
     
     //get user memberships_users info
-    public function gestMembershipsUserInfo($email){
+    public function gestMembershipsUserInfo($email, $dataEmp){
+        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email)'. $email.' '.$dataEmp);
 
-        $query = $this->db->get_where('seg.memberships_users', array('email' => $email), 1);
+        $this->db->from('seg.memberships_users');
+        $this->db->where('email', $email );
+        //$this->db->where('group', $dataEmp );
+        $query = $this->db->get();
 
         if($this->db->affected_rows() > 0){
-            $row = $query->row();
-            return $row;
+            return $query->row();
         }else{
             error_log('no user found gestMembershipsUserInfo('.$email.')');
             return false;
         }
+        /*
+        $query = $this->db->get_where('seg.memberships_users', array('email' => $email));
+
+        if($this->db->affected_rows() > 0){
+            return $query->row();
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }*/
     }
 
     //get user memberships_users info
@@ -445,16 +457,10 @@ class User_model extends CI_Model {
 	*/
     public function getListUserData()
     {
-        $this->db->select("seg.users.*, 
-                           seg.roles.*, 
-                           seg.memberships_users.group,
-                           seg.memberships_users.role,
-                           seg.memberships_users.fec_alta,
-                           seg.memberships_users.usuario,
-                           seg.memberships_users.usuario_app");
+        $this->db->select("seg.users.*,seg.roles.*");
         $this->db->from('seg.users');
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
-        $this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
+        //$this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
         $query = $this->db->get();
 
         if($query->result())
@@ -489,6 +495,14 @@ class User_model extends CI_Model {
 			
 	}
 
+    /**
+     * Elimina los roles de un usuario
+     * @param 
+     * @return array 
+     */
+    public function deleteUserRol(){
+        
+    }
 
     
     //delete user
