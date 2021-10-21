@@ -287,7 +287,7 @@
         var email = dataRol[0];
         var groupId = dataRol[1];
         var rolId = dataRol[2];
-        console.log(email+' '+groupId+' '+rolId);
+        /*console.log(email+' '+groupId+' '+rolId);*/
 
         var group = groupId.split("-");
         var role =  rolId.split("-");
@@ -308,11 +308,10 @@
         dataRoleBpm.group_id = grupo;
         dataRoleBpm.role_id= rol;
 
-        console.log(dataRoleBpm);
-        console.log(dataRole);
+        /*console.log(dataRoleBpm);
+        console.log(dataRole);*/
 
-                
-        /*
+             
         $.ajax({
             type: "POST",
             url:'<?php echo base_url() ?>/main/deleteLevelRolUser',
@@ -323,6 +322,7 @@
             },
             success: function(rsp) {
                 alert("Eliminado correctamente.");
+                $(eval).closest('tr').remove();
             },
             error: function() {
                 alert("Se produjo un error al guardar rol/nivel del usuario.");
@@ -330,7 +330,7 @@
             complete: function() {
 
             }
-        });*/
+        });
         
     }
 
@@ -372,9 +372,9 @@
         var RoleBpm = JSON.parse(dataRoleBpm);
         var data = table.filter(Boolean);
         var dataRole = JSON.stringify(data);
-        var Role = JSON.parse(dataRole);*/
+        var Role = JSON.parse(dataRole);
         console.log(tableBpm);
-        console.log(table);
+        console.log(table);*/
         
         $.ajax({
             type: "POST",
@@ -444,8 +444,8 @@
         var dataBpm = tableBpm.filter(Boolean);
         var dataRoleBpm = JSON.stringify(dataBpm);
         var rolesBpm = JSON.parse(dataRoleBpm);
-        console.log(rolesBpm);
-        console.log(roles);
+        /*console.log(rolesBpm);
+        console.log(roles);*/
         
         $.ajax({
 			type: "POST",
