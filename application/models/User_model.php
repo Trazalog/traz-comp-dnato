@@ -83,7 +83,50 @@ class User_model extends CI_Model {
             return false;
         }
         
-    }    
+    } 
+    
+    //get user memberships_users info
+    public function gestMembershipsUserInfo($email, $dataEmp){
+        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email)'. $email.' '.$dataEmp);
+
+        $this->db->from('seg.memberships_users');
+        $this->db->where('email', $email );
+        //$this->db->where('group', $dataEmp );
+        $query = $this->db->get();
+
+        if($this->db->affected_rows() > 0){
+            return $query->row();
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }
+        /*
+        $query = $this->db->get_where('seg.memberships_users', array('email' => $email));
+
+        if($this->db->affected_rows() > 0){
+            return $query->row();
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }*/
+    }
+
+    //get user memberships_users info
+    public function getMembershipsUserInfoEmpresa($email, $emplevel){
+
+        $this->db->from('seg.memberships_users');
+        $this->db->where('email', $email );
+        $this->db->where('group', $emplevel );
+        $query = $this->db->get();
+
+        if($this->db->affected_rows() > 0){
+            $row = $query->row();
+            return $row;
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }
+    }
     
     //get user info
     public function getUserInfo($id)
@@ -367,6 +410,7 @@ class User_model extends CI_Model {
         }        
         return true;
     }
+
     
     //update user level
     public function updateUserLevel($post)
@@ -396,28 +440,69 @@ class User_model extends CI_Model {
     }
 
     /**
-		* Devuelve los usuarios activos
-		* @param
-		* @return array usuarios activos
-		*/
+	* Devuelve los usuarios activos
+	* @param
+	* @return array usuarios activos
+	*/
     public function getUserData()
     {
         $query = $this->db->get_where('seg.users', array('banned_users' => 'unban'));
         return $query->result();
-		}
+    }
+    
+    /**
+	* Devuelve los usuarios activos
+	* @param
+	* @return array usuarios activos
+	*/
+    public function getListUserData()
+    {
+        $this->db->select("seg.users.*,seg.roles.*");
+        $this->db->from('seg.users');
+        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
+        //$this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
+        $query = $this->db->get();
 
-		/**
-		* Devuelve listado de TODOS los usuarios del sistema
-		* @param
-		* @return array con usuarios del sistema
-		*/
-		function getUserDataAll()
-		{     
-			$query = $this->db->get('seg.users');
+        if($query->result())
+            return $query->result();
+        else
+            return false;
+    }
+    
+    public function getInfoEmpCore()
+    {
+        $this->db->select("*");
+        $this->db->from('core.empresas');
+        $query = $this->db->get();
+
+        if($query->result())
+            return $query->result();
+        else
+            return false;
+
+    }
+
+
+	/**
+	* Devuelve listado de TODOS los usuarios del sistema
+	* @param
+	* @return array con usuarios del sistema
+	*/
+	function getUserDataAll()
+	{     
+		$query = $this->db->get('seg.users');
         return $query->result();
 			
-		}
+	}
 
+    /**
+     * Elimina los roles de un usuario
+     * @param 
+     * @return array 
+     */
+    public function deleteUserRol(){
+        
+    }
 
     
     //delete user

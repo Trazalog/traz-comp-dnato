@@ -79,12 +79,12 @@ class Roles extends CI_Model
 			$post["session"] = $session;
 			$post["payload"] = $datos;
 
-			$aux = $this->rest->callAPI("POST",REST_BPM."/memberships", $post);
+			$aux = $this->rest->callAPI("POST",REST_BPM."/memberships", $post); 
 			$aux =json_decode($aux["data"]);
 			return $aux;
 		}
 
-    /**
+        /**
 		* Traer info de usuario de BPM
 		* @param
 		* @return array con info de usuario en BPM

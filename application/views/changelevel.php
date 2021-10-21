@@ -107,8 +107,6 @@
 		
 </div>
     
-    <!-- <?php //echo form_submit(array('value'=>'Enviar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
-    <a href="<?php// echo site_url().'main/users/';?>"><button type="button" class="btn btn-default btn-lg btn-block">Cancelar</button></a> -->
 
 </div> 
 
@@ -135,6 +133,7 @@
 
 		var email = $('#email').val();
 		var level = $('#level').val();
+		console.log(email+' '+level);
 		$.ajax({
 				type: 'POST',
 				data:{email:email,
@@ -186,6 +185,10 @@ debugger;
 				var rolarray = role_id.split("-");
 				membershipBPM.role_id = rolarray[0];
 
+				console.log(membershipBPM);
+				console.log(membership);
+
+				/*
 				$.ajax({
 
 						type: 'POST',
@@ -201,7 +204,7 @@ debugger;
 						complete: function(){
 
 						}
-				});
+				});*/
 
 		
 		}else{
@@ -223,18 +226,18 @@ debugger;
 			membership.push(tmp);
 
 			$.ajax({
-					type: 'POST',
-					data:{ membership },
-					url: '<?php echo base_url() ?>/main/borrarMembership',
-					success: function(result) {
-									row.remove();
-					},
-					error: function(result){
-							
-					},
-					complete: function(){
-										
-					}
+				type: 'POST',
+				data:{ membership },
+				url: '<?php echo base_url() ?>/main/borrarMembership',
+				success: function(result) {
+					row.remove();
+				},
+				error: function(result){
+						
+				},
+				complete: function(){
+									
+				}
 			});	
 	});
 
