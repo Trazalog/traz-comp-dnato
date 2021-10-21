@@ -40,9 +40,9 @@
                     
                     <table id="tbl_temporal" class="table table-striped">
                             <thead >					
-                                    <th>email</th>					
-                                    <th>group_id</th>					
-                                    <th>role_id</th>					
+                                    <th class="hidden">email</th>					
+                                    <th class="hidden">group_id</th>					
+                                    <th class="hidden">role_id</th>					
                                     <th>Empresa</th>					
                                     <th>Rol</th>					
                                     <th>Acción</th>
@@ -71,10 +71,11 @@
                                         }
 
                                         if($idGroup != '' && $nameGroup != ''  && $idRole != '' && $nameRole) {
-                                            echo "<tr id='".$membUser->email."/".$idGroup."/".$idRole."'>";                                            echo "<td>".$membUser->email ."</td>";
-                                            echo "<td>".$idGroup ."</td>";
-                                            echo "<td>".$idRole ."</td>";
-                                            echo "<td>".$nameGroup ."</td>";
+                                            echo "<tr id='".$membUser->email."/".$idGroup."/".$idRole."'>";                                            
+                                            echo "<td class='hidden'>".$membUser->email ."</td>";
+                                            echo "<td class='hidden'>".$idGroup ."</td>";
+                                            echo "<td class='hidden'>".$idRole ."</td>";
+                                            echo "<td >".$nameGroup ."</td>";
                                             echo "<td>".$nameRole ."</td>";
                                             echo "<td><i class='fa fa-trash text-red' aria-hidden='true' style='cursor: pointer;' onclick='EliminarRolUsuario(this)'></i></td>";
                                             echo "</tr>";
@@ -240,9 +241,9 @@
             var group_nombre = $("#groups option:selected").text();
             var role_nombre = $("#roles option:selected").text();
             var row =   '<tr id='+email+'/'+groupId+'/'+roleId+'>'+      
-                        '<td>' + email + '</td>'+
-                        '<td>' + groupId + '</td>'+
-                        '<td>' + roleId + '</td>'+
+                        '<td class="hidden">' + email + '</td>'+
+                        '<td class="hidden">' + groupId + '</td>'+
+                        '<td class="hidden">' + roleId + '</td>'+
                         '<td>'+ group_nombre  +'</td>'+
                         '<td>'+ role_nombre  +'</td>'+
                         '<td><i class="fa fa-trash text-red" aria-hidden="true" style="cursor: pointer;" onclick="EliminarRolUsuario(this)"></td>'+
