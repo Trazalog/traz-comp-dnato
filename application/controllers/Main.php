@@ -631,12 +631,12 @@ class Main extends CI_Controller {
 
 
 		
-		$deleteUser = $this->user_model->deleteUserRol();
+		$deleteUser = $this->user_model->borrarMembership($dataRole);
 		if(!$deleteUser){
-			$this->session->set_flashdata('flash_message', 'Error Eliminación' .$dataPost['email']); 
+			//$this->session->set_flashdata('flash_message', 'Error Eliminación' .$dataPost['email']); 
 			return false;
 		}else{
-			$this->session->set_flashdata('success_message', 'Eliminado Correctamente'.$dataPost['email']); 
+			//$this->session->set_flashdata('success_message', 'Eliminado Correctamente'.$dataPost['email']); 
 			return false;
 		}
 		
