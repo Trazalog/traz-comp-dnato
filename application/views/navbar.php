@@ -34,7 +34,6 @@
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
                                 <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
                                 <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>
-                                <li><a href="'.site_url().'main/changelevel">Roles</a></li>
                               </ul>
                             </li>
                             <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>';
