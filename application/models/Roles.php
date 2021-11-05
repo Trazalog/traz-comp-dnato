@@ -78,8 +78,13 @@ class Roles extends CI_Model
 			$post["session"] = $session;
 			$post["payload"] = $datos;
 
+			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $post >> '.json_encode($post));
+			
 			$aux = $this->rest->callAPI("POST",REST_BPM."/membership", $post); 
 			$aux =json_decode($aux["data"]);
+
+			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $aux >> '.json_decode($aux["data"]));
+
 			return $aux;
 
 		}

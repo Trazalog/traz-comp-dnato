@@ -182,7 +182,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="agregarRoles('<?php echo $user->id; ?>');">Agregar</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Finalizar</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal">Finalizar</button>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -308,10 +308,11 @@
         dataRoleBpm.group_id = grupo;
         dataRoleBpm.role_id= rol;
 
-        /*console.log(dataRoleBpm);
-        console.log(dataRole);*/
+        console.log(email);
+        console.log(dataRoleBpm);
+        console.log(dataRole);
 
-             
+        
         $.ajax({
             type: "POST",
             url:'<?php echo base_url() ?>/main/deleteLevelRolUser',
