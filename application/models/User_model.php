@@ -371,10 +371,10 @@ class User_model extends CI_Model {
 			$error = $this->db->error();
 
 			if($error['message'] == ""){
-				return true;
+				return TRUE;
 			}else{
-				log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
-				return false;
+				/*log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));*/
+				return FALSE;
 			}
 
 		}

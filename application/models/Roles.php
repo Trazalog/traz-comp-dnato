@@ -57,13 +57,40 @@ class Roles extends CI_Model
 		}
 
 		/**
+		* Devuelve eliminacion de  un usuario de Rol
+		* @param
+		* @return array con depositos por establecimiento
+		*/
+		function deleteMembershipBPM($membershipBPM, $userNick){
+
+			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
+			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
+
+			// trae info de usuario en BPM
+			$info_bpm = $this->getInfoBPM($userNick);
+			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $info_bpm >> '.json_encode($info_bpm));
+
+			//TODO: SACAR HARDCODEO ACA
+			$session = '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"';
+			$datos["user_id"] = $info_bpm->id; // id de usuario en bpm
+			$datos["group_id"] = $membershipBPM['group_id'];
+			$datos["role_id"] =  $membershipBPM['role_id'];
+			$post["session"] = $session;
+			$post["payload"] = $datos;
+
+			$aux = $this->rest->callAPI("POST",REST_BPM."/membership", $post); 
+			$aux =json_decode($aux["data"]);
+			return $aux;
+
+		}
+
+		/**
 		* Asigna membership a usuarios en BPM
 		* @param array con datos de usr
 		* @return string stats de respuesta del servicio
 		*/
-		function guardarMembershipBPM($membershipBPM, $userNick)
-		{
-			log_message('INFO','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick) >> ');
+		function guardarMembershipBPM($membershipBPM, $userNick){
+
 			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
 			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
 
@@ -114,4 +141,6 @@ class Roles extends CI_Model
 			$aux =json_decode($aux["data"]);
 			return $aux->depositos->deposito;
 		}
+
+		
 }
