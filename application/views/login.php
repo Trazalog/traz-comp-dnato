@@ -41,6 +41,16 @@
           'value'=> set_value('password'))); ?>
       <?php echo form_error('password') ?>
     </div>
+    <div id="bloquePuntoControlSicpoa" class="form-group" style="display:none">
+      <?php
+        $puntos = array('' => 'Seleccione punto de control...');
+        foreach ($puntosControl as $value) {
+          $key = $value->tabl_id;
+          $puntos[$key] = $value->valor;
+        }
+        echo form_dropdown('punto_control', $puntos, set_value($empr_id),'class = "form-control" id="punto_control"');
+      ?>
+    </div>
     <?php if($recaptcha == 'yes'){ ?>
     <div style="text-align:center;" class="form-group">
         <div style="display: inline-block;"><?php echo $this->recaptcha->render(); ?></div>
@@ -53,3 +63,14 @@
     <!-- <p>No esta registrado? <a href="<?php //echo base_url();?>main/register">Registrese por favor</a></p>
     <p>Olvido su contraseña? <a href="<?php //echo base_url();?>main/forgot">Recupere contraseña</a></p> -->
 </div>
+<script>
+  /*Bloque para mostrar punto de control en caso de que se seleccione la SICPOA*/
+  $("#empr_id").on("change", function () {
+    if($(this).val() === "888-DDPE_SICPOA"){
+      $("#bloquePuntoControlSicpoa").show();
+    }else{
+      $("#punto_control").val('');
+      $("#bloquePuntoControlSicpoa").hide();
+    }
+  });
+</script>
