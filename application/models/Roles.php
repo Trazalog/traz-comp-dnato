@@ -63,28 +63,27 @@ class Roles extends CI_Model
 		*/
 		function deleteMembershipBPM($membershipBPM, $userNick){
 
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
+			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
+			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
 
 			// trae info de usuario en BPM
 			$info_bpm = $this->getInfoBPM($userNick);
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $info_bpm >> '.json_encode($info_bpm));
+			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $info_bpm >> '.json_encode($info_bpm));
 
 			//TODO: SACAR HARDCODEO ACA
 			$session = '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"';
 			$datos["user_id"] = $info_bpm->id; // id de usuario en bpm
 			$datos["group_id"] = $membershipBPM['group_id'];
 			$datos["role_id"] =  $membershipBPM['role_id'];
-			$post["session"] = $session;
+			$datos["session"] = $session;
 			$post["payload"] = $datos;
 
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $post >> '.json_encode($post));
+			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $post >> '.json_encode($datos));
 			
-			$aux = $this->rest->callAPI("POST",REST_BPM."/membership", $post); 
-			$aux =json_decode($aux["data"]);
-
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $aux >> '.json_decode($aux["data"]));
-
+			$resource = '/membership';
+			$url = REST_BPM . $resource;
+			$aux = $this->rest->callAPI("DELETE", $url, $datos);
+			$aux = json_decode($aux["status"]);
 			return $aux;
 
 		}
