@@ -36,7 +36,7 @@ class Main extends CI_Controller {
 		//log_message('DEBUG','#Main/index | '.json_encode($data));
 
 		if(empty($data['email'])){
-				log_message('DEBUG','#Main/index | No email');
+				//log_message('DEBUG','#Main/index | No email');
 				redirect(base_url().'main/login/');
 		}
 
@@ -177,10 +177,10 @@ class Main extends CI_Controller {
 		$data['usersList'] = $this->user_model->getListUserData();
 		$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data));
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data['title']));
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[usersList] >> '.json_encode($data['usersList']));
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[groupsBpm] >> '.json_encode($data['groupsBpm']));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data['title']));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[usersList] >> '.json_encode($data['usersList']));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[groupsBpm] >> '.json_encode($data['groupsBpm']));
 
 		//check user level
 		if(empty($data['role'])){
@@ -226,14 +226,15 @@ class Main extends CI_Controller {
 		$data['groups'] = $this->Roles->getBpmGroups(); 												// Grupos Bonita
 		$data['roles'] = $this->Roles->getBpmRoles();   												// Roles Bonita
 		$data['emp_core'] = $this->user_model->getInfoEmpCore();										// Empresas
-		log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[mem_user]: >> '.json_encode($data['mem_user']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[dd_list]: >> '.json_encode($data['dd_list']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[groups]: >> '.json_encode($data['groups']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[roles]: >> '.json_encode($data['roles']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[emp_core]: >> '.json_encode($data['emp_core']));
-		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[group]: >> '.json_encode($data['group']));
+		
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[mem_user]: >> '.json_encode($data['mem_user']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[dd_list]: >> '.json_encode($data['dd_list']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[groups]: >> '.json_encode($data['groups']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[roles]: >> '.json_encode($data['roles']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[emp_core]: >> '.json_encode($data['emp_core']));
+		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[group]: >> '.json_encode($data['group']));
 
  
 		//check is admin or not
@@ -243,7 +244,7 @@ class Main extends CI_Controller {
 			$this->form_validation->set_rules('level', 'User Level', 'required');
 
 			if ($this->form_validation->run() == FALSE) {
-				log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALSE ');
+				//log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALSE ');
 					$this->load->view('header', $data);
 					$this->load->view('navbar', $data);
 					$this->load->view('container');
@@ -251,15 +252,15 @@ class Main extends CI_Controller {
 					$this->load->view('changeleveluser', $data);
 					$this->load->view('footer');
 			}else{
-					log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> TRUE ');
-					$cleanPost['email'] = $this->input->post('email');
-					$cleanPost['level'] = $this->input->post('level');
-					if(!$this->user_model->updateUserLevel($cleanPost)){
-							$this->session->set_flashdata('flash_message', 'There was a problem updating the level user');
-					}else{
-							$this->session->set_flashdata('success_message', 'The level user has been updated.');
-					}
-					redirect(base_url().'main/changeleveluser');
+				//log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> TRUE ');
+				$cleanPost['email'] = $this->input->post('email');
+				$cleanPost['level'] = $this->input->post('level');
+				if(!$this->user_model->updateUserLevel($cleanPost)){
+					$this->session->set_flashdata('flash_message', 'There was a problem updating the level user');
+				}else{
+					$this->session->set_flashdata('success_message', 'The level user has been updated.');
+				}
+				redirect(base_url().'main/changeleveluser');
 			}
 		}else{
 				redirect(base_url().'main/');
@@ -434,8 +435,8 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		$emplevel = $data['groupBpm'];
-		log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.json_encode($data)); 
-		log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.$emplevel); 
+		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.json_encode($data)); 
+		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.$emplevel); 
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -450,7 +451,8 @@ class Main extends CI_Controller {
 
 				/*Mejora del Eliminado*/
 				$deleteUserLocal =$this->user_model->deleteUser($id);
-				if($deleteUserLocal === FALSE ){
+				//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $deleteUserLocal: >> '.json_encode($deleteUserLocal)); 
+				if(!$deleteUserLocal ){
 						$this->session->set_flashdata('flash_message', 'Error, no se puede elminar el usuario');
 				}else{
 						$this->session->set_flashdata('success_message', 'Eliminado Correctamente.');
@@ -460,6 +462,34 @@ class Main extends CI_Controller {
 		}else{
 			redirect(base_url().'main/');
 		}
+	}
+
+	public function edituser($id){
+
+		$data = $this->session->userdata;
+		if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+		}
+
+		//check user level
+		if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+		}
+		$dataLevel = $this->userlevel->checkLevel($data['role']);
+
+		//check is admin or not
+		if($dataLevel == "is_admin"){
+			$this->form_validation->set_rules('firstname', 'First Name', 'required');
+			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
+			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+			$this->form_validation->set_rules('role', 'role', 'required');
+			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
+			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+
+			$data['title'] = "Editar Usuario";
+
+		}
+
 	}
 
 	//add new user from backend
@@ -477,6 +507,7 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 
+		log_message('INFO','#TRAZA|MAIN|ADDUSER() >> ');
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -487,6 +518,9 @@ class Main extends CI_Controller {
 					$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
 					$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
 
+					
+					//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> form_validation ');
+
 					$data['title'] = "Agregar Usuario";
 					if ($this->form_validation->run() == FALSE) {
 							// trae depositos para asignar a usuarios depositos
@@ -496,6 +530,7 @@ class Main extends CI_Controller {
 							$data['depo_list'] = $this->Roles->obtenerDepositos();
 							$data['groups'] = $this->Roles->getBpmGroups();
 
+							log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> data '. json_encode($data));
 
 							$this->load->view('header', $data);
 							$this->load->view('navbar',$data);
@@ -517,11 +552,19 @@ class Main extends CI_Controller {
 									$cleanPost['lastname'] = $this->input->post('lastname');
 									$cleanPost['telefono'] = $this->input->post('telefono');
 									$cleanPost['usernick'] = $this->input->post('usernick');
+									
+									//$cleanPost['image'] = $_FILES['image']['name'];
+									//$cleanPost['images'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+									//codificar
 									$cleanPost['dni'] = $this->input->post('dni');
 									$cleanPost['banned_users'] = 'unban';
 									$cleanPost['password'] = $hashed;
 									$cleanPost['depo_id'] = $this->input->post('depo_id');
 									unset($cleanPost['passconf']);
+
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
+
 									
 									//insert to database
 									$usr_id = $this->user_model->addUser($cleanPost);
@@ -623,29 +666,29 @@ class Main extends CI_Controller {
 		$dataRoleBpm = $this->input->post('dataRoleBpm');
 
 
-		log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataPost[email]: >> '.$dataPost['email'] );
-		log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataRole: >> '.json_encode($dataRole) );
-		log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataRoleBpm: >> '.json_encode($dataRoleBpm) );
+		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataPost[email]: >> '.$dataPost['email'] );
+		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataRole: >> '.json_encode($dataRole) );
+		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataRoleBpm: >> '.json_encode($dataRoleBpm) );
 
 		//Eliminar en Bonita
 		$this->load->model('Roles');
 		$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
 
 		$deleteRolBpm = $this->Roles->deleteMembershipBPM($dataRoleBpm, $infoUser->usernick);
-		log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolBpm: >> '.json_encode($deleteRolBpm) );
+		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolBpm: >> '.json_encode($deleteRolBpm) );
 
 		if(!$deleteRolBpm){
-			$this->session->set_flashdata('flash_message', 'Fallo eliminación de roles Bpm.');
-			return false;
+			//$this->session->set_flashdata('flash_message', 'Fallo eliminación de roles Bpm.');
+			return -1;
 		}else{
-			$this->session->set_flashdata('success_message', 'Rol Bpm eliminado con exito.');
+			//$this->session->set_flashdata('success_message', 'Rol Bpm eliminado con exito.');
 			//return true;
 			$deleteRolUser = $this->user_model->borrarMembership($dataRole);
-			log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolUser: >> '.json_encode($deleteRolUser) );	
+			//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolUser: >> '.json_encode($deleteRolUser) );	
 
 			if(!$deleteRolUser){
 				//$this->session->set_flashdata('flash_message', 'Error Eliminación' .$dataPost['email']); 
-				return false;
+				return -2;
 			}else{
 				//$this->session->set_flashdata('success_message', 'Eliminado Correctamente'.$dataPost['email']);
 				return true;
@@ -699,11 +742,11 @@ class Main extends CI_Controller {
 		$dataRoleBpm = $this->input->post('dataRoleBpm');
 
 
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[email]: >> '.$dataPost['email'] ); 
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[level]: >> '.$dataPost['level'] ); 
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRole]: >> '.json_encode( $dataRole) );
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRoleBpm]: >> '. json_encode($dataRoleBpm));
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $user: >> '. $user);
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[email]: >> '.$dataPost['email'] ); 
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[level]: >> '.$dataPost['level'] ); 
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRole]: >> '.json_encode( $dataRole) );
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRoleBpm]: >> '. json_encode($dataRoleBpm));
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $user: >> '. $user);
 
 		$userLevel = $this->user_model->updateUserLevel($dataPost);
 
@@ -727,9 +770,9 @@ class Main extends CI_Controller {
 				$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
 				
 				$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpm, $infoUser->usernick);
-				log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
-				log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm[payload]: >> '. json_encode($membShipBpm->payload));
-				log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($data));
+				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
+				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm[payload]: >> '. json_encode($membShipBpm->payload));
+				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($data));
 				//Verifico si guardo bien el usuario devuelve un user_id
 				if(isset($membShipBpm->payload->user_id)){
 					//$this->session->set_flashdata('success_message', 'Rol Bpm asignado con exito de '.$dataPost['email']);
@@ -762,11 +805,11 @@ class Main extends CI_Controller {
 		$dataRoleBpm = $this->input->post('dataRoleBpm');
 
 
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[email]: >> '.$dataPost['email'] ); 
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[level]: >> '.$dataPost['level'] ); 
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRole]: >> '.json_encode( $dataRole) );
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRoleBpm]: >> '. json_encode($dataRoleBpm));
-		log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $user: >> '. $user);
+		//message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[email]: >> '.$dataPost['email'] ); 
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[level]: >> '.$dataPost['level'] ); 
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRole]: >> '.json_encode( $dataRole) );
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRoleBpm]: >> '. json_encode($dataRoleBpm));
+		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $user: >> '. $user);
 
 		$userLevel = $this->user_model->updateUserLevel($dataPost);
 
@@ -793,8 +836,8 @@ class Main extends CI_Controller {
 					$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
 
 					$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpm, $infoUser->usernick);
-					log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
-					log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($data));
+					//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
+					//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($data));
 					if(!$membShipBpm){
 						$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm.');
 						return false;
@@ -882,9 +925,9 @@ class Main extends CI_Controller {
 		$this->load->model('Roles');
 		
 		
-		log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membership: >> '. json_encode($membership) );
-		log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membershipBPM: >> '. json_encode($membershipBPM) );
-		log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membershipBPM: >> '.$infoUser );
+		//log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membership: >> '. json_encode($membership) );
+		//log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membershipBPM: >> '. json_encode($membershipBPM) );
+		//log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membershipBPM: >> '.$infoUser );
 
 		$resp = $this->Roles->guardarMembershipBPM($membershipBPM, $infoUser->usernick);
 
