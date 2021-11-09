@@ -187,7 +187,9 @@ class Main extends CI_Controller {
 				redirect(base_url().'main/login/');
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
-		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[role]: >> '.json_encode($dataLevel));
+
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data: >> '.json_encode($data));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[email]: >> '.json_encode($data['email']));
 		//check user level
 
 		//check is admin or not
@@ -554,14 +556,14 @@ class Main extends CI_Controller {
 									$cleanPost['usernick'] = $this->input->post('usernick');
 									
 									//$cleanPost['image'] = $_FILES['image']['name'];
-									//$cleanPost['images'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+									$cleanPost['images'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
 									//codificar
 									$cleanPost['dni'] = $this->input->post('dni');
 									$cleanPost['banned_users'] = 'unban';
 									$cleanPost['password'] = $hashed;
 									$cleanPost['depo_id'] = $this->input->post('depo_id');
 									unset($cleanPost['passconf']);
-									
+
 
 									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
 									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));

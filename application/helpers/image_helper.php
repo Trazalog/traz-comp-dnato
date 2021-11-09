@@ -1,24 +1,24 @@
-<?php defined('BASEPATH') OR exit('No direct script access allowed');
+<?php defined('BASEPATH') or exit('No direct script access allowed');
 
-class Images {
+if (!function_exists('form')) {
 
 
-    public function image($e){
+    function image($e){
 
         $image = '';
         if(isset($e->valor4_base64)){
         
             $rec = stream_get_contents($e->valor4_base64);
-            $ext = $this->obtenerExtension($e->valor);
-            $image = "background-image: url($ext$rec);";
+            $ext = obtenerExtension($e->valor);
+            $image = "$ext$rec";
         }else{
-            $image = "background-image: url(lib/imageForms/camera_2.png);";
+            $image = DNATO."public/img/icon-user-default.png";
         }
         return $image;
     }
 
     //Funcion para obtener la extension del archivo codificado
-    public function obtenerExtension($archivo){
+    function obtenerExtension($archivo){
         
         $ext = explode('.',$archivo);
             switch(strtolower($ext[1])){
