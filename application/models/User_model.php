@@ -86,16 +86,20 @@ class User_model extends CI_Model {
     } 
     
     //get user memberships_users info
-    public function gestMembershipsUserInfo($email, $dataEmp){
-        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email)'. $email.' '.$dataEmp);
+    public function gestMembershipsUserInfo($email){
+        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
 
+        $this->db->select('*');
         $this->db->from('seg.memberships_users');
-        $this->db->where('email', $email );
-        //$this->db->where('group', $dataEmp );
+        //$this->db->where('email', $email );
+        $this->db->like('email', $email);
         $query = $this->db->get();
 
+        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email) $query->row(): '. $query->row());
+
+
         if($this->db->affected_rows() > 0){
-            return $query->row();
+            return $query->result();
         }else{
             error_log('no user found gestMembershipsUserInfo('.$email.')');
             return false;
@@ -370,11 +374,11 @@ class User_model extends CI_Model {
 			$this->db->delete('seg.memberships_users', $membership);
 			$error = $this->db->error();
 
-			if($error['message'] == ""){
-				return true;
+			if($this->db->affected_rows() > 0 ){
+				return TRUE;
 			}else{
-				log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
-				return false;
+				/*log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));*/
+				return FALSE;
 			}
 
 		}
@@ -494,15 +498,6 @@ class User_model extends CI_Model {
         return $query->result();
 			
 	}
-
-    /**
-     * Elimina los roles de un usuario
-     * @param 
-     * @return array 
-     */
-    public function deleteUserRol(){
-        
-    }
 
     
     //delete user

@@ -182,7 +182,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-primary" onclick="agregarRoles('<?php echo $user->id; ?>');">Agregar</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Finalizar</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal">Finalizar</button>
             </div>
         </div>
         <!-- /.modal-content -->
@@ -235,7 +235,7 @@
             });  
             var data = table.filter(Boolean);
             var dataRole = JSON.stringify(data);
-            console.log(data);
+            /*console.log(data);*/
             
             /*var icon = "<i class='fa fa-trash text-red' aria-hidden='true' style='cursor: pointer;' onclick='EliminarRolUsuario()'></i>";*/
             var group_nombre = $("#groups option:selected").text();
@@ -279,10 +279,10 @@
 
     function EliminarRolUsuario(eval){
 
-        console.log($(eval).closest('tr').attr('id')); 
+        /*($(eval).closest('tr').attr('id'));*/ 
         var data= $(eval).closest('tr').attr('id');
         var dataRol = data.split("/");
-        console.log(dataRol);
+        /*console.log(dataRol);*/
 
         var email = dataRol[0];
         var groupId = dataRol[1];
@@ -307,11 +307,12 @@
 
         dataRoleBpm.group_id = grupo;
         dataRoleBpm.role_id= rol;
-
-        /*console.log(dataRoleBpm);
-        console.log(dataRole);*/
-
-             
+        /*
+        console.log(email);
+        console.log(dataRoleBpm);
+        console.log(dataRole);
+        */
+        
         $.ajax({
             type: "POST",
             url:'<?php echo base_url() ?>/main/deleteLevelRolUser',
@@ -416,7 +417,7 @@
 
                 var idGroup = group.split("-");
                 var idRole = role.split("-");
-                console.log(idRole);
+                /*console.log(idRole);*/
                 /*Posicion 0 va los idRoles y IdGrupos*/
                 var grupo = idGroup[0];
                 var rol = idRole[0];
