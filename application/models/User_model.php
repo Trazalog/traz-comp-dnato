@@ -297,8 +297,14 @@ class User_model extends CI_Model {
 						'role'=>$d['role'], 							
 						'status'=>'approved',
 						'banned_users'=>'unban',
-						'depo_id'=> $depo
+						'depo_id'=> $depo,
 				);
+
+                //$array[$key]->valor4_base64 = base64_encode(file_get_contents($_FILES[$nom]['tmp_name']));
+                //imagen codificada
+                //$string['image'] = $d['images']
+
+                //log_message('DEBUG','#TRAZA|USER_MODEL|addUser($d) >> $string -> '.json_encode($string));
 
 				$q = $this->db->insert('seg.users',$string);
 
@@ -465,6 +471,7 @@ class User_model extends CI_Model {
         $this->db->from('seg.users');
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
         //$this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
+        $this->db->order_by("first_name", "asc");
         $query = $this->db->get();
 
         if($query->result())
@@ -506,11 +513,11 @@ class User_model extends CI_Model {
         $this->db->where('id', $id);
         $this->db->delete('seg.users');
         
-        if ($this->db->affected_rows() == '1') {
-            return FALSE;
+        if ($this->db->affected_rows() > 0) {
+            return TRUE;
         }
         else {
-            return TRUE;
+            return FALSE;
         }
     }
     

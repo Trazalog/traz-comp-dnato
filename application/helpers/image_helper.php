@@ -4,21 +4,23 @@ class Images {
 
 
     public function image($e){
-        $style = '';
+
+        $image = '';
         if(isset($e->valor4_base64)){
         
             $rec = stream_get_contents($e->valor4_base64);
             $ext = $this->obtenerExtension($e->valor);
-            $style = "background-image: url($ext$rec);";
+            $image = "background-image: url($ext$rec);";
         }else{
-            $style = "background-image: url(lib/imageForms/camera_2.png);";
+            $image = "background-image: url(lib/imageForms/camera_2.png);";
         }
         
-        return $style;
+        return $image;
     }
 
     //Funcion para obtener la extension del archivo codificado
     public function obtenerExtension($archivo){
+        
         $ext = explode('.',$archivo);
             switch(strtolower($ext[1])){
                 case 'jpg': $ext = 'data:image/jpg;base64,';break;

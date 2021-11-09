@@ -1,8 +1,19 @@
+<style>
+
+  
+</style>
+
+
 <div class="col-lg-4 col-lg-offset-4">
-    <h2>Hola <?php echo $first_name; ?>,</h2>
+    <h2>Hola <?php
+
+use function PHPSTORM_META\type;
+
+
+echo $first_name; ?>,</h2>
     <h5>Por favor ingrese la informacion requerida a continuacion.</h5>     
     <?php 
-        $fattr = array('class' => 'form-signin');
+        $fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data'  );
         echo form_open('/main/adduser', $fattr);
     ?>
     <div class="form-group">
@@ -21,6 +32,11 @@
       <?php echo form_input(array('name'=>'usernick', 'id'=> 'usernick', 'placeholder'=>'Usernick', 'class'=>'form-control', 'value'=> set_value('usernick'))); ?>
       <?php echo form_error('usernick');?>
     </div>
+    
+    <!--<div class="form-group">-->
+      <?php //echo form_input(array('name'=>'image', 'accept' => 'image/*', 'id'=> 'image', 'type' => 'file', 'placeholder'=>'Foto Perfil', 'class'=>'form-control', 'value'=> set_value('image'))); ?>
+      <?php //echo form_error('image');?>
+    <!--</div> -->
 
     <!-- FLEIVA -->
      <div class="form-group">

@@ -198,6 +198,11 @@
 
 <script>
 
+    function url(){
+        window.location.href="<?php echo site_url() ?>main/users";
+    }
+
+
     function modalRol(){
         $("#mdlRolEmpresa").modal('show');
         $("#groups").val('-1');
@@ -388,10 +393,12 @@
             },
             success: function(rsp) {
                 alert("Guardado correctamente.");
+                /*window.location.href="<?php echo site_url() ?>main/users";*/
 
             },
             error: function() {
-                alert("Se produjo un error al guardar roles/niveles/RolBpm del usuario.");
+               alert("Se produjo un error al guardar roles/niveles/RolBpm del usuario.");               
+                 /*window.location.href="<?php echo site_url() ?>main/users";*/ 
             },
             complete: function() {
 
