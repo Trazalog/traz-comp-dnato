@@ -14,7 +14,6 @@ class Images {
         }else{
             $image = "background-image: url(lib/imageForms/camera_2.png);";
         }
-        
         return $image;
     }
 

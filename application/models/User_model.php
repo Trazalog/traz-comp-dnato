@@ -303,7 +303,6 @@ class User_model extends CI_Model {
                 //$array[$key]->valor4_base64 = base64_encode(file_get_contents($_FILES[$nom]['tmp_name']));
                 //imagen codificada
                 //$string['image'] = $d['images']
-
                 //log_message('DEBUG','#TRAZA|USER_MODEL|addUser($d) >> $string -> '.json_encode($string));
 
 				$q = $this->db->insert('seg.users',$string);

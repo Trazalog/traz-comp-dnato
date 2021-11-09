@@ -33,6 +33,7 @@ echo $first_name; ?>,</h2>
       <?php echo form_error('usernick');?>
     </div>
     
+    
     <!--<div class="form-group">-->
       <?php //echo form_input(array('name'=>'image', 'accept' => 'image/*', 'id'=> 'image', 'type' => 'file', 'placeholder'=>'Foto Perfil', 'class'=>'form-control', 'value'=> set_value('image'))); ?>
       <?php //echo form_error('image');?>

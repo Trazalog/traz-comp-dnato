@@ -561,6 +561,7 @@ class Main extends CI_Controller {
 									$cleanPost['password'] = $hashed;
 									$cleanPost['depo_id'] = $this->input->post('depo_id');
 									unset($cleanPost['passconf']);
+									
 
 									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
 									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
