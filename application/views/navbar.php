@@ -58,8 +58,8 @@
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                         <?php
                           foreach($usersList as $user){
-                            if(($email == $user->email) && ($usernick == $user->usernick)){
-                              echo '<img src="'.image($user->image).'" class="user-image" alt="User Image"/>';
+                            if(($email == $user->email) && ($usernick == $user->usernick)){                             
+                              echo '<img src="'.image($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
                               break;
                             }
                           }

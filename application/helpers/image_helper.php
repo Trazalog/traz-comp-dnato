@@ -3,17 +3,22 @@
 if (!function_exists('form')) {
 
 
-    function image($e){
+    function image($img64,$imgName){
 
         $image = '';
-        if(isset($e->valor4_base64)){
-        
-            $rec = stream_get_contents($e->valor4_base64);
-            $ext = obtenerExtension($e->valor);
+        log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  img64 >> '.$img64);
+        log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  imgName >> '.$imgName);
+        if(isset($img64) && isset($imgName)){
+           
+            $rec = ($img64);
+            $ext = obtenerExtension($imgName);
+            //$image = "background-image: url($ext$rec);";
             $image = "$ext$rec";
-        }else{
-            $image = DNATO."public/img/icon-user-default.png";
+        //}else{
+            //$image = site_url(). "public/img/icon-user-default.png";
         }
+        log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName) image  >> '.$image);
+
         return $image;
     }
 
