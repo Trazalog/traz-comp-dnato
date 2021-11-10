@@ -435,6 +435,8 @@ class Main extends CI_Controller {
 
 		$data['title'] = "Habilitar/Deshabilitar Usuarios";
 		$data['groups'] = $this->user_model->getUserDataAll();
+		$data['usersList'] = $this->user_model->getListUserData();
+
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){

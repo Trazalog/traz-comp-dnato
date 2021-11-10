@@ -471,12 +471,28 @@ class User_model extends CI_Model {
 	*/
     public function getListUserData()
     {
-        $this->db->select("seg.users.*,seg.roles.*");
+        $this->db->select("seg.users.id,
+        seg.users.email,
+        seg.users.first_name,
+        seg.users.last_name,
+        seg.users.role,
+        seg.users.password,
+        seg.users.last_login,
+        seg.users.status,
+        seg.users.banned_users,
+        seg.users.passmd5,
+        seg.users.telefono,
+        seg.users.dni,
+        seg.users.usernick,
+        seg.users.depo_id,
+        cast(seg.users.image as bytea),
+        seg.users.image_name,seg.roles.*");
         $this->db->from('seg.users');
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
         //$this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
         $this->db->order_by("first_name", "asc");
         $query = $this->db->get();
+        
 
         log_message('DEBUG','#TRAZA|USER_MODEL|getListUserData() $query->result(): >> '.json_encode($query->result()));
 

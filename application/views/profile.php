@@ -2,7 +2,15 @@
     $default = "path/to/defava.png"; // Set a Default Avatar
     $emailavatar = md5(strtolower(trim($email)));
     $gravurl = "";
-    $imageProfile = '<img src="http://www.gravatar.com/avatar/'.$emailavatar.'?d='.$default.'&s=140&r=g&d=mm" class="img-circle" alt="">';
+
+    foreach($usersList as $user){
+        if(($email == $user->email) && ($usernick == $user->usernick)){                             
+            $imageProfile  = '<img src="'.image($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+            break;
+        }
+    }
+
+    //$imageProfile = '<img src="http://www.gravatar.com/avatar/'.$emailavatar.'?d='.$default.'&s=140&r=g&d=mm" class="img-circle" alt="">';
 ?>
 
 <div class="col-md-8 col-lg-offset-2">
@@ -15,7 +23,14 @@
         <div class="col-md-7">
             <h3><i class="fa fa-user-circle" aria-hidden="true"></i> <?php echo $first_name ." ". $last_name; ?></h3>
             <h5><i class="fa fa-envelope-o" aria-hidden="true"></i> <?php echo $email; ?></h5>
-            <h5><i class="fa fa-sign-in" aria-hidden="true"></i> <?php echo $last_login; ?></h5>
+            <h5><i class="fa fa-sign-in" aria-hidden="true"></i> 
+            <?php
+                if(empty($last_login)) 
+                    echo date("Y-m-d H:i:s");
+                else
+                    echo $last_login;
+                     
+            ?></h5>
         </div>
         <div class="col-md-2">
             <div class="btn-group">

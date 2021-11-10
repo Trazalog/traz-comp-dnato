@@ -10,7 +10,7 @@ if (!function_exists('form')) {
         log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  imgName >> '.$imgName);
         if(isset($img64) && isset($imgName)){
            
-            $rec = ($img64);
+            $rec = pg_unescape_bytea($img64);
             $ext = obtenerExtension($imgName);
             //$image = "background-image: url($ext$rec);";
             $image = "$ext$rec";
