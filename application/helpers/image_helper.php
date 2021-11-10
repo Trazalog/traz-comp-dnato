@@ -12,10 +12,9 @@ if (!function_exists('form')) {
            
             $rec = pg_unescape_bytea($img64);
             $ext = obtenerExtension($imgName);
-            //$image = "background-image: url($ext$rec);";
             $image = "$ext$rec";
-        //}else{
-            //$image = site_url(). "public/img/icon-user-default.png";
+        }else{
+            $image = site_url(). "public/img/icon-user-default.png";
         }
         //log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName) image  >> '.$image);
 
