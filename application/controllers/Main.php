@@ -121,6 +121,8 @@ class Main extends CI_Controller {
 		//check user level
 
 			$data['title'] = "Settings";
+			$data['usersList'] = $this->user_model->getListUserData();
+
 			$this->form_validation->set_rules('site_title', 'Site Title', 'required');
 			$this->form_validation->set_rules('timezone', 'Timezone', 'required');
 			$this->form_validation->set_rules('recaptcha', 'Recaptcha', 'required');
