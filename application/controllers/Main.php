@@ -1165,10 +1165,11 @@ class Main extends CI_Controller {
 	public function login()
 	{
 			$data = $this->session->userdata();
-			//log_message('DEBUG','#Main/login | '.json_encode($data));
+			log_message('DEBUG','#Main/login | '.json_encode($data));
+			
 			// si la sesion existe redirige a sistema
 			if($data['email']){
-				//log_message('DEBUG','#Main/login Sesion Existente');
+				log_message('DEBUG','#Main/login Sesion Existente');
 				redirect(DE);
 			}else{
 					$this->load->library('curl');
