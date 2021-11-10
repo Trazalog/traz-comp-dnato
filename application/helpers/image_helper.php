@@ -6,8 +6,8 @@ if (!function_exists('form')) {
     function image($img64,$imgName){
 
         $image = '';
-        log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  img64 >> '.$img64);
-        log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  imgName >> '.$imgName);
+        //log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  img64 >> '.$img64);
+        //log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName)  imgName >> '.$imgName);
         if(isset($img64) && isset($imgName)){
            
             $rec = pg_unescape_bytea($img64);
@@ -17,7 +17,7 @@ if (!function_exists('form')) {
         //}else{
             //$image = site_url(). "public/img/icon-user-default.png";
         }
-        log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName) image  >> '.$image);
+        //log_message('DEBUG','#TRAZA|MAIN|image($img64,$imgName) image  >> '.$image);
 
         return $image;
     }

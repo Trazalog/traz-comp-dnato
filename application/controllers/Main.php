@@ -179,9 +179,9 @@ class Main extends CI_Controller {
 		$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
 		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data));
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data['title']));
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[usersList] >> '.json_encode($data['usersList']));
-		log_message('DEBUG','#TRAZA|MAIN|users()  $data[groupsBpm] >> '.json_encode($data['groupsBpm']));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data['title']));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[usersList] >> '.json_encode($data['usersList']));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[groupsBpm] >> '.json_encode($data['groupsBpm']));
 
 		//check user level
 		if(empty($data['role'])){
@@ -222,7 +222,7 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 
-		log_message('INFO','#TRAZA|MAIN|ADDUSER() >> ');
+		//log_message('INFO','#TRAZA|MAIN|ADDUSER() >> ');
 		$data['usersList'] = $this->user_model->getListUserData();
 
 		//check is admin or not
@@ -246,7 +246,7 @@ class Main extends CI_Controller {
 							$data['depo_list'] = $this->Roles->obtenerDepositos();
 							$data['groups'] = $this->Roles->getBpmGroups();
 
-							log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> data '. json_encode($data));
+							//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> data '. json_encode($data));
 
 							$this->load->view('header', $data);
 							$this->load->view('navbar',$data);
@@ -281,10 +281,10 @@ class Main extends CI_Controller {
 									unset($cleanPost['passconf']);
 
 
-									log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
-									log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $extension '.$cleanPost['ext']);
-									log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $images '.$cleanPost['images']);
-									log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $extension '.$cleanPost['ext']);
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $images '.$cleanPost['images']);
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
 
 									
 									//insert to database

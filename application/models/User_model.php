@@ -425,11 +425,11 @@ class User_model extends CI_Model {
     //update user level
     public function updateUserLevel($post)
     {
-        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
         $this->db->where('email', $post['email']);
         $this->db->update('seg.users', array('role' => $post['level']));
         $success = $this->db->affected_rows();
-        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
         if(!$success){
             return false;
         }        
@@ -494,7 +494,7 @@ class User_model extends CI_Model {
         $query = $this->db->get();
         
 
-        log_message('DEBUG','#TRAZA|USER_MODEL|getListUserData() $query->result(): >> '.json_encode($query->result()));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|getListUserData() $query->result(): >> '.json_encode($query->result()));
 
         if($query->result())
             return $query->result();
