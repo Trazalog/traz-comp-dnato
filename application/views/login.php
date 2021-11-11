@@ -41,7 +41,7 @@
           'value'=> set_value('password'))); ?>
       <?php echo form_error('password') ?>
     </div>
-    <div id="bloquePuntoControlSicpoa" class="form-group" style="display:none">
+    <div id="bloquePuntoControlSicpoa" class="form-group">
       <?php
         $puntos = array('' => 'Seleccione punto de control...');
         foreach ($puntosControl as $value) {
@@ -65,12 +65,12 @@
 </div>
 <script>
   /*Bloque para mostrar punto de control en caso de que se seleccione la SICPOA*/
-  $("#empr_id").on("change", function () {
-    if($(this).val() === "888-DDPE_SICPOA"){
-      $("#bloquePuntoControlSicpoa").show();
-    }else{
-      $("#punto_control").val('');
-      $("#bloquePuntoControlSicpoa").hide();
-    }
-  });
+  // $("#empr_id").on("change", function () {
+  //   if($(this).val() === "888-DDPE_SICPOA"){
+  //     $("#bloquePuntoControlSicpoa").show();
+  //   }else{
+  //     $("#punto_control").val('');
+  //     $("#bloquePuntoControlSicpoa").hide();
+  //   }
+  // });
 </script>
