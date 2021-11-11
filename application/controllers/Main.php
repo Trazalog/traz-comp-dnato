@@ -243,7 +243,8 @@ class Main extends CI_Controller {
 							$this->load->model('Roles');
 							$data['dd_list'] = $this->Roles->obtener();
 							//var_dump($data);
-							$data['depo_list'] = $this->Roles->obtenerDepositos();
+							// RRUIZ - Re- Analizar en versión 2.0 
+							// $data['depo_list'] = $this->Roles->obtenerDepositos();
 							$data['groups'] = $this->Roles->getBpmGroups();
 
 							//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> data '. json_encode($data));
