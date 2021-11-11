@@ -1185,6 +1185,7 @@ class Main extends CI_Controller {
 							//log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()) . '| '.json_encode($this->input->post()));
 							// traigo los groups de BPM para lleba
 							$data['empresas'] = $this->Roles->getBpmGroups();
+							
 							$this->load->view('header', $data);
 							$this->load->view('container');
 							$this->load->view('login');
@@ -1245,6 +1246,7 @@ class Main extends CI_Controller {
 										$this->session->set_flashdata('flash_message', 'Error en logueo de BPM...');
 										redirect(base_url().'main/login/');
 									}
+									
 									// guardo info en variable de sesion
 									foreach($userInfo as $key=>$val){
 											$this->session->set_userdata($key, $val);

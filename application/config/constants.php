@@ -99,6 +99,17 @@ define('DS', 'http://localhost/traz-comp-dnato/main/login');
 define('DNATO', 'http://localhost/traz-comp-dnato/');
 define('SIS_NAME', 'TOOLS');
 
+/*
+|--------------------------------------------------------------------------
+| Variables HOST y REST
+|--------------------------------------------------------------------------
+|
+| Variables Locales
+|
+*/
+define('HOST', 'http://10.142.0.13:8280');
+define('REST_CORE', HOST.'/services/COREDataService');
+
 #ERRORES DE BONITA
 define('ASP_100', 'Fallo Conexión BPM');
 define('ASP_101', 'Error al Inciar Proceso');
