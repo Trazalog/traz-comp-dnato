@@ -121,6 +121,8 @@ class Main extends CI_Controller {
 		//check user level
 
 			$data['title'] = "Settings";
+			$data['usersList'] = $this->user_model->getListUserData();
+
 			$this->form_validation->set_rules('site_title', 'Site Title', 'required');
 			$this->form_validation->set_rules('timezone', 'Timezone', 'required');
 			$this->form_validation->set_rules('recaptcha', 'Recaptcha', 'required');
@@ -170,8 +172,7 @@ class Main extends CI_Controller {
 	}
 
 	//user list
-	public function users()
-	{
+	public function users()	{
 		$data = $this->session->userdata;
 		$data['title'] = "Lista de Usuarios";
 		$data['usersList'] = $this->user_model->getListUserData();
@@ -187,7 +188,9 @@ class Main extends CI_Controller {
 				redirect(base_url().'main/login/');
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
-		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[role]: >> '.json_encode($dataLevel));
+
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data: >> '.json_encode($data));
+		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[email]: >> '.json_encode($data['email']));
 		//check user level
 
 		//check is admin or not
@@ -199,6 +202,110 @@ class Main extends CI_Controller {
 					$this->load->view('usersList', $data);
 					//$this->load->view('list_usuarios_externos', $data);
 					$this->load->view('footer');
+		}else{
+				redirect(base_url().'main/');
+		}
+	}
+
+	//add new user from backend
+	public function adduser()
+	{
+
+		$data = $this->session->userdata;
+		if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+		}
+
+		//check user level
+		if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+		}
+		$dataLevel = $this->userlevel->checkLevel($data['role']);
+
+		//log_message('INFO','#TRAZA|MAIN|ADDUSER() >> ');
+		$data['usersList'] = $this->user_model->getListUserData();
+
+		//check is admin or not
+		if($dataLevel == "is_admin"){
+					$this->form_validation->set_rules('firstname', 'First Name', 'required');
+					$this->form_validation->set_rules('lastname', 'Last Name', 'required');
+					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+					$this->form_validation->set_rules('role', 'role', 'required');
+					$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
+					$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+
+					
+					//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> form_validation ');
+
+					$data['title'] = "Agregar Usuario";
+					if ($this->form_validation->run() == FALSE) {
+							// trae depositos para asignar a usuarios depositos
+							$this->load->model('Roles');
+							$data['dd_list'] = $this->Roles->obtener();
+							//var_dump($data);
+							$data['depo_list'] = $this->Roles->obtenerDepositos();
+							$data['groups'] = $this->Roles->getBpmGroups();
+
+							//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> data '. json_encode($data));
+
+							$this->load->view('header', $data);
+							$this->load->view('navbar',$data);
+							$this->load->view('container');
+							$this->load->view('adduser', $data);
+							$this->load->view('footer');
+					}else{
+							if($this->user_model->isDuplicate($this->input->post('email'))){
+									$this->session->set_flashdata('flash_message', ' Ya existe un usuario asociado a ese Email');
+									redirect(base_url().'main/adduser');
+							}else{
+									$this->load->library('password');
+									$post = $this->input->post(NULL, TRUE);
+									$cleanPost = $this->security->xss_clean($post);
+									$hashed = $this->password->create_hash($cleanPost['password']);
+									$cleanPost['email'] = $this->input->post('email');
+									$cleanPost['role'] = $this->input->post('role');
+									$cleanPost['firstname'] = $this->input->post('firstname');
+									$cleanPost['lastname'] = $this->input->post('lastname');
+									$cleanPost['telefono'] = $this->input->post('telefono');
+									$cleanPost['usernick'] = $this->input->post('usernick');
+									
+									//Codificamos imagen
+									$cleanPost['image_name'] = $_FILES['image']['name'];
+									$cleanPost['ext'] = $_FILES['image']['type'];	
+									$cleanPost['image'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+									
+									$cleanPost['dni'] = $this->input->post('dni');
+									$cleanPost['banned_users'] = 'unban';
+									$cleanPost['password'] = $hashed;
+									$cleanPost['depo_id'] = $this->input->post('depo_id');
+									unset($cleanPost['passconf']);
+
+
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $extension '.$cleanPost['ext']);
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $images '.$cleanPost['images']);
+									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
+
+									
+									//insert to database
+									$usr_id = $this->user_model->addUser($cleanPost);
+
+									//crea usr en BPM
+									if($usr_id){
+											$status = $this->user_model->crearUsrBPM($cleanPost);
+											if ($status) {
+												$this->session->set_flashdata('flash_message', 'Usuario creado exitosamente...');
+												redirect(base_url().'main/users/'.$usr_id);
+											} else {
+												//log_message('ERROR','#TRAZA|MAIN|ADDUSER >> ERROR: NO SE PUDO CREAR USUARIO EN BPM');
+												$this->session->set_flashdata('danger_message', 'Error al crear usuario en BPM');
+											}
+									}
+
+									redirect(base_url().'main/users/'.$usr_id);
+									//redirect(base_url().'main/users/');
+							};
+					}
 		}else{
 				redirect(base_url().'main/');
 		}
@@ -219,7 +326,7 @@ class Main extends CI_Controller {
 		//check user level
 
 		$data['title'] = "Cambiar Niveles de Usuarios";
-		//$data['users'] = $this->user_model->getUserData();
+		$data['usersList'] = $this->user_model->getListUserData();
 		$data['user'] = $this->user_model->getUserInfo($id); 											// Datos Usuario Seleccionado
 		$data['mem_user'] = $this->user_model->gestMembershipsUserInfo($data['user']->email); // Empresas usuario Seleccionado
 		$data['dd_list'] = $this->Roles->obtener(); 													// Perfil Cn
@@ -260,7 +367,7 @@ class Main extends CI_Controller {
 				}else{
 					$this->session->set_flashdata('success_message', 'The level user has been updated.');
 				}
-				redirect(base_url().'main/changeleveluser');
+				redirect(base_url().'main/changeleveluser/'.$id);
 			}
 		}else{
 				redirect(base_url().'main/');
@@ -269,8 +376,7 @@ class Main extends CI_Controller {
 
 	}
 	//change level user
-	public function changelevel()
-	{
+	public function changelevel(){
 		$this->load->model('Roles');
 
 		$data = $this->session->userdata;
@@ -331,6 +437,8 @@ class Main extends CI_Controller {
 
 		$data['title'] = "Habilitar/Deshabilitar Usuarios";
 		$data['groups'] = $this->user_model->getUserDataAll();
+		$data['usersList'] = $this->user_model->getListUserData();
+
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
@@ -375,6 +483,8 @@ class Main extends CI_Controller {
 			);
 
 			$data['title'] = "Change Password";
+			$data['usersList'] = $this->user_model->getListUserData();
+
 			$this->form_validation->set_rules('firstname', 'First Name', 'required');
 			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
 			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
@@ -418,6 +528,8 @@ class Main extends CI_Controller {
 		}
 
 			$data['title'] = "Profile";
+			$data['usersList'] = $this->user_model->getListUserData();
+
 			$this->load->view('header', $data);
 			$this->load->view('navbar', $data);
 			$this->load->view('container');
@@ -492,103 +604,7 @@ class Main extends CI_Controller {
 
 	}
 
-	//add new user from backend
-	public function adduser()
-	{
 
-		$data = $this->session->userdata;
-		if(empty($data['role'])){
-				redirect(base_url().'main/login/');
-		}
-
-		//check user level
-		if(empty($data['role'])){
-				redirect(base_url().'main/login/');
-		}
-		$dataLevel = $this->userlevel->checkLevel($data['role']);
-
-		log_message('INFO','#TRAZA|MAIN|ADDUSER() >> ');
-
-		//check is admin or not
-		if($dataLevel == "is_admin"){
-					$this->form_validation->set_rules('firstname', 'First Name', 'required');
-					$this->form_validation->set_rules('lastname', 'Last Name', 'required');
-					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-					$this->form_validation->set_rules('role', 'role', 'required');
-					$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-					$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
-
-					
-					//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> form_validation ');
-
-					$data['title'] = "Agregar Usuario";
-					if ($this->form_validation->run() == FALSE) {
-							// trae depositos para asignar a usuarios depositos
-							$this->load->model('Roles');
-							$data['dd_list'] = $this->Roles->obtener();
-							//var_dump($data);
-							$data['depo_list'] = $this->Roles->obtenerDepositos();
-							$data['groups'] = $this->Roles->getBpmGroups();
-
-							log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> data '. json_encode($data));
-
-							$this->load->view('header', $data);
-							$this->load->view('navbar',$data);
-							$this->load->view('container');
-							$this->load->view('adduser', $data);
-							$this->load->view('footer');
-					}else{
-							if($this->user_model->isDuplicate($this->input->post('email'))){
-									$this->session->set_flashdata('flash_message', ' Ya existe un usuario asociado a ese Email');
-									redirect(base_url().'main/adduser');
-							}else{
-									$this->load->library('password');
-									$post = $this->input->post(NULL, TRUE);
-									$cleanPost = $this->security->xss_clean($post);
-									$hashed = $this->password->create_hash($cleanPost['password']);
-									$cleanPost['email'] = $this->input->post('email');
-									$cleanPost['role'] = $this->input->post('role');
-									$cleanPost['firstname'] = $this->input->post('firstname');
-									$cleanPost['lastname'] = $this->input->post('lastname');
-									$cleanPost['telefono'] = $this->input->post('telefono');
-									$cleanPost['usernick'] = $this->input->post('usernick');
-									
-									//$cleanPost['image'] = $_FILES['image']['name'];
-									//$cleanPost['images'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
-									//codificar
-									$cleanPost['dni'] = $this->input->post('dni');
-									$cleanPost['banned_users'] = 'unban';
-									$cleanPost['password'] = $hashed;
-									$cleanPost['depo_id'] = $this->input->post('depo_id');
-									unset($cleanPost['passconf']);
-
-									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
-									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
-
-									
-									//insert to database
-									$usr_id = $this->user_model->addUser($cleanPost);
-
-									//crea usr en BPM
-									if($usr_id){
-											$status = $this->user_model->crearUsrBPM($cleanPost);
-											if ($status) {
-												$this->session->set_flashdata('flash_message', 'Usuario creado exitosamente...');
-												redirect(base_url().'main/users/'.$usr_id);
-											} else {
-												//log_message('ERROR','#TRAZA|MAIN|ADDUSER >> ERROR: NO SE PUDO CREAR USUARIO EN BPM');
-												$this->session->set_flashdata('danger_message', 'Error al crear usuario en BPM');
-											}
-									}
-
-									redirect(base_url().'main/users/'.$usr_id);
-									//redirect(base_url().'main/users/');
-							};
-					}
-		}else{
-				redirect(base_url().'main/');
-		}
-	}
 
 	public function adduserexterno()
 	{
@@ -1149,10 +1165,11 @@ class Main extends CI_Controller {
 	public function login()
 	{
 			$data = $this->session->userdata();
-			//log_message('DEBUG','#Main/login | '.json_encode($data));
+			log_message('DEBUG','#Main/login | '.json_encode($data));
+			
 			// si la sesion existe redirige a sistema
 			if($data['email']){
-				//log_message('DEBUG','#Main/login Sesion Existente');
+				log_message('DEBUG','#Main/login Sesion Existente');
 				redirect(DE);
 			}else{
 					$this->load->library('curl');

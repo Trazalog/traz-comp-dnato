@@ -11,8 +11,10 @@
               <th colspan="2">Editar</th>
           </tr>
                 <?php
-                    foreach($usersList as $row){ 
+                    foreach($usersList as $row){
                         
+                        if(($email != $row->email) && ($usernick != $row->usernick)){                             
+                                                        
                             echo '<tr>';
                             echo '<td>'.$row->id.'</td>';
                             echo '<td>'.$row->first_name.' '.$row->last_name.'</td>';
@@ -25,6 +27,7 @@
                             echo '<td><a href="'.site_url().'main/deleteuser/'.$row->id.'"><button type="button" class="btn btn-danger">Borrar</button></a></td>';
                             echo '</td>';
                         }
+                    }
     
                 ?>
         </table>

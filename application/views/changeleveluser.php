@@ -337,7 +337,6 @@
 
             }
         });
-        
     }
 
     function guardarRolesUsuario(){

@@ -302,8 +302,8 @@ class User_model extends CI_Model {
 
                 //$array[$key]->valor4_base64 = base64_encode(file_get_contents($_FILES[$nom]['tmp_name']));
                 //imagen codificada
-                //$string['image'] = $d['images']
-
+                $string['image_name'] = $d['image_name'];
+                $string['image'] = $d['image'];
                 //log_message('DEBUG','#TRAZA|USER_MODEL|addUser($d) >> $string -> '.json_encode($string));
 
 				$q = $this->db->insert('seg.users',$string);
@@ -425,11 +425,11 @@ class User_model extends CI_Model {
     //update user level
     public function updateUserLevel($post)
     {
-        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
         $this->db->where('email', $post['email']);
         $this->db->update('seg.users', array('role' => $post['level']));
         $success = $this->db->affected_rows();
-        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
         if(!$success){
             return false;
         }        
@@ -457,7 +457,11 @@ class User_model extends CI_Model {
     public function getUserData()
     {
         $query = $this->db->get_where('seg.users', array('banned_users' => 'unban'));
-        return $query->result();
+
+        if($query->result())
+            return $query->result();
+        else
+            return false;
     }
     
     /**
@@ -467,12 +471,30 @@ class User_model extends CI_Model {
 	*/
     public function getListUserData()
     {
-        $this->db->select("seg.users.*,seg.roles.*");
+        $this->db->select("seg.users.id,
+        seg.users.email,
+        seg.users.first_name,
+        seg.users.last_name,
+        seg.users.role,
+        seg.users.password,
+        seg.users.last_login,
+        seg.users.status,
+        seg.users.banned_users,
+        seg.users.passmd5,
+        seg.users.telefono,
+        seg.users.dni,
+        seg.users.usernick,
+        seg.users.depo_id,
+        cast(seg.users.image as bytea),
+        seg.users.image_name,seg.roles.*");
         $this->db->from('seg.users');
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
         //$this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
         $this->db->order_by("first_name", "asc");
         $query = $this->db->get();
+        
+
+        //log_message('DEBUG','#TRAZA|USER_MODEL|getListUserData() $query->result(): >> '.json_encode($query->result()));
 
         if($query->result())
             return $query->result();
