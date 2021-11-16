@@ -133,10 +133,11 @@ class Roles extends CI_Model
 
 		/**
 		* Devuelve depositos para asignar a usuarios de Rol deposito
+		* REPENSAR EN V2.0 - RRUIZ
 		* @param
 		* @return array con depositos por establecimiento
 		*/
-		function obtenerDepositos()
+/*		function obtenerDepositos()
 		{
 			//TODO: DESHARDCODEAR ESTABLECIMIENTO
 			$esta_id = 1;
@@ -145,6 +146,6 @@ class Roles extends CI_Model
 			$aux =json_decode($aux["data"]);
 			return $aux->depositos->deposito;
 		}
-
+*/
 		
 }

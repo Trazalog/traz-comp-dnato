@@ -67,16 +67,17 @@ echo $first_name; ?>,</h2>
     </div>
 
     <!-- <div class="form-group"> -->
-      <?php
+      <!--?php
         // rol de Depositos
-          $opciones= array('' => 'Seleccione Deposito si corresponde...');
-          foreach ($depo_list as $value) {
-            $key = $value->depo_id;
-            $opciones[$key] = $value->descripcion;
-          }
-          $depo_name = "depo_id";
+        // REPENSAR EN V2.0 - RRUIZ
+        // $opciones= array('' => 'Seleccione Deposito si corresponde...');
+        //   foreach ($depo_list as $value) {
+        //     $key = $value->depo_id;
+        //     $opciones[$key] = $value->descripcion;
+        //   }
+        //   $depo_name = "depo_id";
         //  echo form_dropdown($depo_name, $opciones, set_value($depo_name),'class = "form-control" id="deposito"');
-      ?>
+      ?-->
     <!-- </div> -->
     <div class="form-group">
       <?php echo form_password(array('name'=>'password', 'id'=> 'password', 'placeholder'=>'Password', 'class'=>'form-control', 'value' => set_value('password'))); ?>
