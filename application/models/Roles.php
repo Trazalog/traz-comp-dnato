@@ -63,8 +63,8 @@ class Roles extends CI_Model
 		*/
 		function deleteMembershipBPM($membershipBPM, $userNick){
 
-			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
-			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
+			//log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
+			//log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
 
 			// trae info de usuario en BPM
 			$info_bpm = $this->getInfoBPM($userNick);
@@ -78,12 +78,12 @@ class Roles extends CI_Model
 			$datos["session"] = $session;
 			$post["payload"] = $datos;
 
-			log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $post >> '.json_encode($datos));
+			//log_message('DEBUG','#TRAZA|ROLES|deleteMembershipBPM($membershipBPM, $userNick): $post >> '.json_encode($datos));
 			
 			$resource = '/membership';
 			$url = REST_BPM . $resource;
 			$aux = $this->rest->callAPI("DELETE", $url, $datos);
-			$aux = json_decode($aux["status"]);
+			$aux = json_decode($aux["data"]);
 			return $aux;
 
 		}
@@ -95,8 +95,8 @@ class Roles extends CI_Model
 		*/
 		function guardarMembershipBPM($membershipBPM, $userNick){
 
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
+			//log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
+			//log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
 
 			// trae info de usuario en BPM
 			$info_bpm = $this->getInfoBPM($userNick);
