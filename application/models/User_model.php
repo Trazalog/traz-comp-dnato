@@ -87,7 +87,7 @@ class User_model extends CI_Model {
     
     //get user memberships_users info
     public function gestMembershipsUserInfo($email){
-        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
+        //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
 
         $this->db->select('*');
         $this->db->from('seg.memberships_users');
@@ -95,7 +95,7 @@ class User_model extends CI_Model {
         $this->db->like('email', $email);
         $query = $this->db->get();
 
-        log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email) $query->row(): '. $query->row());
+        //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email) $query->row(): '. $query->row());
 
 
         if($this->db->affected_rows() > 0){
@@ -104,15 +104,7 @@ class User_model extends CI_Model {
             error_log('no user found gestMembershipsUserInfo('.$email.')');
             return false;
         }
-        /*
-        $query = $this->db->get_where('seg.memberships_users', array('email' => $email));
-
-        if($this->db->affected_rows() > 0){
-            return $query->row();
-        }else{
-            error_log('no user found gestMembershipsUserInfo('.$email.')');
-            return false;
-        }*/
+        
     }
 
     //get user memberships_users info
@@ -145,10 +137,14 @@ class User_model extends CI_Model {
         }
     }
     
+
     //getUserName
-    public function getUserAllData($email)
+    public function getUserAllData($email,$case=0)
     {
-        $this->db->select('*');
+        if($case == 1){
+            $this->db->select('id');
+        }else
+            $this->db->select('*');
         $this->db->from('seg.users');
         $this->db->where('email', $email );
         $query = $this->db->get();
@@ -199,13 +195,13 @@ class User_model extends CI_Model {
 					if( ($countUs == 1) ){
             if(!$this->password->validate_password($post['password'], $userInfo->password))
             {
-                log_message('ERROR','#TRAZA|USER_MODEL|ERROR EN PAASSWORD >> PASSWORD-> '. $post['password']);
+                //log_message('ERROR','#TRAZA|USER_MODEL|ERROR EN PAASSWORD >> PASSWORD-> '. $post['password']);
                 return false;
             }else{
                 $this->updateLoginTime($userInfo->id);
             }
         }else{
-            log_message('ERROR','#TRAZA|USER_MODEL| >> NO HAY UN USUARIO CON EL EMAIL INGRESADO: '.$post['email']);
+            //log_message('ERROR','#TRAZA|USER_MODEL| >> NO HAY UN USUARIO CON EL EMAIL INGRESADO: '.$post['email']);
             error_log('NO HAY UN USUARIO CON EL EMAIL INGRESADO : ('.$post['email'].')');
             return false;
         }
@@ -232,8 +228,8 @@ class User_model extends CI_Model {
 			if( $countUs > 0 ){
 				return true;
 			}else{
-				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
-				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $email  >> '.json_encode($email));
+				//log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
+				//log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $email  >> '.json_encode($email));
         return false;
 			}
 		}
@@ -317,7 +313,7 @@ class User_model extends CI_Model {
 				if($userInfo){
 					return $userInfo;
 				}else{
-					log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
+					//log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
 					return false;
 				}
            
@@ -362,7 +358,7 @@ class User_model extends CI_Model {
 			if($error['message'] == ""){
 				return true;
 			}else{
-				log_message('ERROR','#TRAZA|USER_MODEL|GUARDARUSRBPM($membership) >> ERROR -> '.json_encode($error['message']));
+				//log_message('ERROR','#TRAZA|USER_MODEL|GUARDARUSRBPM($membership) >> ERROR -> '.json_encode($error['message']));
 				return false;
 			}
 		}
@@ -373,17 +369,19 @@ class User_model extends CI_Model {
 		* @return string resultado del borrado		
 		*/
 		function borrarMembership($membership){
+
+            //log_message('DEBUG','#TRAZA|MAIN|borrarMembership($membership)  $membership: >> '.json_encode($membership) );
 			
-			$this->db->where('role', $membership['role']);
+			$this->db->where('role', trim($membership['role']));
 			$this->db->where('group', $membership['group']);
 			$this->db->where('email', $membership['email']);
-			$this->db->delete('seg.memberships_users', $membership);
+			$this->db->delete('seg.memberships_users');
 			$error = $this->db->error();
 
 			if($this->db->affected_rows() > 0 ){
 				return TRUE;
 			}else{
-				/*log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));*/
+				//log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
 				return FALSE;
 			}
 

@@ -76,6 +76,7 @@
                         <li role="separator" class="divider"></li>
 
                         <?php
+                          if(isset($groupsBpm)){
                             foreach($groupsBpm as $group){
                               list($id_group, $group_name) = explode ("-",$group->name);
                               if($groupBpm == $group_name){
@@ -84,6 +85,17 @@
                               }
                               
                             }
+                          }else{
+                            foreach($groups as $group){
+                              list($id_group, $group_name) = explode ("-",$group->name);
+                              if($groupBpm == $group_name){
+                                echo "  "."<li><a><i class='fa fa-check'></i>  ".$group->displayName."</a></li>";
+                                echo "<li role='separator' class='divider'></li>";
+                              }
+                              
+                            }
+                          }
+                            
                         ?>
                                                 
                         <li><a href="<?php echo base_url().'main/logout' ?>">Salir</a></li>

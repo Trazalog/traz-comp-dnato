@@ -122,6 +122,7 @@ class Main extends CI_Controller {
 
 			$data['title'] = "Settings";
 			$data['usersList'] = $this->user_model->getListUserData();
+			$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
 			$this->form_validation->set_rules('site_title', 'Site Title', 'required');
 			$this->form_validation->set_rules('timezone', 'Timezone', 'required');
@@ -439,6 +440,7 @@ class Main extends CI_Controller {
 		$data['title'] = "Habilitar/Deshabilitar Usuarios";
 		$data['groups'] = $this->user_model->getUserDataAll();
 		$data['usersList'] = $this->user_model->getListUserData();
+		$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
 
 		//check is admin or not
@@ -530,6 +532,7 @@ class Main extends CI_Controller {
 
 			$data['title'] = "Profile";
 			$data['usersList'] = $this->user_model->getListUserData();
+			$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
 			$this->load->view('header', $data);
 			$this->load->view('navbar', $data);
@@ -681,63 +684,44 @@ class Main extends CI_Controller {
 		$dataPost['email'] = $this->input->post('email');
 		$dataRole = $this->input->post('dataRole');
 		$dataRoleBpm = $this->input->post('dataRoleBpm');
+		//$id = $this->user_model->getUserAllData($dataPost['email']);
 
 
+		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $id: >> '.json_encode($id) );
 		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataPost[email]: >> '.$dataPost['email'] );
 		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataRole: >> '.json_encode($dataRole) );
 		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $dataRoleBpm: >> '.json_encode($dataRoleBpm) );
+
+
+		//redirect(base_url().'main/changeleveluser/'.$id);
 
 		//Eliminar en Bonita
 		$this->load->model('Roles');
 		$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
 
 		$deleteRolBpm = $this->Roles->deleteMembershipBPM($dataRoleBpm, $infoUser->usernick);
-		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolBpm: >> '.json_encode($deleteRolBpm) );
+		$rspDeleteBPM = json_encode($deleteRolBpm);
+		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolBpm: >> '.($rspDeleteBPM) );
 
-		if(!$deleteRolBpm){
+		if(is_null($rspDeleteBPM) ){
 			//$this->session->set_flashdata('flash_message', 'Fallo eliminación de roles Bpm.');
-			return -1;
+			return false;
 		}else{
 			//$this->session->set_flashdata('success_message', 'Rol Bpm eliminado con exito.');
 			//return true;
 			$deleteRolUser = $this->user_model->borrarMembership($dataRole);
-			//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolUser: >> '.json_encode($deleteRolUser) );	
+			//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolUser: >> '.json_encode( $deleteRolUser) );	
 
 			if(!$deleteRolUser){
-				//$this->session->set_flashdata('flash_message', 'Error Eliminación' .$dataPost['email']); 
-				return -2;
-			}else{
-				//$this->session->set_flashdata('success_message', 'Eliminado Correctamente'.$dataPost['email']);
-				return true;
-
-			}
-		}
-
-		/*
-		$deleteRolUser = $this->user_model->borrarMembership($dataRole);
-		log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolUser: >> '.json_encode($deleteRolUser) );
-
-		if(!$deleteRolUser){
-			//$this->session->set_flashdata('flash_message', 'Error Eliminación' .$dataPost['email']); 
-			return false;
-		}else{
-			$this->session->set_flashdata('success_message', 'Eliminado Correctamente'.$dataPost['email']);
-			return true;
-			Eliminar en Bonita
-			$this->load->model('Roles');
-			$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
-
-			$deleteRolBpm = $this->Roles->deleteMembershipBPM($dataRoleBpm, $infoUser->usernick);
-			log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolBpm: >> '.json_encode($deleteRolBpm) );
-
-			if(!$deleteRolBpm){
-				$this->session->set_flashdata('flash_message', 'Fallo eliminación de roles Bpm.');
+				//$this->session->set_flashdata('flash_message', 'Error Eliminación ' .$dataPost['email']); 
 				return false;
 			}else{
-				$this->session->set_flashdata('success_message', 'Rol Bpm eliminado con exito.');
+				//$this->session->set_flashdata('success_message', 'Eliminado Correctamente '.$dataPost['email']);
 				return true;
 			}
-		}*/
+			
+
+		}
 		
 	}
 	/**
@@ -784,8 +768,7 @@ class Main extends CI_Controller {
 				return true;*/
 				//obtiene el nick de un usuario por email
 				$this->load->model('Roles');
-				$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
-				
+				$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);				
 				$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpm, $infoUser->usernick);
 				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
 				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm[payload]: >> '. json_encode($membShipBpm->payload));
