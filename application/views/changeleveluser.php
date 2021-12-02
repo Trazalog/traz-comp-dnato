@@ -7,21 +7,21 @@
     <div class="box-body">
         <div class="col-lg-12">
             <div class="alert alert-success alert-dismissable" id="saveRol"  style="display: none">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>-->
 				Guardado. Los cambios y asignaciones fueron guardados correctamente.
 			</div>
 				
             <div class="alert alert-danger alert-dismissable" id="errorRol" style="display: none">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>-->
                 Revise. Se produjo un error al guardar roles/niveles del usuario.
 			</div>
 
             <div class="alert alert-success alert-dismissable" id="saveDeleteRol" style="display: none">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>-->
                 Eliminado. Se han eliminado correctamente el rol del usuario.
 			</div>
             <div class="alert alert-danger alert-dismissable" id="errorDeleteRol" style="display: none">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+                <!--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>-->
                 Revise. Se produjo error al eliminar el rol del usuario.
 			</div>
         </div>    
