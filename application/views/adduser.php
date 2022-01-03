@@ -51,6 +51,26 @@ echo $first_name; ?>,</h2>
     <!-- FLEIVA -->
 
     <div class="form-group">
+		  <select class="form-control " name="business" id="business" >
+    <?php
+        foreach($emp_connect as $emp_con){    ///Emrpesas del Usuario conectado
+          foreach($groups as $group){
+              list($id_group, $group_name) = explode ("-",$group->name);
+              if($id_group && $group_name){ 
+                  if($emp_con->group === $group_name){
+                      echo '<option value="'.$emp_con->group.'">'.$group->displayName.'</option>';
+                      break;
+                  }
+              }
+          }
+      }
+        
+        /*echo form_dropdown($dd_nbusiness, $dd_business, set_value($dd_nbusiness),'class = "form-control" id="business"');*/
+        echo '</select>';
+    ?>
+
+    </div>
+    <div class="form-group">
     <?php
 
     // rol de Dnato

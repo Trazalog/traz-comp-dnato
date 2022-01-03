@@ -86,10 +86,16 @@ class User_model extends CI_Model {
     } 
     
     //get user memberships_users info
-    public function gestMembershipsUserInfo($email){
+    public function gestMembershipsUserInfo($email, $sw=0){
         //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
 
-        $this->db->select('*');
+        if($sw == 1){
+            $this->db->distinct('seg.memberships_users.group');
+            $this->db->select('seg.memberships_users.group');
+        }else{
+            $this->db->select('*');
+        }
+        
         $this->db->from('seg.memberships_users');
         //$this->db->where('email', $email );
         $this->db->like('email', $email);
@@ -304,18 +310,35 @@ class User_model extends CI_Model {
 
 				$q = $this->db->insert('seg.users',$string);
 
-				$error = $this->db->error();
+                //log_message('DEBUG','#TRAZA|USER_MODEL|addUser($d) >> 	$q -> '.json_encode($q));
 
-				$this->db->select_max('id');						
-				$query = $this->db->get('seg.users');
-				$userInfo = $query->row('id');
+                $error = $this->db->error();
 
-				if($userInfo){
-					return $userInfo;
-				}else{
-					//log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
-					return false;
-				}
+                if($q){
+                    $bsnes = array (
+                        'email'=>$d['email'],	
+                        'busines' =>  $d['business']              
+                    );
+
+                    $bs = $this->db->insert('seg.users_business', $bsnes);
+
+                    $error = $this->db->error();
+
+                    $this->db->select_max('id');						
+                    $query = $this->db->get('seg.users');
+                    $userInfo = $query->row('id');
+
+                    if($userInfo){
+                        return $userInfo;
+                    }else{
+                        //log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
+                        return false;
+                    }
+
+                }else{
+                    return false;
+                }
+
            
 		}
 
@@ -484,10 +507,10 @@ class User_model extends CI_Model {
         seg.users.usernick,
         seg.users.depo_id,
         cast(seg.users.image as bytea),
-        seg.users.image_name,seg.roles.*");
+        seg.users.image_name,seg.roles.*,seg.users_business.busines");
         $this->db->from('seg.users');
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
-        //$this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email', 'LEFT');
+        $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
         $this->db->order_by("first_name", "asc");
         $query = $this->db->get();
         
@@ -540,6 +563,21 @@ class User_model extends CI_Model {
             return FALSE;
         }
     }
+
+    //Delete User Busines
+    public function deleteUserBusines($email,$busines){ 
+
+        $this->db->where('email', $email);
+        $this->db->where('busines', $busines);
+        $this->db->delete('seg.users_business');
+        
+        if ($this->db->affected_rows() > 0) {
+            return TRUE;
+        }
+        else {
+            return FALSE;
+        }
+    }
     
     //get settings
     public function getAllSettings()
@@ -567,5 +605,20 @@ class User_model extends CI_Model {
             return false;
         }        
         return true;
+    }
+
+    public function obtenerBusines($id = false)
+    {
+        
+        $query = $this->db->get('core.empresas');
+        //$res = $query->result();
+        
+        $list = [];
+        return $query->result();
+        /*foreach ($res as $o) {
+            $list[$o->empr_id] = $o->descripcion;
+        }
+
+        return $list;*/
     }
 }

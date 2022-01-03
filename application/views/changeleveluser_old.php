@@ -61,9 +61,9 @@
                     
                     <table id="tbl_temporal" class="table table-striped">
                             <thead >					
-                                    <th>email</th>										
-                                    <th>group_id</th>					
-                                    <th>role_id</th>					
+                                    <th class="hidden">email</th>										
+                                    <th class="hidden">group_id</th>					
+                                    <th class="hidden">role_id</th>					
                                     <th>Empresa</th>					
                                     <th>Rol</th>					
                                     <th>Acción</th>
@@ -111,9 +111,9 @@
 
                                             if($idGroup != '' && $nameGroup != ''  && $idRole != '' && $nameRole) {
                                                 echo "<tr id='".$membUser->email."/".$idGroup."/".$idRole."'>";                                            
-                                                echo "<td>".$membUser->email ."</td>";
-                                                echo "<td>".$idGroup ."</td>";
-                                                echo "<td>".$idRole ."</td>";
+                                                echo "<td class='hidden'>".$membUser->email ."</td>";
+                                                echo "<td class='hidden'>".$idGroup ."</td>";
+                                                echo "<td class='hidden'>".$idRole ."</td>";
                                                 echo "<td>".$nameGroup ."</td>";
                                                 echo "<td>".$nameRole ."</td>";
                                                 echo "<td><i class='fa fa-trash text-red' aria-hidden='true' style='cursor: pointer;' onclick='EliminarRolUsuario(this)'></i></td>";
@@ -147,10 +147,7 @@
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">Nuevo Rol Para el Usuario: 
-                    <strong> 
-                        <?php echo $user->first_name. ' '. $user->last_name; ?>
-                    </strong></h4>
+                <h4 class="modal-title">Nuevo Rol Para el Usuario: <strong> <?php echo $user->first_name. ' '. $user->last_name; ?></strong></h4>
             </div>
             
             <div class="modal-body">
@@ -174,7 +171,7 @@
 
 					<div class="form-group">
 						<label class=" control-label" for="codigo">Empresa:</label>
-						<select class="form-control " name="groups" id="groups" onchange="CargarRolesEmpresas();" >
+						<select class="form-control " name="groups" id="groups" >
 						<option value="-1" disabled selected>-Seleccione Grupos BPM-</option>
 						<?php
 
@@ -191,6 +188,7 @@
                                 }
                             }
 
+						
                             echo '</select>';
                             echo '</div>';                    
                             
@@ -199,7 +197,14 @@
                             echo '<select class="form-control " name="roles" id="roles" >';
                             echo '<option value="-1" disabled selected >-Seleccione Roles BPM-</option>';
                     
-                    
+                                foreach($roles as $role){
+
+                                    list($id_role, $name_role) = explode ("-",$role->name);                                 //Filtra Solo Roles
+                                    if($id_role && $name_role){    
+                                        //if($id_role === $id_group)                                                          //Solo Roles Empresa Select     
+                                        echo '<option value="'.$role->id.'-'.$role->name.'">'.$role->displayName.'</option>';
+                                    }
+                                }
                         ?>
                     </select>
 					</div>
@@ -223,38 +228,7 @@
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
 
-
 <script>
-
-    function CargarRolesEmpresas(){
-
-        var group =$('#groups').val();
-        console.log(group);
-        var role = <?php echo json_encode($roles) ?>;
-        /*console.log(role);*/
-
-        sgroup = group.split("-");
-        console.log(sgroup[1]);
-        addOptions("roles", role,sgroup[1]);
-    }
-
-    /* Rutina para agregar opciones a un <select>*/
-    function addOptions(domElement, json, sgroup) {
-        var select = document.getElementsByName(domElement)[0];
-
-        /*console.log(select);*/
-        var srole ='';
-        Object.keys(json).forEach(function(elm) {
-            /*console.log("Name: "+ json[elm]['name']+" id: "+ json[elm]['name']+" displayName: "+ json[elm]['displayName']);*/
-            srole= json[elm]['name'].split("-");
-            if(sgroup == srole[0]){
-                var option = '<option value="'+json[elm]['id']+'-'+json[elm]['name']+'">'+json[elm]['displayName']+'</option>';
-                /*console.log(option);*/
-                $('#roles').append(option);
-            }
-        
-        })
-    }
 
     function url(){
         window.location.href="<?php echo site_url() ?>main/users";
@@ -309,9 +283,9 @@
             var group_nombre = $("#groups option:selected").text();
             var role_nombre = $("#roles option:selected").text();
             var row =   "<tr id='"+email+'/'+groupId+'/'+roleId+"'>"+    
-                        '<td>' + email + '</td>'+
-                        '<td>' + groupId + '</td>'+
-                        '<td>' + roleId + '</td>'+
+                        '<td class="hidden">' + email + '</td>'+
+                        '<td class="hidden">' + groupId + '</td>'+
+                        '<td class="hidden">' + roleId + '</td>'+
                         '<td>'+ group_nombre  +'</td>'+
                         '<td>'+ role_nombre  +'</td>'+
                         '<td><i class="fa fa-trash text-red" aria-hidden="true" style="cursor: pointer;" onclick="EliminarRolUsuario(this)"></td>'+
@@ -342,6 +316,7 @@
         }
 
     }
+
     
 
     function EliminarRolUsuario(eval){
@@ -463,10 +438,7 @@
         }
     }
 
-
-
-    /** Esta funcion no se encuentra en funcionamiento */
-    function guardarRolesUsuarioOLD(){ 
+    function guardarRolesUsuario(){
 
         var email = $("#emailuser").val();
         var level = $("#level option:selected").val();
@@ -510,7 +482,7 @@
         console.log(tableBpm);
         console.log(table);
         
-        
+
         $.ajax({
             type: "POST",
             url:'<?php echo base_url() ?>/main/changeLevelRolUser',
@@ -520,7 +492,8 @@
                 email: email,
                 level: level
             },
-            success: function(rsp) {               
+            success: function(rsp) {
+                /*alert("Guardado correctamente.");*/
                     
                 document.getElementById('saveRol').style.display = 'block';
                 document.getElementById('errorDeleteRol').style.display = 'none';
@@ -528,84 +501,7 @@
                 document.getElementById('saveDeleteRol').style.display = 'none';
             },
             error: function() {
-                      
-                document.getElementById('errorRol').style.display = 'block';
-                document.getElementById('errorDeleteRol').style.display = 'none';
-                document.getElementById('saveRol').style.display = 'none';
-                document.getElementById('saveDeleteRol').style.display = 'none';
-            },
-            complete: function() {
-
-            }
-        });
-
-    }
-
-    /** Esta funcion funcionamiento guardar actual */
-    function guardarRolesUsuario(){
-
-        var email = $("#emailuser").val();
-        var level = $("#level option:selected").val();
-                
-        var table = {};
-        var tableBpm = {};
-        $('#tbl_temporal tr').each(function(row, tr) {
-
-            var email = $(tr).find('td:eq(0)').text();
-            var group = $(tr).find('td:eq(1)').text();
-            var role  = $(tr).find('td:eq(2)').text();
-            if(email !== '' && group !== '' && role !== ''){
-                
-                var idGroup = group.split("-");
-                var idRole = role.split("-");
-                
-                var grupo =  idGroup[0];    /** group; */   /** idGroup[(idGroup.length-2)]+'-'+idGroup[(idGroup.length-1)];*/
-                var rol = idRole[0];        /** role; */    /** idRole[(idRole.length-2)]+'-'+idRole[(idRole.length-1)]; */
-
-                var nombGrupo= idGroup[(idGroup.length-1)];
-                var nombRole=  idRole[(idRole.length-1)];
-                /**BPM */
-                tableBpm.group_id = grupo;
-                tableBpm.role_id= rol;
-
-                /** Local */
-                table.email = email;
-                table.group = nombGrupo.replace(/^\s*|\s*$/g,"");
-                table.role = nombRole.replace(/^\s*|\s*$/g,"");
-            
-            }
-        });         
-
-        /*var dataBpm = tableBpm.filter(Boolean);
-        var dataRoleBpm = JSON.stringify(dataBpm);
-        var RoleBpm = JSON.parse(dataRoleBpm);
-        var data = table.filter(Boolean);
-        var dataRole = JSON.stringify(data);
-        var Role = JSON.parse(dataRole);*/
-        
-        
-        console.log(tableBpm);
-        console.log(table);
-        
-        
-        $.ajax({
-            type: "POST",
-            url:'<?php echo base_url() ?>/main/changeLevelRolUser',
-            data: {
-                dataRole: table,
-                dataRoleBpm: tableBpm,
-                email: email,
-                level: level
-            },
-            success: function(rsp) {               
-                    
-                document.getElementById('saveRol').style.display = 'block';
-                document.getElementById('errorDeleteRol').style.display = 'none';
-                document.getElementById('errorRol').style.display = 'none';
-                document.getElementById('saveDeleteRol').style.display = 'none';
-            },
-            error: function() {
-                      
+               /*alert("Se produjo un error al guardar roles/niveles/RolBpm del usuario.");   */            
                 document.getElementById('errorRol').style.display = 'block';
                 document.getElementById('errorDeleteRol').style.display = 'none';
                 document.getElementById('saveRol').style.display = 'none';
