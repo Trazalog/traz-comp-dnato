@@ -1,3 +1,15 @@
+        <style>
+          .navbar-nav>.user-menu .user-image {
+            float: left;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            margin-right: 10px;
+            margin-top: -2px;
+          }
+
+        </style>
+        
         <?php
         //check user level
 	    $dataLevel = $this->userlevel->checkLevel($role);
@@ -34,21 +46,58 @@
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
                                 <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
                                 <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>
-                                <li><a href="'.site_url().'main/changelevel">Roles</a></li>
                               </ul>
                             </li>
-                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>
-                            ';
+                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>';
                         }
                     ?>
                   </ul>
                   <ul class="nav navbar-nav navbar-right">
-                    <li class="dropdown">
-                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user-circle" aria-hidden="true"></i> <?php echo $first_name. ' '.$last_name; ?> <span class="caret"></span></a>
+                    <li class="dropdown user user-menu">
+                      
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <?php
+                          foreach($usersList as $user){
+                            if(($email == $user->email) && ($usernick == $user->usernick)){                             
+                              echo '<img src="'.image($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+                              break;
+                            }
+                          }
+                        ?>
+                        
+                        <!--<img src="<?php /*echo site_url()*/?>/public/img/user2-160x160.jpg" class="user-image" alt="User Image">-->
+                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?></span>
+                      </a>
+                        
+
                       <ul class="dropdown-menu">
                         <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li>
                         <li><a href="<?php echo site_url();?>main/changeuser">Editar Perfil</a></li>
                         <li role="separator" class="divider"></li>
+
+                        <?php
+                          if(isset($groupsBpm)){
+                            foreach($groupsBpm as $group){
+                              list($id_group, $group_name) = explode ("-",$group->name);
+                              if($groupBpm == $group_name){
+                                echo "  "."<li><a><i class='fa fa-check'></i>  ".$group->displayName."</a></li>";
+                                echo "<li role='separator' class='divider'></li>";
+                              }
+                              
+                            }
+                          }else{
+                            foreach($groups as $group){
+                              list($id_group, $group_name) = explode ("-",$group->name);
+                              if($groupBpm == $group_name){
+                                echo "  "."<li><a><i class='fa fa-check'></i>  ".$group->displayName."</a></li>";
+                                echo "<li role='separator' class='divider'></li>";
+                              }
+                              
+                            }
+                          }
+                            
+                        ?>
+                                                
                         <li><a href="<?php echo base_url().'main/logout' ?>">Salir</a></li>
                       </ul>
                     </li>

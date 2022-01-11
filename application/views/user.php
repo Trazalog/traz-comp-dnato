@@ -1,4 +1,4 @@
-    <div class="container">
+<div class="container">
         <h2>Usuarios</h2>
         <table class="table table-hover table-bordered table-striped">
           <tr>
@@ -30,7 +30,8 @@
                     echo '<td>'.$row->last_login.'</td>';
                     echo '<td>'.$rolename.'</td>';
                     echo '<td>'.$row->status.'</td>';
-                    echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Rol</button></a></td>';
+                    //echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Rol</button></a></td>';
+                    echo '<td><a href="'.site_url().'main/changeleveluser/'.$row->id.'"><button type="button" class="btn btn-primary">Rol</button></a></td>';
                     echo '<td><a href="'.site_url().'main/deleteuser/'.$row->id.'"><button type="button" class="btn btn-danger">Borrar</button></a></td>';
                     echo '</tr>';
                     }

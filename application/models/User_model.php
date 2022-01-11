@@ -83,7 +83,52 @@ class User_model extends CI_Model {
             return false;
         }
         
-    }    
+    } 
+    
+    //get user memberships_users info
+    public function gestMembershipsUserInfo($email, $sw=0){
+        //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
+
+        if($sw == 1){
+            $this->db->distinct('seg.memberships_users.group');
+            $this->db->select('seg.memberships_users.group');
+        }else{
+            $this->db->select('*');
+        }
+        
+        $this->db->from('seg.memberships_users');
+        //$this->db->where('email', $email );
+        $this->db->like('email', $email);
+        $query = $this->db->get();
+
+        //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email) $query->row(): '. $query->row());
+
+
+        if($this->db->affected_rows() > 0){
+            return $query->result();
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }
+        
+    }
+
+    //get user memberships_users info
+    public function getMembershipsUserInfoEmpresa($email, $emplevel){
+
+        $this->db->from('seg.memberships_users');
+        $this->db->where('email', $email );
+        $this->db->where('group', $emplevel );
+        $query = $this->db->get();
+
+        if($this->db->affected_rows() > 0){
+            $row = $query->row();
+            return $row;
+        }else{
+            error_log('no user found gestMembershipsUserInfo('.$email.')');
+            return false;
+        }
+    }
     
     //get user info
     public function getUserInfo($id)
@@ -98,10 +143,14 @@ class User_model extends CI_Model {
         }
     }
     
+
     //getUserName
-    public function getUserAllData($email)
+    public function getUserAllData($email,$case=0)
     {
-        $this->db->select('*');
+        if($case == 1){
+            $this->db->select('id');
+        }else
+            $this->db->select('*');
         $this->db->from('seg.users');
         $this->db->where('email', $email );
         $query = $this->db->get();
@@ -152,13 +201,13 @@ class User_model extends CI_Model {
 					if( ($countUs == 1) ){
             if(!$this->password->validate_password($post['password'], $userInfo->password))
             {
-                log_message('ERROR','#TRAZA|USER_MODEL|ERROR EN PAASSWORD >> PASSWORD-> '. $post['password']);
+                //log_message('ERROR','#TRAZA|USER_MODEL|ERROR EN PAASSWORD >> PASSWORD-> '. $post['password']);
                 return false;
             }else{
                 $this->updateLoginTime($userInfo->id);
             }
         }else{
-            log_message('ERROR','#TRAZA|USER_MODEL| >> NO HAY UN USUARIO CON EL EMAIL INGRESADO: '.$post['email']);
+            //log_message('ERROR','#TRAZA|USER_MODEL| >> NO HAY UN USUARIO CON EL EMAIL INGRESADO: '.$post['email']);
             error_log('NO HAY UN USUARIO CON EL EMAIL INGRESADO : ('.$post['email'].')');
             return false;
         }
@@ -185,8 +234,8 @@ class User_model extends CI_Model {
 			if( $countUs > 0 ){
 				return true;
 			}else{
-				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
-				log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $email  >> '.json_encode($email));
+				//log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $empresa  >> '.json_encode($empresa));
+				//log_message('ERROR','#TRAZA|DNATO|USER_MODEL| $email  >> '.json_encode($email));
         return false;
 			}
 		}
@@ -250,23 +299,46 @@ class User_model extends CI_Model {
 						'role'=>$d['role'], 							
 						'status'=>'approved',
 						'banned_users'=>'unban',
-						'depo_id'=> $depo
+						'depo_id'=> $depo,
 				);
+
+                //$array[$key]->valor4_base64 = base64_encode(file_get_contents($_FILES[$nom]['tmp_name']));
+                //imagen codificada
+                $string['image_name'] = $d['image_name'];
+                $string['image'] = $d['image'];
+                //log_message('DEBUG','#TRAZA|USER_MODEL|addUser($d) >> $string -> '.json_encode($string));
 
 				$q = $this->db->insert('seg.users',$string);
 
-				$error = $this->db->error();
+                //log_message('DEBUG','#TRAZA|USER_MODEL|addUser($d) >> 	$q -> '.json_encode($q));
 
-				$this->db->select_max('id');						
-				$query = $this->db->get('seg.users');
-				$userInfo = $query->row('id');
+                $error = $this->db->error();
 
-				if($userInfo){
-					return $userInfo;
-				}else{
-					log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
-					return false;
-				}
+                if($q){
+                    $bsnes = array (
+                        'email'=>$d['email'],	
+                        'busines' =>  $d['business']              
+                    );
+
+                    $bs = $this->db->insert('seg.users_business', $bsnes);
+
+                    $error = $this->db->error();
+
+                    $this->db->select_max('id');						
+                    $query = $this->db->get('seg.users');
+                    $userInfo = $query->row('id');
+
+                    if($userInfo){
+                        return $userInfo;
+                    }else{
+                        //log_message('ERROR','#TRAZA|USER_MODEL|addUser($d) >> ERROR -> '.json_encode($error['message']));
+                        return false;
+                    }
+
+                }else{
+                    return false;
+                }
+
            
 		}
 
@@ -309,7 +381,7 @@ class User_model extends CI_Model {
 			if($error['message'] == ""){
 				return true;
 			}else{
-				log_message('ERROR','#TRAZA|USER_MODEL|GUARDARUSRBPM($membership) >> ERROR -> '.json_encode($error['message']));
+				//log_message('ERROR','#TRAZA|USER_MODEL|GUARDARUSRBPM($membership) >> ERROR -> '.json_encode($error['message']));
 				return false;
 			}
 		}
@@ -320,18 +392,20 @@ class User_model extends CI_Model {
 		* @return string resultado del borrado		
 		*/
 		function borrarMembership($membership){
+
+            //log_message('DEBUG','#TRAZA|MAIN|borrarMembership($membership)  $membership: >> '.json_encode($membership) );
 			
-			$this->db->where('role', $membership['role']);
+			$this->db->where('role', trim($membership['role']));
 			$this->db->where('group', $membership['group']);
 			$this->db->where('email', $membership['email']);
-			$this->db->delete('seg.memberships_users', $membership);
+			$this->db->delete('seg.memberships_users');
 			$error = $this->db->error();
 
-			if($error['message'] == ""){
-				return true;
+			if($this->db->affected_rows() > 0 ){
+				return TRUE;
 			}else{
-				log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
-				return false;
+				//log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
+				return FALSE;
 			}
 
 		}
@@ -367,15 +441,16 @@ class User_model extends CI_Model {
         }        
         return true;
     }
+
     
     //update user level
     public function updateUserLevel($post)
     {
-        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() DATOS DE USUARIO A MODIFICAR->$dataLevel: >> '.json_encode($post));
         $this->db->where('email', $post['email']);
         $this->db->update('seg.users', array('role' => $post['level']));
         $success = $this->db->affected_rows();
-        log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
+        //log_message('DEBUG','#TRAZA|USER_MODEL|updateUserLevel() RESPUESTA BD->$success: >> '.json_encode($success));
         if(!$success){
             return false;
         }        
@@ -396,28 +471,83 @@ class User_model extends CI_Model {
     }
 
     /**
-		* Devuelve los usuarios activos
-		* @param
-		* @return array usuarios activos
-		*/
+	* Devuelve los usuarios activos
+	* @param
+	* @return array usuarios activos
+	*/
     public function getUserData()
     {
         $query = $this->db->get_where('seg.users', array('banned_users' => 'unban'));
-        return $query->result();
-		}
 
-		/**
-		* Devuelve listado de TODOS los usuarios del sistema
-		* @param
-		* @return array con usuarios del sistema
-		*/
-		function getUserDataAll()
-		{     
-			$query = $this->db->get('seg.users');
+        if($query->result())
+            return $query->result();
+        else
+            return false;
+    }
+    
+    /**
+	* Devuelve los usuarios activos
+	* @param
+	* @return array usuarios activos
+	*/
+    public function getListUserData()
+    {
+        $this->db->select("seg.users.id,
+        seg.users.email,
+        seg.users.first_name,
+        seg.users.last_name,
+        seg.users.role,
+        seg.users.password,
+        seg.users.last_login,
+        seg.users.status,
+        seg.users.banned_users,
+        seg.users.passmd5,
+        seg.users.telefono,
+        seg.users.dni,
+        seg.users.usernick,
+        seg.users.depo_id,
+        cast(seg.users.image as bytea),
+        seg.users.image_name,seg.roles.*,seg.users_business.busines");
+        $this->db->from('seg.users');
+        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
+        $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
+        $this->db->order_by("first_name", "asc");
+        $query = $this->db->get();
+        
+
+        //log_message('DEBUG','#TRAZA|USER_MODEL|getListUserData() $query->result(): >> '.json_encode($query->result()));
+
+        if($query->result())
+            return $query->result();
+        else
+            return false;
+    }
+    
+    public function getInfoEmpCore()
+    {
+        $this->db->select("*");
+        $this->db->from('core.empresas');
+        $query = $this->db->get();
+
+        if($query->result())
+            return $query->result();
+        else
+            return false;
+
+    }
+
+
+	/**
+	* Devuelve listado de TODOS los usuarios del sistema
+	* @param
+	* @return array con usuarios del sistema
+	*/
+	function getUserDataAll()
+	{     
+		$query = $this->db->get('seg.users');
         return $query->result();
 			
-		}
-
+	}
 
     
     //delete user
@@ -426,11 +556,26 @@ class User_model extends CI_Model {
         $this->db->where('id', $id);
         $this->db->delete('seg.users');
         
-        if ($this->db->affected_rows() == '1') {
-            return FALSE;
+        if ($this->db->affected_rows() > 0) {
+            return TRUE;
         }
         else {
+            return FALSE;
+        }
+    }
+
+    //Delete User Busines
+    public function deleteUserBusines($email,$busines){ 
+
+        $this->db->where('email', $email);
+        $this->db->where('busines', $busines);
+        $this->db->delete('seg.users_business');
+        
+        if ($this->db->affected_rows() > 0) {
             return TRUE;
+        }
+        else {
+            return FALSE;
         }
     }
     
@@ -460,5 +605,20 @@ class User_model extends CI_Model {
             return false;
         }        
         return true;
+    }
+
+    public function obtenerBusines($id = false)
+    {
+        
+        $query = $this->db->get('core.empresas');
+        //$res = $query->result();
+        
+        $list = [];
+        return $query->result();
+        /*foreach ($res as $o) {
+            $list[$o->empr_id] = $o->descripcion;
+        }
+
+        return $list;*/
     }
 }
