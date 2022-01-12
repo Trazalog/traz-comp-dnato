@@ -3,7 +3,7 @@
         <table class="table table-hover table-bordered table-striped">
           <tr>
               <th>id</th>
-              <th>Empresa</th>
+              <th class="hidden">Empresa</th>
               <th>Nombre</th>
               <th>Usuario</th>
               <th>Ultimo login</th>
@@ -21,7 +21,7 @@
                                                                 
                                     echo '<tr>';
                                     echo '<td>'.$row->id.'</td>';
-                                    echo '<td>'.$row->busines.'</td>';
+                                    echo '<td class="hidden">'.$row->busines.'</td>';
                                     echo '<td>'.$row->first_name.' '.$row->last_name.'</td>';
                                     echo '<td>'.$row->email.'</td>';
                                     echo '<td>'.$row->last_login.'</td>';
