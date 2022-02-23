@@ -1,7 +1,6 @@
 <div class="col-lg-4 col-lg-offset-4">
 <style>
 body {
-  background-image: url('<?php echo base_url();?>public/img/toolsbkg.png');
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: cover;
