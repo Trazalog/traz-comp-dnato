@@ -44,9 +44,12 @@
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Usuarios <span class="caret"></span></a>
                               <ul class="dropdown-menu">
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
+
                                 <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
+                                
                                 <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>
-                              </ul>
+                              
+                                </ul>
                             </li>
                             <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>';
                         }
