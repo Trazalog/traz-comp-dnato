@@ -621,4 +621,14 @@ class User_model extends CI_Model {
 
         return $list;*/
     }
+
+    public function getPuntosControl(){
+        $resource = "/tabla/puntos_control/empresa/";
+        $url = REST_CORE . $resource;
+        $aux = $this->rest->callApi('GET', $url);
+        $aux = json_decode($aux["data"]);
+        return $aux->tablas->tabla;
+    }
+
+    
 }

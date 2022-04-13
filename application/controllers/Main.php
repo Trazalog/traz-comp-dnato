@@ -1248,6 +1248,7 @@ class Main extends CI_Controller {
 							//log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()) . '| '.json_encode($this->input->post()));
 							// traigo los groups de BPM para lleba
 							$data['empresas'] = $this->Roles->getBpmGroups();
+							$data['puntosControl'] = $this->user_model->getPuntosControl();
 							
 							$this->load->view('header', $data);
 							$this->load->view('container');
