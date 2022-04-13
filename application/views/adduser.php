@@ -32,11 +32,12 @@ echo $first_name; ?>,</h2>
       <?php echo form_input(array('name'=>'usernick', 'id'=> 'usernick', 'placeholder'=>'Usernick', 'class'=>'form-control', 'value'=> set_value('usernick'))); ?>
       <?php echo form_error('usernick');?>
     </div>
+
     
-    <!--<div class="form-group">-->
-      <?php //echo form_input(array('name'=>'image', 'accept' => 'image/*', 'id'=> 'image', 'type' => 'file', 'placeholder'=>'Foto Perfil', 'class'=>'form-control', 'value'=> set_value('image'))); ?>
-      <?php //echo form_error('image');?>
-    <!--</div> -->
+    <div class="form-group">
+      <?php echo form_input(array('name'=>'image', 'accept' => 'image/*', 'id'=> 'image', 'type' => 'file', 'placeholder'=>'Foto Perfil', 'class'=>'form-control', 'value'=> set_value('image'))); ?>
+      <?php echo form_error('image');?>
+    </div>
 
     <!-- FLEIVA -->
      <div class="form-group">
@@ -49,6 +50,26 @@ echo $first_name; ?>,</h2>
     </div>
     <!-- FLEIVA -->
 
+    <div class="form-group">
+		  <select class="form-control " name="business" id="business" >
+    <?php
+        foreach($emp_connect as $emp_con){    ///Emrpesas del Usuario conectado
+          foreach($groups as $group){
+              list($id_group, $group_name) = explode ("-",$group->name);
+              if($id_group && $group_name){ 
+                  if($emp_con->group === $group_name){
+                      echo '<option value="'.$emp_con->group.'">'.$group->displayName.'</option>';
+                      break;
+                  }
+              }
+          }
+      }
+        
+        /*echo form_dropdown($dd_nbusiness, $dd_business, set_value($dd_nbusiness),'class = "form-control" id="business"');*/
+        echo '</select>';
+    ?>
+
+    </div>
     <div class="form-group">
     <?php
 
@@ -66,16 +87,17 @@ echo $first_name; ?>,</h2>
     </div>
 
     <!-- <div class="form-group"> -->
-      <?php
+      <!--?php
         // rol de Depositos
-          $opciones= array('' => 'Seleccione Deposito si corresponde...');
-          foreach ($depo_list as $value) {
-            $key = $value->depo_id;
-            $opciones[$key] = $value->descripcion;
-          }
-          $depo_name = "depo_id";
+        // REPENSAR EN V2.0 - RRUIZ
+        // $opciones= array('' => 'Seleccione Deposito si corresponde...');
+        //   foreach ($depo_list as $value) {
+        //     $key = $value->depo_id;
+        //     $opciones[$key] = $value->descripcion;
+        //   }
+        //   $depo_name = "depo_id";
         //  echo form_dropdown($depo_name, $opciones, set_value($depo_name),'class = "form-control" id="deposito"');
-      ?>
+      ?-->
     <!-- </div> -->
     <div class="form-group">
       <?php echo form_password(array('name'=>'password', 'id'=> 'password', 'placeholder'=>'Password', 'class'=>'form-control', 'value' => set_value('password'))); ?>

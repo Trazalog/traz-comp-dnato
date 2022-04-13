@@ -90,8 +90,6 @@ define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('BPM_USER_PASS', 'bpm');
 
-define('REST', 'http://10.142.0.13:8280/services/semaresiduosDS');
-
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
 define('DE', 'http://localhost/traz-tools/');
