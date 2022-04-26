@@ -1310,6 +1310,8 @@ class Main extends CI_Controller {
 										$this->session->set_flashdata('flash_message', 'Error en logueo de BPM...');
 										redirect(base_url().'main/login/');
 									}
+									//Asigno el punto de control si esta seteado
+									if(isset($clean['punto_control'])){$userInfo->puntosControl = $clean['punto_control'];}
 									
 									// guardo info en variable de sesion
 									foreach($userInfo as $key=>$val){
