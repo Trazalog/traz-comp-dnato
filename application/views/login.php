@@ -1,5 +1,15 @@
 <div class="col-lg-4 col-lg-offset-4">
-    <h2>Bienvenido!</h2>
+<style>
+body {
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+</style>
+<br>
+<br>
+<img src="<?php echo base_url();?>public/img/logotzl.png" alt="Trazalog Tools" class="brand-image" style="width: 360px; height: auto !important;">
+<br>
+    <h2>¡Bienvenido!</h2>
     <h5>Ingrese por favor.</h5>
     <?php $fattr = array('class' => 'form-signin');
          echo form_open(base_url().'main/login/', $fattr); ?>
