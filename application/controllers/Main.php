@@ -1239,7 +1239,9 @@ class Main extends CI_Controller {
 					$this->load->library('recaptcha');
 					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
 					$this->form_validation->set_rules('password', 'Password', 'required');
-
+					$this->form_validation->set_rules('punto_control', 'Punto de Control', 'required');
+					$this->form_validation->set_message('required', 'El campo %s es obligatorio. <br>');
+					
 					$data['title'] = "Trazalog Tools!";
 
 					// si esan vacios los campos, carga pantalla login
@@ -1249,6 +1251,9 @@ class Main extends CI_Controller {
 							// traigo los groups de BPM para lleba
 							$data['empresas'] = $this->Roles->getBpmGroups();
 							$data['puntosControl'] = $this->user_model->getPuntosControl();
+							$error = $this->form_validation->error_string();
+							// $error = strip_tags($this->form_validation->error_string()); Permite remover los tag's que trae el error_string
+							if(!empty($error)) {$this->session->set_flashdata('flash_message', $error);}
 							
 							$this->load->view('header', $data);
 							$this->load->view('container');
