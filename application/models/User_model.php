@@ -244,7 +244,7 @@ class User_model extends CI_Model {
     public function updateLoginTime($id)
     {
         $this->db->where('id', $id);
-        $this->db->update('users', array('last_login' => date('Y-m-d h:i:s A')));
+        $this->db->update('seg.users', array('last_login' => date('Y-m-d h:i:s A')));
         return;
     }
 
