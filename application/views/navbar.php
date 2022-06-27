@@ -1,3 +1,6 @@
+<link href='<?php  echo base_url();?>assets/fullcalendar/lib/main.min.css' rel='stylesheet' />
+
+        
         <style>
           .navbar-nav>.user-menu .user-image {
             float: left;
