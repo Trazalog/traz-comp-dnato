@@ -65,7 +65,7 @@
                         <?php
                           foreach($usersList as $user){
                             if(($email == $user->email) && ($usernick == $user->usernick)){                             
-                              echo '<img src="'.image($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+                              echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
                               break;
                             }
                           }
