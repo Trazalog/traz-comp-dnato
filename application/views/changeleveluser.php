@@ -175,7 +175,7 @@
 					<div class="form-group">
 						<label class=" control-label" for="codigo">Empresa:</label>
 						<select class="form-control " name="groups" id="groups" onchange="CargarRolesEmpresas();" >
-						<option value="-1" disabled selected>-Seleccione Grupos BPM-</option>
+						    <option value="-1" disabled selected>-Seleccione Grupos BPM-</option>
 						<?php
 
 
@@ -229,27 +229,32 @@
     function CargarRolesEmpresas(){
 
         var group =$('#groups').val();
-        console.log(group);
+        /*console.log("group: "+group);*/
         var role = <?php echo json_encode($roles) ?>;
-        /*console.log(role);*/
+        /*console.log("role: "+JSON.stringify(role));*/
 
         sgroup = group.split("-");
-        console.log(sgroup[1]);
+        /*console.log("empId: "+sgroup[1]);*/
         addOptions("roles", role,sgroup[1]);
     }
 
     /* Rutina para agregar opciones a un <select>*/
     function addOptions(domElement, json, sgroup) {
-        var select = document.getElementsByName(domElement)[0];
 
-        /*console.log(select);*/
+        var option = '';
         var srole ='';
+        /*$("#roles").empty();*/
+        /*console.log("DE: "+domElement+" JSON: "+JSON.stringify(json)+" SGROUP: "+sgroup);*/
+        var select = document.getElementsByName(domElement)[0];
+        
+        /*console.log("select: "+select);*/
         Object.keys(json).forEach(function(elm) {
             /*console.log("Name: "+ json[elm]['name']+" id: "+ json[elm]['name']+" displayName: "+ json[elm]['displayName']);*/
             srole= json[elm]['name'].split("-");
+            /*console.log("sgroup: "+sgroup+" srole[0]: "+srole[0]+" srole[1]: "+srole[1]);*/
             if(sgroup == srole[0]){
-                var option = '<option value="'+json[elm]['id']+'-'+json[elm]['name']+'">'+json[elm]['displayName']+'</option>';
-                /*console.log(option);*/
+                option = '<option value="'+json[elm]['id']+'-'+json[elm]['name']+'">'+json[elm]['displayName']+'</option>';
+                console.log("OPTION: "+option);
                 $('#roles').append(option);
             }
         
