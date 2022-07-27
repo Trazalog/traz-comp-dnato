@@ -612,7 +612,7 @@ class Main extends CI_Controller {
 	}
 
 	//delete user
-	public function deleteuser($id) {
+	public function deleteuser($id,$busines) {
 
 		$data = $this->session->userdata;
 		if(empty($data['role'])){
@@ -630,14 +630,15 @@ class Main extends CI_Controller {
 			$data['user'] = $this->user_model->getUserInfo($id);
 			$data['memberships'] = $this->user_model->getMembershipsUserInfoEmpresa($data['user']->email, $emplevel);
 
-			//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[user]: >> '.json_encode($data['user'])); 
-			//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[memberships]: >> '.json_encode($data['memberships'])); 
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[user]: >> '.json_encode($data['user'])); 
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[memberships]: >> '.json_encode($data['memberships'])); 
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[groupBpm]: >> '.json_encode($data['memberships'])); 
 
 			if($data['memberships']){
 				$this->session->set_flashdata('flash_message', 'Error, Este Usuario tiene roles de sistema en la empresa asignados!');
 			}else{	
 				/**Eliminar tabla seg.users_bisiness */
-				$deleteUserBusines = $this->user_model->deleteUserBusines($data['user']->email,$data['groupBpm']);
+				$deleteUserBusines = $this->user_model->deleteUserBusines($data['user']->email,$busines);
 
 				if(!$deleteUserBusines ){
 					$this->session->set_flashdata('flash_message', 'Error, no se puede elminar el UserBusines del usuario '.$data['user']->email);

@@ -25,6 +25,11 @@ $theme = $result->theme;
         <!-- JQuery -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 
+        <!-- DataTables 1.10.7 -->
+        <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/dataTables.bootstrap.css">
+        <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.dataTables.min.css">
+        <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.bootstrap.min.css">
+
         <!-- <script src='https://www.google.com/recaptcha/api.js'></script> -->
     </head>
     <body>

@@ -9,7 +9,7 @@
               <th>Ultimo login</th>
               <th>Nivel de Usuario</th>
               <th>Estado</th>
-              <th colspan="2">Editar</th>
+              <th colspan="2">Acciones</th>
           </tr>
                 <?php
                     
@@ -28,8 +28,9 @@
                                     echo '<td>'.$row->nombre.'</td>';
                                     echo '<td>'.$row->status.'</td>';
                                     //echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Rol</button></a></td>';
-                                    echo '<td><a href="'.site_url().'main/changeleveluser/'.$row->id.'"><button type="button" class="btn btn-primary">Rol</button></a></td>';
-                                    echo '<td><a href="'.site_url().'main/deleteuser/'.$row->id.'"><button type="button" class="btn btn-danger">Borrar</button></a></td>';
+                                    echo '<td>
+                                            <a href="'.site_url().'main/changeleveluser/'.$row->id.'"><button type="button" class="btn btn-primary">Rol</button></a>
+                                            <a href="'.site_url().'main/deleteuser/'.$row->id.'/'.$row->busines.'"><button type="button" class="btn btn-danger">Borrar</button></a>';
                                     echo '</td>';
                                 }
                             }
