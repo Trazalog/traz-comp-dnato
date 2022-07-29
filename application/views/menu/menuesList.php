@@ -104,14 +104,20 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'modulo', 'id'=> 'modulo', 'placeholder'=>'Modulo', 'class'=>'form-control', 'value' => set_value('modulo'))); ?>
-                            <?php echo form_error('modulo');?>
+                            <select class="form-control " name="modulo" id="modulo",  required="true" >
+                            <?php
+                                echo '<option value="-1" disabled selected >-Seleccione un modulo-</option>';
+                                foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado
+                                    echo '<option value="'.$modulo->modulo.'">'.$modulo->modulo.'</option>';
+                                }    
+                            ?>
+                            </select>
                         </div>
                     </div>
 
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'opcion', 'id'=> 'opcion', 'placeholder'=>'Opcion', 'class'=>'form-control', 'value' => set_value('opcion'))); ?>
+                            <?php echo form_input(array('name'=>'opcion', 'id'=> 'opcion', 'placeholder'=>'Opcion', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Nombre de referencia, sin espacios, utilizando guiones bajos para separar las palabras.', 'value' => set_value('opcion'))); ?>
                             <?php echo form_error('opcion');?>
                         </div>
                     </div>
@@ -130,8 +136,19 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'opcion_padre', 'id'=> 'opcion_padre', 'placeholder'=>'Opcion Padre', 'class'=>'form-control', 'value' => set_value('opcion_padre'))); ?>
-                            <?php echo form_error('opcion_padre');?>
+                            <select class="form-control " name="opcion_padre" id="opcion_padre" >
+                            <?php
+                                echo '<option value="-1">-Seleccione una opcion-</option>';
+                                foreach($op_padres as $opcion_padre){    ///Emrpesas del Usuario conectado
+                                    if($opcion_padre->opcion_padre == null){
+                                        echo '<option value="null">Es Padre</option>';
+                                    }else{
+                                        echo '<option value="'.$opcion_padre->opcion_padre.'">'.$opcion_padre->opcion_padre.'</option>';
+                                    }
+                                    
+                                }    
+                            ?>
+                            </select>
                         </div>
                     </div>
                     <div class="col-xs-12 col-md-6">
@@ -145,7 +162,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'url', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'value' => set_value('url'))); ?>
+                            <?php echo form_input(array('name'=>'url', 'onChange' => 'validarForm', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Corresponde a la dirección de la ruta del menú. Escriba respetando el formato: modulo/nombre/dash', 'value' => set_value('url'))); ?>
                             <?php echo form_error('url');?>
                         </div>
                     </div>
@@ -163,7 +180,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'texto_onmouseover', 'id'=> 'texto_onmouseover', 'placeholder'=>'Texto Hover', 'class'=>'form-control', 'value' => set_value('texto_onmouseover'))); ?>
+                            <?php echo form_input(array('name'=>'texto_onmouseover', 'id'=> 'texto_onmouseover', 'placeholder'=>'Texto Hover', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Este texto se mostrará cada vez que pase el cursor de su ratón por encima del menu.', 'value' => set_value('texto_onmouseover'))); ?>
                             <?php echo form_error('texto_onmouseover');?>
                         </div>
                     </div>
@@ -172,14 +189,21 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                     <div class="form-group">
-                            <?php echo form_input(array('name'=>'eliminado', 'id'=> 'eliminado', 'placeholder'=>'Eliminado', 'class'=>'form-control', 'value' => set_value('eliminado'))); ?>
-                            <?php echo form_error('eliminado');?>
+                    <?php
+
+                        $dd_list = array(
+                                   '0'   => 'Activo',
+                                   '1'   => 'Inactivo',
+                                 );
+                        $dd_name = "eliminado";
+                        echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="eliminado"');
+                        ?>
                         </div>
                     </div>
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'fec_alta', 'id'=> 'fec_alta', 'placeholder'=>'Fecha Alta', 'class'=>'form-control', 'value' => set_value('fec_alta'))); ?>
-                            <?php echo form_error('url_icono');?>
+                            <?php echo form_input(array('name'=>'operacion', 'type' => 'hidden', 'id'=> 'operacion', 'placeholder'=>'Operacion', 'class'=>'form-control', 'value' => set_value('operacion'))); ?>
+                            <?php echo form_error('operacion');?>
                         </div>
                     </div>
                 </div>
@@ -187,7 +211,8 @@
             </div><!-- /.modal-body -->
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" id="CancelMenu" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnSaveMenu" data-dismiss="modal">Guardar</button>
+                <?php echo form_submit(array('value'=>'Guardar', 'id'=>'btnSaveMenu', 'class'=>'btn btn-primary')); ?>
+                <?php echo form_close(); ?>
                 <button type="button" class="btn btn-primary" id="btnCerrarMenu" data-dismiss="modal" >Cerrar</button>
             </div>
         </div>
@@ -217,6 +242,15 @@
 
 $(document).ready(function () {
     $('#menues').DataTable();
+
+    $('#btnSaveMenu').attr("disabled", true);
+
+    $('#opcion, #texto, #orden, #url, #modulo').keyup(function () {
+        console.log($('#modulo').val());
+        console.log($('#opcion_padre').val());
+        var buttonDisabled =  $('#opcion_padre').val() == -1 || $('#modulo').val() == null || $('#opcion').val().length == 0 || $('#texto').val().length == 0 || $('#url').val().length == 0 || $('#orden').val().length == 0;
+        $('#btnSaveMenu').attr("disabled", buttonDisabled);
+    });
 });
 
 $('#btnAgreMenu').click(function cargarModal() {
@@ -224,15 +258,59 @@ $('#btnAgreMenu').click(function cargarModal() {
     console.log("Modal");
     $('#modalMenu').modal('show');
     accionBtn(1); 
+    clearMenu(1);
     $('h4.modal-title').text('Agregar Menu');
+    $('#operacion').val('insert');
 
 });
+
 
 $('#btnSaveMenu').click(function cargarModal() {
     
     console.log("Guardar Menu");
-    $('#modalMenu').modal('show');
+
+    var modulo = $("#modulo").val();
+    var opcion = $('#opcion').val();
+    var texto = $('#texto').val();
+    var opion_padre = $('#opcion_padre').val();
+    var orden = $('#orden').val();
+    var url = $('#url').val();
+    var url_icono =  $('#url_icono').val();
+    var texto_on =  $('#texto_onmouseover').val();
+    var eliminado = $('#eliminado').val();
+    var operacion =  $('#operacion').val();
+
     
+        /*$('#btnSaveMenu').prop('disabled', false);*/
+        
+        /*$.ajax({
+            type: "POST",
+            url:'<?php echo base_url() ?>/menu/addMenu',
+            data: {
+                modulo: modulo,
+                opcion: opcion,
+                texto : texto,
+                opcion_padre : opcion_padre,
+                orden: orden,
+                url: url,
+                url_icono: url_icono,
+                texto_on: texto_on,
+                eliminado: eliminado,
+                operacion: operacion
+            },
+            success: function(rsp) {
+                console.log(rsp);
+                
+            },
+            error: function(rsp) {
+                console.log(rsp);
+            },
+            complete: function() {
+
+            }
+        });*/
+
+    /*}*/    
 });
 
 function activeMenu(eval){
@@ -330,18 +408,22 @@ function editMenu(eval){
     $('h4.modal-title').text('Actualizar Menu');
 
     accionBtn(1); 
+    clearMenu(2);
 
     $('#modalMenu').modal('show');
     $('#modulo').val(dataMenu[0]);
+    $('#modulo').prop('readonly', true);
     $('#opcion').val(dataMenu[1]);
+    $('#opcion').prop('readonly', true);
     $('#texto').val(dataMenu[2]);
     $('#opcion_padre').val(dataMenu[4]);
+    $('#opcion_padre').prop('readonly', true);
     $('#orden').val(dataMenu[5]);
     $('#url').val(dataMenu[3]);
     $('#url_icono').val(dataMenu[8]);
     $('#texto_onmouseover').val(dataMenu[6]);
     $('#eliminado').val(dataMenu[9]);
-    $('#fec_alta').val(dataMenu[10]);
+    $('#operacion').val('update');
     
 }
 
@@ -356,7 +438,8 @@ function getMenu(eval){
     accionBtn(2);   
 
     $('#modalMenu').modal('show');
-    $('#modulo').val(dataMenu[0]);
+    
+    $('#modulo').val(dataMenu[0]);    
     $('#opcion').val(dataMenu[1]);
     $('#texto').val(dataMenu[2]);
     $('#opcion_padre').val(dataMenu[4]);
@@ -365,7 +448,17 @@ function getMenu(eval){
     $('#url_icono').val(dataMenu[8]);
     $('#texto_onmouseover').val(dataMenu[6]);
     $('#eliminado').val(dataMenu[9]);
-    $('#fec_alta').val(dataMenu[10]);
+
+    $('#modulo').attr("style", "pointer-events: none;");
+    $('#opcion').prop('readonly', true);
+    $('#texto').prop('readonly', true);
+    $('#opcion_padre').attr("style", "pointer-events: none;");
+    $('#orden').prop('readonly', true);
+    $('#url').prop('readonly', true);
+    $('#url_icono').prop('readonly', true);
+    $('#texto_onmouseover').prop('readonly', true);
+    $('#eliminado').attr("style", "pointer-events: none;");
+   
 }
 
 function accionBtn(btn){
@@ -380,6 +473,53 @@ function accionBtn(btn){
         $('#CancelMenu').show();
     }
     
+}
+
+function clearMenu(operacion){
+
+    if(operacion == 1) {
+
+        $('#modulo').val('');
+        $('#opcion').val('');
+        $('#texto').val('');
+        $('#opcion_padre').val('');
+        $('#orden').val('');
+        $('#url').val('');
+        $('#url_icono').val('');
+        $('#texto_onmouseover').val('');
+        $('#eliminado').val('');
+        $('#operacion').val('');
+
+        $('#modulo').prop('readonly', false);
+        $('#opcion').prop('readonly', false);
+        $('#texto').prop('readonly', false);
+        $('#opcion_padre').prop('readonly', false);
+        $('#orden').prop('readonly', false);
+        $('#url').prop('readonly', false);
+        $('#url_icono').prop('readonly', false);
+        $('#texto_onmouseover').prop('readonly', false);
+        $('#eliminado').prop('readonly', false);
+
+        $('#modulo').val('-1');
+        $('#opcion_padre').val('-1');
+        $('#eliminado').val('0');
+    }else{
+
+        $('#modulo').attr("style", "pointer-events: none;");
+        $('#opcion').prop('readonly', true);
+        $('#opcion_padre').attr("style", "pointer-events: none;");
+        $('#eliminado').attr("style", "pointer-events: none;");
+
+        $('#opcion').prop('readonly', false);
+        $('#texto').prop('readonly', false);
+        $('#orden').prop('readonly', false);
+        $('#url').prop('readonly', false);
+        $('#url_icono').prop('readonly', false);
+        $('#texto_onmouseover').prop('readonly', false);
+
+
+    }
+
 }
 
 
