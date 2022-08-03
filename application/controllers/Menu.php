@@ -105,7 +105,7 @@ class Menu extends CI_Controller {
         $dataPost['texto_onmouseover'] = $this->input->post('texto_onmouseover');
         $dataPost['operacion'] = $this->input->post('operacion');
 
-        //log_message('DEBUG','#TRAZA|Menu|addMenu()  $dataPost: >> '.json_encode($dataPost));
+        log_message('DEBUG','#TRAZA|Menu|addMenu()  $dataPost: >> '.json_encode($dataPost));
 
         if($dataPost['operacion'] == 'insert'){
 
