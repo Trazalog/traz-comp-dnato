@@ -29,10 +29,10 @@ class Mmenu extends CI_Model {
     function getOpcionPadre(){
 
         
-        $this->db->select("opcion_padre");
-        $this->db->distinct();
+        $this->db->select("opcion,modulo,texto");
+        //$this->db->distinct();
         $this->db->from('seg.menues');
-        $this->db->order_by("opcion_padre", "asc");
+        $this->db->order_by("opcion", "asc");
         $query = $this->db->get();
 
         return $query->result();
@@ -113,6 +113,7 @@ class Mmenu extends CI_Model {
 
         $q = $this->db->insert('seg.menues',$string);
 
+        log_message('DEBUG','#TRAZA|Mmenu|addMenus()  $string >> '.$string);
         log_message('DEBUG','#TRAZA|Mmenu|addMenus()  $this->db->affected_rows(): >> '.$this->db->affected_rows());
 
         if ($this->db->affected_rows() != 1){
