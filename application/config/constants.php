@@ -88,6 +88,7 @@ define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
 define('REST_BPM', 'http://10.142.0.13:8280/tools/bpm');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
+define('BPM_ADMIN_MAIL', 'admin@gmail.com');
 define('BPM_USER_PASS', 'bpm');
 
 #SISTEMA A ENLAZAR

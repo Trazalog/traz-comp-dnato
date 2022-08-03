@@ -47,13 +47,28 @@
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Usuarios <span class="caret"></span></a>
                               <ul class="dropdown-menu">
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
-
-                                <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
-                                
-                                <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>
-                              
-                                </ul>
-                            </li>
+                                <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>                                
+                                <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>                              
+                              </ul>
+                            </li>';
+                        }
+                    ?>
+                    <?php
+                        if($this->session->userdata['email'] == BPM_ADMIN_MAIL){
+                        // if($dataLevel == 'is_admin'){ //Check user level if is Admin
+                            echo'
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Empresas <span class="caret"></span></a>
+                              <ul class="dropdown-menu">
+                                <li><a href="'.site_url().'empresa/listarEmpresas">Lista de Empresas</a></li>
+                                <li><a href="'.site_url().'empresa/agregarEmpresa">Agregar Empresa</a></li>
+                              </ul>
+                            </li>';
+                        }
+                    ?>
+                    <?php
+                        if($dataLevel == 'is_admin'){ //Check user level if is Admin
+                            echo'
                             <li class="dropdown">
                               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Menues <span class="caret"></span></a>
                               <ul class="dropdown-menu">
