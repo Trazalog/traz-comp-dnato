@@ -11,7 +11,6 @@
             <th>País</th>
             <th>Estado</th>
             <th>Localidad</th>
-            <th colspan="2">Acciones</th>
         </tr>
             <?php
                 foreach($lista_empresas as $row){                                               
@@ -25,9 +24,6 @@
                     echo '<td>'.$row->pais_id.'</td>';
                     echo '<td>'.$row->estado.'</td>';
                     echo '<td>'.$row->localidad.'</td>';
-                    echo '<td>
-                        <a href="'.site_url().'empresa/borrarEmpresa/'.$row->empr_id.'"><button type="button" class="btn btn-danger">Borrar</button></a>';
-                    echo '</td>';
                 }
             ?>
     </table>

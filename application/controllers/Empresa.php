@@ -31,7 +31,7 @@ class Empresa extends CI_Controller {
             redirect(base_url().'main/login/');
         }
         
-		if($data['email'] == BPM_ADMIN_MAIL){
+		if($data['email'] == TOOLS_ADMIN_USER){
             $this->load->view('header', $data);
             $this->load->view('navbar', $data);
             $this->load->view('container',$data);
@@ -53,7 +53,7 @@ class Empresa extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 
-        if($data['email'] == BPM_ADMIN_MAIL){
+        if($data['email'] == TOOLS_ADMIN_USER){
             $this->form_validation->set_rules('nombre', 'Nombre', 'required');
             $this->form_validation->set_rules('cuit', 'Cuit', 'required');
             $this->form_validation->set_rules('descripcion', 'Descripcion', 'required');
@@ -82,6 +82,11 @@ class Empresa extends CI_Controller {
                     $cleanPost['pais_id'] = $this->input->post('pais_id');
                     $cleanPost['prov_id'] = $this->input->post('prov_id');
                     $cleanPost['loca_id'] = $this->input->post('loca_id');
+
+					//Codificamos imagen
+					// $cleanPost['image_name'] = $_FILES['image']['name'];
+					// $cleanPost['ext'] = $_FILES['image']['type'];	
+					// $cleanPost['imagepath'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
                     
                     //insert to database
                     $usr_id = $this->Empresas->agregarEmpresa($cleanPost);

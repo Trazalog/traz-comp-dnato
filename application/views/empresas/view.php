@@ -33,7 +33,7 @@
     </div>
 
     <div class="form-group">
-        <select onchange="seleccionPais()" class="form-control select select-hidden-accesible" name="pais" id="pais" style='width: 100%;'>
+        <select onchange="seleccionPais()" class="form-control select select-hidden-accesible" name="pais_id" id="pais_id" style='width: 100%;'>
             <option value="" disabled selected>-Seleccione opción-</option>	
             <?php
                 foreach ($listarPaises as $pais) {
@@ -62,6 +62,9 @@
             ?>
         </select>
     </div>
+    <!-- <h5><strong>Logo de la empresa</strong></h5>
+    <div class="form-group">
+    </div> -->
     
     <?php echo form_submit(array('value'=>'Guardar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
     <?php echo form_close(); ?>
@@ -70,10 +73,6 @@
     // carga Estados dependiendo del pais seleccionado
     function seleccionPais() {
         var id_pais = $("#pais option:selected").text();
-        // $("#estado_edit").prop('disabled', false);
-        // $("#localidad_edit").prop('disabled', false);
-        // $("#estado_edit").empty();
-        // $("#localidad_edit").empty();
         wo();
         $.ajax({
             type: 'GET',
@@ -129,9 +128,7 @@
                     $('#localidad').html(datos);
                 } else {
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
-                    $('#localidad').html(datos);
-                    // $('#estado').val($('#estado > option:first').val());
-                    // $('#localidad').val($('#localidad > option:first').val());  
+                    $('#localidad').html(datos); 
                     alertify.error("El Estado no contiene localidades");
                 }
                 wc();
