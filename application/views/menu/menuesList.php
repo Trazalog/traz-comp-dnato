@@ -103,6 +103,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
+                            <label for="modulo">Modulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
                             <?php
                                 echo '<option value="-1" disabled selected >-Seleccione un modulo-</option>';
@@ -116,6 +117,7 @@
 
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
+                            <label for="opcion">Opcion: (*)</label>
                             <?php echo form_input(array('name'=>'opcion', 'id'=> 'opcion', 'placeholder'=>'Opcion', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Nombre de referencia, sin espacios, utilizando guiones bajos para separar las palabras.', 'value' => set_value('opcion'))); ?>
                             <?php echo form_error('opcion');?>
                         </div>
@@ -126,6 +128,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="texto">Nombre: (*)</label>
                             <?php echo form_input(array('name'=>'texto', 'id'=> 'texto', 'placeholder'=>'Nombre', 'class'=>'form-control', 'value' => set_value('texto'))); ?>
                             <?php echo form_error('texto');?>
                         </div>
@@ -135,6 +138,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-8">
                         <div class="form-group">
+                            <label for="opcion_padre">Opcion Padre: (*)</label>                            
                             <select class="form-control" name="opcion_padre" id="opcion_padre" >
                                 <option value="-1">-Seleccione una opcion-</option>                            
                             </select>
@@ -142,6 +146,7 @@
                     </div>
                     <div class="col-xs-12 col-md-4">
                         <div class="form-group">
+                            <label for="orden">Numero Orden: (*)</label>
                             <?php echo form_input(array('name'=>'orden', 'id'=> 'orden', 'placeholder'=>'Numero de Orden', 'class'=>'form-control', 'value' => set_value('orden'))); ?>
                             <?php echo form_error('orden');?>
                         </div>
@@ -151,6 +156,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="orden">URL:</label>
                             <?php echo form_input(array('name'=>'url', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Corresponde a la dirección de la ruta del menú. Escriba respetando el formato: modulo/nombre/dash', 'value' => set_value('url'))); ?>
                             <?php echo form_error('url');?>
                         </div>
@@ -160,6 +166,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="orden">Icono:</label>
                             <?php echo form_input(array('name'=>'url_icono', 'id'=> 'url_icono', 'placeholder'=>'Icono', 'class'=>'form-control', 'value' => set_value('url_icono'))); ?>
                             <?php echo form_error('url_icono');?>
                         </div>
@@ -169,6 +176,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="orden">Texto Hover:</label>
                             <?php echo form_input(array('name'=>'texto_onmouseover', 'id'=> 'texto_onmouseover', 'placeholder'=>'Texto Hover', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Este texto se mostrará cada vez que pase el cursor de su ratón por encima del menu.', 'value' => set_value('texto_onmouseover'))); ?>
                             <?php echo form_error('texto_onmouseover');?>
                         </div>
