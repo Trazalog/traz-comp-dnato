@@ -139,7 +139,7 @@
                     <div class="col-xs-12 col-md-8">
                         <div class="form-group">
                             <label for="opcion_padre">Opcion Padre: (*)</label>                            
-                            <select class="form-control" name="opcion_padre" id="opcion_padre" >
+                            <select class="form-control" name="opcion_padre" id="opcion_padre" data-placement="top" title= "Indica el orden en que se visualiza el menú. Si es padre estará como principal, los sucesores hijos o nietos, se iran anidando como submenus.">
                                 <option value="-1">-Seleccione una opcion-</option>                            
                             </select>
                         </div>
