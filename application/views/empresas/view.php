@@ -70,10 +70,10 @@
     <?php echo form_close(); ?>
 </div>
 <script>
-    // carga Estados dependiendo del pais seleccionado
+    /* carga Estados dependiendo del pais seleccionado*/
     function seleccionPais() {
-        var id_pais = $("#pais option:selected").text();
-        wo();
+        var id_pais = $("#pais_id option:selected").text();
+        /* wo(); */
         $.ajax({
             type: 'GET',
             dataType: "json",
@@ -83,7 +83,7 @@
                 $('#estado').empty();
                 $('#localidad').empty();
                 if (rsp != null) {
-                    // habilitarEdicion();
+                    /* habilitarEdicion(); */
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
                     $('#localidad').html(datos);
                     for (let i = 0; i < rsp.length; i++) {
@@ -97,7 +97,7 @@
                     $('#localidad').html(datos);                   
                     alertify.error("El País no contiene estados");
                 }    
-                wc();
+                /* wc(); */
             },
             error: function(data) {
                 alert('Error');
@@ -105,7 +105,7 @@
         });
     }
 
-    // carga Localidades dependiendo del estado seleccionado
+    /* carga Localidades dependiendo del estado seleccionado*/
     function seleccionEstado() {
         var id_pais = $("#pais option:selected").text();
         var id_estado = $("#estado option:selected").text();
@@ -122,7 +122,7 @@
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
                     for (let i = 0; i < rsp.length; i++) {
                         var valor = encodeURIComponent(rsp[i].tabl_id);
-                        // datos += "<option value='"+ rsp[i].tabl_id + "'>"+ rsp[i].valor + "</option>";
+                        /* datos += "<option value='"+ rsp[i].tabl_id + "'>"+ rsp[i].valor + "</option>";*/
                         datos += "<option value=" + valor + ">" + rsp[i].valor + "</option>";
                     }
                     $('#localidad').html(datos);
