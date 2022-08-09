@@ -69,7 +69,7 @@
                                         }else{
                                             echo '<span data-toggle="tooltip" title="" class="badge badge-danger" style="background-color: red;">Inactivo</span>';
                                         }
-                                    '</td>';
+                                    echo '</td>';
                                     echo '<td class="hidden">'.$menu->fec_alta.'</td>';
                                     echo '<td class="hidden">'.$menu->usuario.'</td>';
                                     echo '<td class="hidden">'.$menu->usuario_app.'</td>';
@@ -313,9 +313,9 @@ function activeMenu(eval){
 
     console.log("Active");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
+    /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);*/
     $('#modalConfirm').modal('show');
     $('h4.modal-title').text('Deseas activar este registro?');
     
@@ -353,10 +353,10 @@ function deleteMenu(eval){
 
     console.log("Delete");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
-    $('#modalConfirm').modal('show');
+    /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
+    $('#modalConfirm').modal('show');*/
     $('h4.modal-title').text('Deseas desactivar este registro?');
 
     $("#modal-btn-si").on("click", function(){
@@ -399,7 +399,7 @@ function editMenu(eval){
 
     console.log("Edit");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
     $('h4.modal-title').text('Actualizar Menu');
 
@@ -427,7 +427,7 @@ function getMenu(eval){
 
     console.log("Get");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
     $('h4.modal-title').text('Visualizar Menu');
     
@@ -522,9 +522,9 @@ function cargarOpcion(){
     
     console.log('cargarOpcion');
     var modulo =$('#modulo').val();
-    console.log("modulo: "+modulo);
+    /*console.log("modulo: "+modulo);*/
     var op_padres = <?php echo json_encode($op_padres) ?>;
-    console.log("op_padres: "+op_padres);
+    /*console.log("op_padres: "+op_padres);*/
 
     addOptions("opcion_padre", op_padres, modulo);
 }
@@ -538,7 +538,7 @@ function addOptions(domElement, json ,modulo){
    
 
     Object.keys(json).forEach(function(elm) {
-        console.log("Elm: "+elm); 
+        /*console.log("Elm: "+elm); */
         if(elm-1  == -1){
             
             option = '<option value="-1" disabled selected >-Seleccione una opcion-</option>';
@@ -550,13 +550,13 @@ function addOptions(domElement, json ,modulo){
 
         }       
         if(modulo == json[elm]['modulo']){
-            console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);
+            /*console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);*/
             if(json[elm]['opcion'] == null){
                 option = '<option value="null">Es padre</option>';
-                console.log("OPTION: "+option);
+                /*console.log("OPTION: "+option);*/
             }else{
                 option = '<option value="'+json[elm]['opcion']+'">'+json[elm]['texto']+'  ['+json[elm]['opcion']+']</option>';
-                console.log("OPTION: "+option);
+               /* console.log("OPTION: "+option);*/
             }            
             $('#opcion_padre').append(option);
         }       

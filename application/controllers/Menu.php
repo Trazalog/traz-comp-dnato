@@ -93,6 +93,66 @@ class Menu extends CI_Controller {
 
     }
 
+    public function addMenuRoles(){
+
+        $dataPost['modulo'] = $this->input->post('modulo');
+        $dataPost['opcion'] = $this->input->post('opcion_padre');
+        $dataPost['roles_id'] = $this->input->post('roles');
+        $dataPost['groups_id'] = $this->input->post('groups');
+        $dataPost['operacion'] = $this->input->post('operacion');
+
+        if(strpos($dataPost['groups_id'],'-')){
+
+            $groups = explode("-", $dataPost['groups_id']);
+            $dataPost['groups'] = $groups[2]; 
+
+        }else{
+            $dataPost['groups'] = $dataPost['groups_id']; 
+        }
+        
+        if(strpos($dataPost['roles_id'],'-')){
+
+            $roles = explode("-", $dataPost['roles_id']);
+            $dataPost['roles'] = $roles[2]; 
+
+        }else{
+            $dataPost['roles'] = $dataPost['roles_id']; 
+        }
+        log_message('DEBUG','#TRAZA|Menu|addMenuRoles()  $dataPost: >> '.json_encode($dataPost));
+
+        if($dataPost['operacion'] == 'insert'){
+
+            if($this->mmenu->addMenuRoles($dataPost)){
+                log_message('DEBUG','#TRAZA|Menu|addMenuRoles()  $dataPost: >> '.json_encode($dataPost));
+                $this->session->set_flashdata('success_message', 'Guardado correctamente el registro.');
+
+                redirect(base_url().'menu/rolesList');
+            }else{
+                log_message('DEBUG','#TRAZA|Menu|addMenuRoles()  $dataPost: >> '.json_encode($dataPost));
+                $this->session->set_flashdata('flash_message', 'Error, no se puede guardar el registro');
+
+                redirect(base_url().'menu/rolesList');
+                //$this->menuesList();
+            }
+        }
+
+        if($dataPost['operacion'] == 'update'){
+
+            if($this->mmenu->updateMembershipsMenues($dataPost)){
+
+                log_message('DEBUG','#TRAZA|Menu|updateMembershipsMenues()  $dataPost: >> '.json_encode($dataPost));
+                $this->session->set_flashdata('success_message', 'Actualizado correctamente el registro.');
+
+                redirect(base_url().'menu/rolesList');
+            }else{
+                log_message('DEBUG','#TRAZA|Menu|updateMembershipsMenues() $dataPost: >> '.json_encode($dataPost));
+                $this->session->set_flashdata('flash_message', 'Error, no se puede actualizar el registro');
+
+                redirect(base_url().'menu/rolesList');
+            }
+        }
+    }
+
     public function addMenu(){
 
         $dataPost['modulo'] = $this->input->post('modulo');
@@ -158,6 +218,28 @@ class Menu extends CI_Controller {
             $this->session->set_flashdata('success_message', 'Activado correctamente el registro.');
         }
     }
+
+    public function activeMenuRole(){
+
+        $dataPost['group'] = $this->input->post('group');
+        $dataPost['modulo'] = $this->input->post('modulo');
+        $dataPost['opcion'] = $this->input->post('opcion');
+        $dataPost['role'] = $this->input->post('role');
+
+        $infoActive = $this->mmenu->activeMenuRole($dataPost);
+
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[group]: >> '.json_encode($dataPost['group']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[modulo]: >> '.json_encode($dataPost['modulo']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[opcion]: >> '.json_encode($dataPost['opcion']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[role]: >> '.json_encode($dataPost['role']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $infoActive: >> '.$infoActive);
+
+        if(!$infoActive){
+            $this->session->set_flashdata('flash_message', 'Error, no se puede activar el registro');
+        }else{
+            $this->session->set_flashdata('success_message', 'Activado correctamente el registro.');
+        }
+    }
     
     public function deleteMenu(){
 
@@ -166,9 +248,31 @@ class Menu extends CI_Controller {
 
         $infoDelete = $this->mmenu->deleteMenu($dataPost);
 
-        log_message('DEBUG','#TRAZA|Menu|menuesList()  $$dataPost[modulo]: >> '.json_encode($dataPost['modulo']));
-        log_message('DEBUG','#TRAZA|Menu|menuesList()  $$dataPost[opcion]: >> '.json_encode($dataPost['opcion']));
-        log_message('DEBUG','#TRAZA|Menu|menuesList()  $infoDelete: >> '.$infoDelete);
+        log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $$dataPost[modulo]: >> '.json_encode($dataPost['modulo']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $$dataPost[opcion]: >> '.json_encode($dataPost['opcion']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $infoDelete: >> '.$infoDelete);
+
+        if(!$infoDelete){
+            $this->session->set_flashdata('flash_message', 'Error, no se puede desactivado el registro');
+        }else{
+            $this->session->set_flashdata('success_message', 'Desactivado correctamente el registro.');
+        }
+    }
+
+    public function deleteMenuRole(){
+
+        $dataPost['group'] = $this->input->post('group');
+        $dataPost['modulo'] = $this->input->post('modulo');
+        $dataPost['opcion'] = $this->input->post('opcion');
+        $dataPost['role'] = $this->input->post('role');
+
+        $infoDelete = $this->mmenu->deleteMenuRole($dataPost);
+
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[group]: >> '.json_encode($dataPost['group']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[modulo]: >> '.json_encode($dataPost['modulo']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[opcion]: >> '.json_encode($dataPost['opcion']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $$dataPost[role]: >> '.json_encode($dataPost['role']));
+        log_message('DEBUG','#TRAZA|Menu|deleteMenuRole()  $infoDelete: >> '.$infoDelete);
 
         if(!$infoDelete){
             $this->session->set_flashdata('flash_message', 'Error, no se puede desactivado el registro');
