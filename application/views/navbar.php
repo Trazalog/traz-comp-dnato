@@ -44,7 +44,7 @@
                         if($dataLevel == 'is_admin'){ //Check user level if is Admin
                             echo'
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Usuarios <span class="caret"></span></a>
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestión de Usuarios <span class="caret"></span></a>
                               <ul class="dropdown-menu">
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
                                 <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>                                
@@ -70,13 +70,13 @@
                         if($dataLevel == 'is_admin'){ //Check user level if is Admin
                             echo'
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Menues <span class="caret"></span></a>
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestión de Menues <span class="caret"></span></a>
                               <ul class="dropdown-menu">
                                 <li><a href="'.site_url().'menu/menuesList">Alta de Menues</a></li>
                                 <li><a href="'.site_url().'menu/rolesList">Menu por Rol</a></li>
                               </ul>
                             </li>
-                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>';
+                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuración</a></li>';
                         }
                     ?>
                   </ul>
