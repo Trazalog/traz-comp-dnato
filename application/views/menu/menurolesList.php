@@ -140,9 +140,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title"><strong>Opcion de Menu</strong> </h4>
+                <h4 class="modal-title"><strong>Opción de Menú</strong> </h4>
                 <h5>Hola <?php use function PHPSTORM_META\type; echo $first_name; ?>,</h5>
-                <h5>Por favor ingrese la informacion requerida a continuacion.</h5>       
+                <h5>Por favor ingrese la información requerida a continuación.</h5>       
                 <?php 
                     $fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data'  );
                     echo form_open('/menu/addMenuRoles', $fattr);
@@ -179,7 +179,7 @@
                         <div class="form-group">
                             <label>Rol: (*)</label>                          
                             <select class="form-control" name="roles" id="roles" >
-                                <option value="-1" selected>-Seleccione una opcion-</option>                            
+                                <option value="-1" selected>-Seleccione una opción-</option>                            
                             </select>
                         </div>
                     </div>
@@ -188,7 +188,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                        <label>Modulo: (*)</label>
+                        <label>Módulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
                             <?php
                                 echo '<option value="-1" selected >-Seleccione un modulo-</option>';
@@ -204,9 +204,9 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                            <label>Opcion: (*)</label>
+                            <label>Opción: (*)</label>
                             <select class="form-control" name="opcion_padre" id="opcion_padre" >
-                                <option value="-1" selected>-Seleccione una opcion-</option>                            
+                                <option value="-1" selected>-Seleccione una opción-</option>                            
                             </select>
                         </div>
                     </div>
@@ -270,7 +270,7 @@ $('#btnAgreMenuRol').click(function cargarModal() {
     console.log("Modal");
     $('#modalMenuRole').modal('show');
 
-    $('h4.modal-title').text('Agregar Menu Role');
+    $('h4.modal-title').text('Agregar Menú Role');
     $('#operacion').val('insert');
 
     clearForm(1);
@@ -340,7 +340,7 @@ function addOptions(domElement, json ,modulo){
     Object.keys(json).forEach(function(elm) {
         /*console.log("Elm: "+elm); */
         if(elm-1  == -1){            
-            option = '<option value="-1" selected >-Seleccione una opcion-</option>';
+            option = '<option value="-1" selected >-Seleccione una opción-</option>';
             $('#opcion_padre').append(option);
             /* option = '<option value="null">-Es padre-</option>';*/
             /*$('#opcion_padre').append(option);*/
@@ -367,7 +367,7 @@ function editMenuRole(eval){
     var dataMenuRole = data.split("|");
     /*console.log(" group: "+dataMenuRole[1]+" role: "+dataMenuRole[2]+" modulo: "+dataMenuRole[3]+" opcion: "+dataMenuRole[4]+" rolemm: "+dataMenuRole[5]);*/
     $('#modalMenuRole').modal('show');
-    $('h4.modal-title').text('Actualizar Opciones de Menu Roles');
+    $('h4.modal-title').text('Actualizar Opciones de Menú Roles');
     $('#operacion').val('update');
 
     accionBtn(1);
@@ -388,7 +388,7 @@ function getMenuRole(eval){
     var dataMenuRole = data.split("|");
     /*console.log("group: "+dataMenuRole[0]+" modulo: "+dataMenuRole[1]+" opcion: "+dataMenuRole[2]+" role: "+dataMenuRole[3]);*/
     $('#modalMenuRole').modal('show');
-    $('h4.modal-title').text('Visualizar Opciones de Menu Roles');
+    $('h4.modal-title').text('Visualizar Opciones de Menú Roles');
 
     accionBtn(2);   
     $('#operacion').val('View');
