@@ -57,6 +57,30 @@ class Mmenu extends CI_Model {
             return false;
     }
 
+    function updateMembershipsMenues($dataPost){
+
+        $string = array(
+
+            'opcion'=>$dataPost['opcion'],
+            'modulo'=>$dataPost['modulo'],
+            'fec_alta'=>date("Y-m-d H:i:s"), 	
+            'usuario'=>'postgres', 							
+            'usuario_app'=>'postgres'
+        );
+
+        $this->db->where('group', $dataPost['groups']);
+        $this->db->where('role', $dataPost['roles']);
+        $this->db->update('seg.memberships_menues', $string);
+        $success = $this->db->affected_rows(); 
+
+        log_message('DEBUG','#TRAZA|Mmenu|updateMembershipsMenues()  $this->db->affected_rows(): >> '.$this->db->affected_rows());
+
+        if(!$success){
+            return false;
+        }else       
+            return true;
+    }
+
     function updateMenues($dataPost){
 
         $string = array(
@@ -88,6 +112,32 @@ class Mmenu extends CI_Model {
             return false;
         }else       
             return true;
+
+    }
+
+    function addMenuRoles($dataPost){
+
+        $string = array(
+
+            'group'=>$dataPost['groups'],
+            'modulo'=>$dataPost['modulo'],
+            'opcion'=>$dataPost['opcion'],
+            'role'=>$dataPost['roles'],
+            'fec_alta'=>date("Y-m-d H:i:s"), 	
+            'usuario'=>'postgres', 							
+            'usuario_app'=>'postgres'
+        );
+
+        $q = $this->db->insert('seg.memberships_menues',$string);
+
+        log_message('DEBUG','#TRAZA|Mmenu|addMenuRoles()  $string >> '.$string);
+        log_message('DEBUG','#TRAZA|Mmenu|addMenuRoles()  $this->db->affected_rows(): >> '.$this->db->affected_rows());
+
+        if ($this->db->affected_rows() != 1){
+            return FALSE;
+        }else{
+            return TRUE;
+        }
 
     }
 
@@ -138,11 +188,45 @@ class Mmenu extends CI_Model {
         }
     }
     
+    function activeMenuRole($dataPost){
+
+        $this->db->where('group', $dataPost['group']);
+        $this->db->where('modulo', $dataPost['modulo']);
+        $this->db->where('opcion', $dataPost['opcion']);
+        $this->db->where('role', $dataPost['role']);
+        $this->db->update('seg.memberships_menues', array(  'eliminado' => '0' ));
+
+        $success = $this->db->affected_rows(); 
+        if($success){
+            return TRUE;
+        }
+        else {
+            return FALSE;
+        }
+    }
+    
     function deleteMenu($dataPost){
 
         $this->db->where('modulo', $dataPost['modulo']);
         $this->db->where('opcion', $dataPost['opcion']);
         $this->db->update('seg.menues', array(  'eliminado' => '1' ));
+
+        $success = $this->db->affected_rows(); 
+        if($success){
+            return TRUE;
+        }
+        else {
+            return FALSE;
+        }
+    }
+    
+    function deleteMenuRole($dataPost){
+
+        $this->db->where('group', $dataPost['group']);
+        $this->db->where('modulo', $dataPost['modulo']);
+        $this->db->where('opcion', $dataPost['opcion']);
+        $this->db->where('role', $dataPost['role']);
+        $this->db->update('seg.memberships_menues', array(  'eliminado' => '1' ));
 
         $success = $this->db->affected_rows(); 
         if($success){
@@ -187,17 +271,21 @@ class Mmenu extends CI_Model {
 
     function getMenuesRoles(){
 
-        $this->db->select("seg.users.email,seg.memberships_menues.group,seg.users.role,seg.memberships_menues.modulo,
+        /*$this->db->select("seg.users.email,seg.memberships_menues.group,seg.users.role,seg.memberships_menues.modulo,
                            seg.memberships_menues.opcion,seg.memberships_menues.role as rolemm");
         $this->db->from('seg.users');
         $this->db->join('seg.memberships_users', 'seg.memberships_users.email = seg.users.email');
         $this->db->join('seg.memberships_menues', 'seg.memberships_menues.group = seg.memberships_users.group 
-                                                   and seg.memberships_menues.role = seg.memberships_users.role');
+                                                   and seg.memberships_menues.role = seg.memberships_users.role');*/
 
         /*$this->db->join('seg.memberships_menues', 'seg.memberships_menues.group = seg.memberships_users.group 
                                                    and seg.memberships_menues.role = seg.memberships_users.role
                                                    and seg.memberships_menues.usuario = seg.memberships_users.usuario 
                                                    and seg.memberships_menues.usuario_app = seg.memberships_users.usuario_app');*/
+
+        $this->db->select('*');                                                   
+        $this->db->from('seg.memberships_menues');
+        $this->db->order_by("modulo", "asc");
         $query = $this->db->get();
         $num_results = $this->db->count_all_results();
 
