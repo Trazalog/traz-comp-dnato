@@ -46,15 +46,14 @@
                             <?php
                                 foreach($menues as $menu){
                                     echo "<tr id='".$menu->modulo."|".$menu->opcion."|".$menu->texto."|".$menu->url."|".$menu->opcion_padre."|".$menu->orden."|".$menu->texto_onmouseover."|".$menu->javascript."|".$menu->url_icono."|".$menu->eliminado."|".$menu->fec_alta."'>";                                            
-                                    echo '<td>';
+                                    echo '<td>';                                    
+                                    echo '<i class="fa fa-fw fa-eye text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenu(this)"></i>';
+                                    echo '<i class="fa fa-pencil-square-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenu(this)"></i>';                                    
                                         if(!$menu->eliminado)
-                                           echo '<i class="fa fa-fw fa-times-circle text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Eliminar"  id="btnDeleteMenu" onclick="deleteMenu(this)"></i>';
+                                           echo '<i class="fa fa-fw fa-toggle-on text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Inactivar"  id="btnDeleteMenu" onclick="deleteMenu(this)"></i>';
                                         else
-                                           echo '<i class="fa fa-fw fa-check-circle text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Eliminar"  id="btnActiveMenu" onclick="activeMenu(this)"></i>';
-                                        
-                                    echo'<i class="fa fa-fw fa-pencil text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenu(this)"></i>
-                                         <i class="fa fa-fw fa-search text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenu(this)"></i>
-                                    </td>';
+                                           echo '<i class="fa fa-fw fa-toggle-off text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Activar"  id="btnActiveMenu" onclick="activeMenu(this)"></i>';
+                                    echo '</td>';
                                     echo '<td>'.$menu->modulo.'</td>';
                                     echo '<td>'.$menu->opcion.'</td>';
                                     echo '<td>'.$menu->texto.'</td>';
@@ -66,9 +65,9 @@
                                     echo '<td class="hidden">'.$menu->url_icono.'</td>';
                                     echo '<td>';
                                         if(!$menu->eliminado){
-                                            echo '<span data-toggle="tooltip" title="" class="badge bg-red">Activo</span>';
+                                            echo '<span data-toggle="tooltip" title="" class="badge badge-success">Activo</span>';
                                         }else{
-                                            echo '<span data-toggle="tooltip" title="" class="badge bg-danger">Inactivo</span>';
+                                            echo '<span data-toggle="tooltip" title="" class="badge badge-danger" style="background-color: red;">Inactivo</span>';
                                         }
                                     '</td>';
                                     echo '<td class="hidden">'.$menu->fec_alta.'</td>';
@@ -104,7 +103,8 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <select class="form-control " name="modulo" id="modulo",  required="true" >
+                            <label for="modulo">Modulo: (*)</label>
+                            <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
                             <?php
                                 echo '<option value="-1" disabled selected >-Seleccione un modulo-</option>';
                                 foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado
@@ -117,6 +117,7 @@
 
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
+                            <label for="opcion">Opcion: (*)</label>
                             <?php echo form_input(array('name'=>'opcion', 'id'=> 'opcion', 'placeholder'=>'Opcion', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Nombre de referencia, sin espacios, utilizando guiones bajos para separar las palabras.', 'value' => set_value('opcion'))); ?>
                             <?php echo form_error('opcion');?>
                         </div>
@@ -127,6 +128,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="texto">Nombre: (*)</label>
                             <?php echo form_input(array('name'=>'texto', 'id'=> 'texto', 'placeholder'=>'Nombre', 'class'=>'form-control', 'value' => set_value('texto'))); ?>
                             <?php echo form_error('texto');?>
                         </div>
@@ -134,25 +136,17 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-8">
                         <div class="form-group">
-                            <select class="form-control " name="opcion_padre" id="opcion_padre" >
-                            <?php
-                                echo '<option value="-1">-Seleccione una opcion-</option>';
-                                foreach($op_padres as $opcion_padre){    ///Emrpesas del Usuario conectado
-                                    if($opcion_padre->opcion_padre == null){
-                                        echo '<option value="null">Es Padre</option>';
-                                    }else{
-                                        echo '<option value="'.$opcion_padre->opcion_padre.'">'.$opcion_padre->opcion_padre.'</option>';
-                                    }
-                                    
-                                }    
-                            ?>
+                            <label for="opcion_padre">Opcion Padre: (*)</label>                            
+                            <select class="form-control" name="opcion_padre" id="opcion_padre" data-placement="top" title= "Indica el orden en que se visualiza el menú. Si es padre estará como principal, los sucesores hijos o nietos, se iran anidando como submenus.">
+                                <option value="-1">-Seleccione una opcion-</option>                            
                             </select>
                         </div>
                     </div>
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-4">
                         <div class="form-group">
+                            <label for="orden">Numero Orden: (*)</label>
                             <?php echo form_input(array('name'=>'orden', 'id'=> 'orden', 'placeholder'=>'Numero de Orden', 'class'=>'form-control', 'value' => set_value('orden'))); ?>
                             <?php echo form_error('orden');?>
                         </div>
@@ -162,7 +156,8 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                            <?php echo form_input(array('name'=>'url', 'onChange' => 'validarForm', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Corresponde a la dirección de la ruta del menú. Escriba respetando el formato: modulo/nombre/dash', 'value' => set_value('url'))); ?>
+                            <label for="orden">URL:</label>
+                            <?php echo form_input(array('name'=>'url', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Corresponde a la dirección de la ruta del menú. Escriba respetando el formato: modulo/nombre/dash', 'value' => set_value('url'))); ?>
                             <?php echo form_error('url');?>
                         </div>
                     </div>
@@ -171,6 +166,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="orden">Icono:</label>
                             <?php echo form_input(array('name'=>'url_icono', 'id'=> 'url_icono', 'placeholder'=>'Icono', 'class'=>'form-control', 'value' => set_value('url_icono'))); ?>
                             <?php echo form_error('url_icono');?>
                         </div>
@@ -180,6 +176,7 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
+                            <label for="orden">Texto Hover:</label>
                             <?php echo form_input(array('name'=>'texto_onmouseover', 'id'=> 'texto_onmouseover', 'placeholder'=>'Texto Hover', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Este texto se mostrará cada vez que pase el cursor de su ratón por encima del menu.', 'value' => set_value('texto_onmouseover'))); ?>
                             <?php echo form_error('texto_onmouseover');?>
                         </div>
@@ -187,7 +184,7 @@
                 </div>
                 
                 <div class="row">
-                    <div class="col-xs-12 col-md-6">
+                    <div class="col-xs-12 col-md-6 hidden">
                     <div class="form-group">
                     <?php
 
@@ -196,7 +193,7 @@
                                    '1'   => 'Inactivo',
                                  );
                         $dd_name = "eliminado";
-                        echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="eliminado"');
+                        echo form_dropdown($dd_name, $dd_list, set_value($dd_name),'class = "form-control" id="eliminado" ');
                         ?>
                         </div>
                     </div>
@@ -245,9 +242,8 @@ $(document).ready(function () {
 
     $('#btnSaveMenu').attr("disabled", true);
 
-    $('#opcion, #texto, #orden, #url, #modulo').keyup(function () {
-        console.log($('#modulo').val());
-        console.log($('#opcion_padre').val());
+    $('#opcion_padre, #opcion, #texto, #orden, #url, #modulo').keyup(function () {
+
         var buttonDisabled =  $('#opcion_padre').val() == -1 || $('#modulo').val() == null || $('#opcion').val().length == 0 || $('#texto').val().length == 0 || $('#url').val().length == 0 || $('#orden').val().length == 0;
         $('#btnSaveMenu').attr("disabled", buttonDisabled);
     });
@@ -520,6 +516,51 @@ function clearMenu(operacion){
 
     }
 
+}
+
+function cargarOpcion(){
+    
+    console.log('cargarOpcion');
+    var modulo =$('#modulo').val();
+    console.log("modulo: "+modulo);
+    var op_padres = <?php echo json_encode($op_padres) ?>;
+    console.log("op_padres: "+op_padres);
+
+    addOptions("opcion_padre", op_padres, modulo);
+}
+
+function addOptions(domElement, json ,modulo){
+    
+   console.log("addOptions");
+   var opction= '';
+   $('#opcion_padre')[0].options.length = 0;
+   var select =  document.getElementsByName(domElement)[0];
+   
+
+    Object.keys(json).forEach(function(elm) {
+        console.log("Elm: "+elm); 
+        if(elm-1  == -1){
+            
+            option = '<option value="-1" disabled selected >-Seleccione una opcion-</option>';
+            $('#opcion_padre').append(option);
+            /*
+            option = '<option value="null">-Es padre-</option>';
+            $('#opcion_padre').append(option);
+            */
+
+        }       
+        if(modulo == json[elm]['modulo']){
+            console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);
+            if(json[elm]['opcion'] == null){
+                option = '<option value="null">Es padre</option>';
+                console.log("OPTION: "+option);
+            }else{
+                option = '<option value="'+json[elm]['opcion']+'">'+json[elm]['texto']+'  ['+json[elm]['opcion']+']</option>';
+                console.log("OPTION: "+option);
+            }            
+            $('#opcion_padre').append(option);
+        }       
+    });
 }
 
 

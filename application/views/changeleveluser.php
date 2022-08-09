@@ -245,6 +245,7 @@
         var srole ='';
         /*$("#roles").empty();*/
         /*console.log("DE: "+domElement+" JSON: "+JSON.stringify(json)+" SGROUP: "+sgroup);*/
+        $('#roles')[0].options.length = 0;
         var select = document.getElementsByName(domElement)[0];
         
         /*console.log("select: "+select);*/

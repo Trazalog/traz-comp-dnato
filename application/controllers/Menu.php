@@ -105,7 +105,7 @@ class Menu extends CI_Controller {
         $dataPost['texto_onmouseover'] = $this->input->post('texto_onmouseover');
         $dataPost['operacion'] = $this->input->post('operacion');
 
-        //log_message('DEBUG','#TRAZA|Menu|addMenu()  $dataPost: >> '.json_encode($dataPost));
+        log_message('DEBUG','#TRAZA|Menu|addMenu()  $dataPost: >> '.json_encode($dataPost));
 
         if($dataPost['operacion'] == 'insert'){
 
@@ -139,10 +139,6 @@ class Menu extends CI_Controller {
             }
 
         }
-
-
-        
-
     }
 
     public function activeMenu(){
@@ -189,7 +185,7 @@ class Menu extends CI_Controller {
         $data['emp_connect'] =  $this->user_model->gestMembershipsUserInfo($data['email'],1);           //Empresas del conectado
         $data['groups'] = $this->Roles->getBpmGroups(); 												// Grupos Bonita
         $data['roles'] = $this->Roles->getBpmRoles();   												// Roles Bonita
-        $data['modulos'] = $this->mmenu->getModulos();   												// Roles Bonita
+        $data['modulos'] = $this->mmenu->getModulos();   												// Roles 
         $result = $this->mmenu->getMenuesRoles();
 
 
@@ -208,6 +204,8 @@ class Menu extends CI_Controller {
         $data['emp_connect'] =  $this->user_model->gestMembershipsUserInfo($data['email'],1);           //Empresas del conectado
         $data['groups'] = $this->Roles->getBpmGroups(); 												// Grupos Bonita
         $data['roles'] = $this->Roles->getBpmRoles();   												// Roles Bonita
+        $data['modulos'] = $this->mmenu->getModulos();
+        $data['op_padres'] = $this->mmenu->getOpcionPadre();
         $result = $this->mmenu->getMenuesRoles();
 
 		$data['title'] = "Listado de Menues por Roles";
@@ -226,6 +224,7 @@ class Menu extends CI_Controller {
   		log_message('DEBUG','#TRAZA|MAIN|menuesList()   $data[emp_connect] >> '.json_encode($data['emp_connect']));
         log_message('DEBUG','#TRAZA|MAIN|menuesList()   $data[groups]: >> '.json_encode($data['groups']));
         log_message('DEBUG','#TRAZA|MAIN|menuesList()   $data[roles]: >> '.json_encode($data['roles']));
+        log_message('DEBUG','#TRAZA|MAIN|menuesList()   $data[mnroles]: >> '.json_encode($data['mnroles']));
         log_message('DEBUG','#TRAZA|Menu|menuesList()   $r[totalDatos]: >> '.json_encode($data['totalDatos']));
         //check user level
 
