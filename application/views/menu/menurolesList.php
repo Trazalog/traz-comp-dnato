@@ -70,11 +70,9 @@
                     <table id="menuesroles" class="table table-bordered table-hover">
                         <thead>
                             <th>Acciones</th>
-                            <th>Usuario</th>
-                            <th>Opciones</th>
-                            <th>Perfil</th>
-                            <th>Módulo</th>
                             <th>Grupo</th>
+                            <th>Módulo</th>                            
+                            <th>Opciones</th>                            
                             <th>Roles</th>
                             <th>Estado</th>
                         </thead>                            
@@ -84,25 +82,42 @@
                                 foreach($emp_connect as $emp_con){
                                     foreach($mnroles as $mnrole){
                                         if($emp_con->group == $mnrole->group){
-                                            echo "<tr id='".$mnrole->email."|".$mnrole->group."|".$mnrole->role."|".$mnrole->modulo."|".$mnrole->opcion."|".$mnrole->rolemm."'>";                                            
-                                            echo '<td>                                                
-                                                <i class="fa fa-fw fa-eye text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenuRole(this)"></i>
-                                                <i class="fa fa-pencil-square-o  text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenuRole(this)"></i>                                                
-                                                <i class="fa fa-fw fa-toggle-on text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Eliminar"  id="btnDeleteMenu" onclick="deleteMenuRole(this)"></i>
-                                            </td>';
-                                            echo '<td>'.$mnrole->email.'</td>';
-                                            echo '<td>'.$mnrole->opcion.'</td>';
-                                            echo '<td>';
-                                                if($mnrole->role == 2){
-                                                    echo '<span data-toggle="tooltip" title="" class="badge bg-red">Autor</span>';
+                                            echo "<tr id='".$mnrole->group."|".$mnrole->modulo."|".$mnrole->opcion."|".$mnrole->role."'>";                                            
+                                            echo '<td>';                                                
+                                                echo '<i class="fa fa-fw fa-eye text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenuRole(this)"></i>';
+                                                echo '<i class="fa fa-pencil-square-o  text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenuRole(this)"></i>';
+                                                if(!$mnrole->eliminado){
+                                                
+                                                    echo '<i class="fa fa-fw fa-toggle-on text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Inactivar"  id="btnDeleteMenuRole" onclick="deleteMenuRole(this)"></i>';
                                                 }else{
-                                                    echo '<span data-toggle="tooltip" title="" class="badge bg-danger">Admin</span>';
+                                                  
+                                                    echo '<i class="fa fa-fw fa-toggle-off text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Activar"  id="btnActiveMenuRole" onclick="activeMenuRole(this)"></i>';
                                                 }
-                                            '</td>';
+                                            echo '</td>';
+                                            foreach($groups as $group){
+                                                if(strpos($group->name,'-') !== false){ /*SI*/
+                                                    list($group_id, $group_name) = explode ("-",$group->name);
+                                                    if($group_name == $mnrole->group){
+                                                        echo '<td>'.$group->displayName.'</td>';
+                                                    }
+                                                }else{ /*NO*/
+                                                    if($group->name == $mnrole->group){
+                                                        echo '<td>'.$group->displayName.'</td>';
+                                                    }
+                                                }
+                                            }                                            
                                             echo '<td>'.$mnrole->modulo.'</td>';
-                                            echo '<td>'.$mnrole->group.'</td>';
-                                            echo '<td>'.$mnrole->rolemm.'</td>';
-                                            echo '<td>Estado</td>';
+                                            echo '<td>'.$mnrole->opcion.'</td>';                                            
+                                            echo '<td>'.$mnrole->role.'</td>';
+                                            echo '<td>';
+                                            if(!$mnrole->eliminado){
+                                                
+                                                echo '<span data-toggle="tooltip" title="" class="badge badge-success">Activo</span>';
+                                            }else{
+                                        
+                                                echo '<span data-toggle="tooltip" title="" class="badge badge-danger" style="background-color: red;">Inactivo</span>';
+                                            }
+                                            echo '</td>';
                                             echo '</tr>';
                                         }
                                     }
@@ -125,9 +140,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title"><strong>Opcion de Menu</strong> </h4>
+                <h4 class="modal-title"><strong>Opción de Menú</strong> </h4>
                 <h5>Hola <?php use function PHPSTORM_META\type; echo $first_name; ?>,</h5>
-                <h5>Por favor ingrese la informacion requerida a continuacion.</h5>       
+                <h5>Por favor ingrese la información requerida a continuación.</h5>       
                 <?php 
                     $fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data'  );
                     echo form_open('/menu/addMenuRoles', $fattr);
@@ -141,7 +156,7 @@
                             <label>Empresa: (*)</label>
                             <select class="form-control" name="groups" id="groups" onchange="CargarRolesEmpresas();">
                                 <?php
-                                    echo '<option value="-1" disabled selected >-Seleccione un Empresa-</option>';
+                                    echo '<option value="-1" selected >-Seleccione un Empresa-</option>';
                                     foreach($emp_connect as $emp_con){    ///Emrpesas del Usuario conectado
                                         foreach($groups as $group){
                                             list($id_group, $group_name) = explode ("-",$group->name);
@@ -164,7 +179,7 @@
                         <div class="form-group">
                             <label>Rol: (*)</label>                          
                             <select class="form-control" name="roles" id="roles" >
-                                <option value="-1" disabled selected>-Seleccione una opcion-</option>                            
+                                <option value="-1" selected>-Seleccione una opción-</option>                            
                             </select>
                         </div>
                     </div>
@@ -173,10 +188,10 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                        <label>Modulo: (*)</label>
+                        <label>Módulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
                             <?php
-                                echo '<option value="-1" disabled selected >-Seleccione un modulo-</option>';
+                                echo '<option value="-1" selected >-Seleccione un modulo-</option>';
                                 foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado
                                     echo '<option value="'.$modulo->modulo.'">'.$modulo->modulo.'</option>';
                                 }    
@@ -189,19 +204,10 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
-                            <label>Opcion: (*)</label>
+                            <label>Opción: (*)</label>
                             <select class="form-control" name="opcion_padre" id="opcion_padre" >
-                                <option value="-1" disabled selected>-Seleccione una opcion-</option>                            
+                                <option value="-1" selected>-Seleccione una opción-</option>                            
                             </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-xs-12 col-md-12">
-                        <div class="form-group">
-                            <?php echo form_input(array('name'=>'email', 'type' => 'hidden', 'id'=> 'email', 'placeholder'=>'Email', 'class'=>'form-control', 'value' => set_value('email'))); ?>
-                            <?php echo form_error('email');?>
                         </div>
                     </div>
                 </div>
@@ -218,7 +224,8 @@
             </div><!-- /.modal-body -->
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" id="CancelMenuRole" data-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnSaveMenuRole" data-dismiss="modal">Guardar</button>
+                <?php echo form_submit(array('value'=>'Guardar', 'id'=>'btnSaveMenuRole', 'class'=>'btn btn-primary')); ?>
+                <?php echo form_close(); ?>
                 <button type="button" class="btn btn-primary" id="btnCerrarMenuRole" data-dismiss="modal" >Cerrar</button>
             </div>
         </div>
@@ -251,8 +258,7 @@ $(document).ready(function () {
   
     $('#menuesroles').DataTable();
 
-    $('#opcion_padre').change(function () {
-
+    $('#groups, #roles, #modulo, #opcion_padre').change(function () {        
         var buttonDisabled =  $('#groups').val() == -1 || $('#roles').val() == -1 || $('#modulo').val() == -1 || $('#opcion_padre').val() == -1;
         $('#btnSaveMenuRole').attr("disabled", buttonDisabled);
     });
@@ -263,11 +269,13 @@ $('#btnAgreMenuRol').click(function cargarModal() {
 
     console.log("Modal");
     $('#modalMenuRole').modal('show');
-    accionBtn(1); 
-    clearForm(1);
-    $('h4.modal-title').text('Agregar Menu Role');
+
+    $('h4.modal-title').text('Agregar Menú Role');
     $('#operacion').val('insert');
 
+    clearForm(1);
+    accionBtn(1); 
+    
 });
 
 function CargarRolesEmpresas(){
@@ -287,7 +295,7 @@ function addOptionsEmp(domElement, json, sgroup) {
 
     var option = '';
     var srole ='';
-    sgroup = 777;
+    /*sgroup = 777;*/
 
     $('#roles')[0].options.length = 0;
     var select = document.getElementsByName(domElement)[0];
@@ -296,19 +304,14 @@ function addOptionsEmp(domElement, json, sgroup) {
 
         if(elm-1  == -1){
             
-            option = '<option value="-1" disabled selected >-Seleccione un rol-</option>';
+            option = '<option value="-1" selected >-Seleccione un rol-</option>';
             $('#roles').append(option);
-            /*
-            option = '<option value="null">-Es padre-</option>';
-            $('#opcion_padre').append(option);
-            */
-
         }       
         srole= json[elm]['name'].split("-");
 
         if(sgroup == srole[0]){
             option = '<option value="'+json[elm]['id']+'-'+json[elm]['name']+'">'+json[elm]['displayName']+'</option>';
-            console.log("OPTION: "+option);
+            /*console.log("OPTION: "+option);*/
             $('#roles').append(option);
         }
 
@@ -319,9 +322,9 @@ function cargarOpcion(){
     
     console.log('cargarOpcion');
     var modulo =$('#modulo').val();
-    console.log("modulo: "+modulo);
+    /*console.log("modulo: "+modulo);*/
     var op_padres = <?php echo json_encode($op_padres) ?>;
-    console.log("op_padres: "+op_padres);
+    /*console.log("op_padres: "+op_padres);*/
 
     addOptions("opcion_padre", op_padres, modulo);
 }
@@ -335,25 +338,21 @@ function addOptions(domElement, json ,modulo){
    
 
     Object.keys(json).forEach(function(elm) {
-        console.log("Elm: "+elm); 
-        if(elm-1  == -1){
-            
-            option = '<option value="-1" disabled selected >-Seleccione una opcion-</option>';
+        /*console.log("Elm: "+elm); */
+        if(elm-1  == -1){            
+            option = '<option value="-1" selected >-Seleccione una opción-</option>';
             $('#opcion_padre').append(option);
-            /*
-            option = '<option value="null">-Es padre-</option>';
-            $('#opcion_padre').append(option);
-            */
-
+            /* option = '<option value="null">-Es padre-</option>';*/
+            /*$('#opcion_padre').append(option);*/
         }       
         if(modulo == json[elm]['modulo']){
-            console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);
+            /*console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);*/
             if(json[elm]['opcion'] == null){
                 option = '<option value="null">Es padre</option>';
-                console.log("OPTION: "+option);
+                /*console.log("OPTION: "+option);*/
             }else{
                 option = '<option value="'+json[elm]['opcion']+'">'+json[elm]['texto']+'  ['+json[elm]['opcion']+']</option>';
-                console.log("OPTION: "+option);
+                /*console.log("OPTION: "+option);*/
             }            
             $('#opcion_padre').append(option);
         }       
@@ -364,56 +363,187 @@ function editMenuRole(eval){
 
     console.log("Edit");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenuRole = data.split("|");
-    console.log("email: "+dataMenuRole[0]+" group: "+dataMenuRole[1]+" role: "+dataMenuRole[2]+" modulo: "+dataMenuRole[3]+" opcion: "+dataMenuRole[4]+" rolemm: "+dataMenuRole[5]);
+    /*console.log(" group: "+dataMenuRole[1]+" role: "+dataMenuRole[2]+" modulo: "+dataMenuRole[3]+" opcion: "+dataMenuRole[4]+" rolemm: "+dataMenuRole[5]);*/
     $('#modalMenuRole').modal('show');
-    $('h4.modal-title').text('Actualizar Opciones de Menu Roles');
+    $('h4.modal-title').text('Actualizar Opciones de Menú Roles');
     $('#operacion').val('update');
 
     accionBtn(1);
 
-    $('#modulo').val(dataMenuRole[3]);    
-    $('#email').val(dataMenuRole[0]);
+   /** cargar info select */     
+   cargarInfoSelect(dataMenuRole);
+
+   $('#groups').attr("style", "pointer-events: none;");
+   $('#roles').attr("style", "pointer-events: none;");
+
 }
 
 function getMenuRole(eval){
 
-    console.log("Get");
+    console.log("GetMenuRole");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenuRole = data.split("|");
-    console.log("email: "+dataMenuRole[0]+" group: "+dataMenuRole[1]+" role: "+dataMenuRole[2]+" modulo: "+dataMenuRole[3]+" opcion: "+dataMenuRole[4]+" rolemm: "+dataMenuRole[5]);
+    /*console.log("group: "+dataMenuRole[0]+" modulo: "+dataMenuRole[1]+" opcion: "+dataMenuRole[2]+" role: "+dataMenuRole[3]);*/
     $('#modalMenuRole').modal('show');
-    $('h4.modal-title').text('Visualizar Opciones de Menu Roles');
+    $('h4.modal-title').text('Visualizar Opciones de Menú Roles');
 
-    accionBtn(2);
-    
-    $('#modulo').val(dataMenuRole[3]);    
-    $('#email').val(dataMenuRole[0]);
+    accionBtn(2);   
+    $('#operacion').val('View');
+
+    cargarInfoSelect(dataMenuRole);
+
+    $('#groups').attr("style", "pointer-events: none;");
+    $('#roles').attr("style", "pointer-events: none;");
+    $('#modulo').attr("style", "pointer-events: none;");
+    $('#opcion_padre').attr("style", "pointer-events: none;");
+
 }
 
-function deleteMenuRole(eval){
+function cargarInfoSelect(dataMenuRole){
 
-    console.log("Delete");
+    console.log('cargarInfoSelect');
+    $("#groups option").each(function(){
+        
+        var group_id = $(this).val();
+        /*console.log('Group: '+ group_id);    */    
+
+        if(group_id.split("-")){
+            /*console.log('Explode');  */
+            var group = group_id.split("-");            
+            /*console.log('0:'+group[0]+' 1: '+group[1]+' 2: '+group[2]); */
+            if(group[2] == dataMenuRole[0]){
+                $('#groups').val(group_id); 
+            }
+        }else{
+            /*console.log('NoExplode');*/
+            if(group_id == dataMenuRole[0]){
+                $('#groups').val(group_id); 
+            }
+        }   
+        CargarRolesEmpresas();
+    });
+
+    $("#roles option").each(function(){
+
+        var role_id = $(this).val();
+        /*console.log('Roles: '+ role_id);    */ 
+        
+        if(role_id.split("-")){
+            var roles = role_id.split("-");
+            /*console.log('0: '+roles[0]+' 1: '+roles[1]+' 2: '+roles[2]); */
+            if(roles[2] == dataMenuRole[3]){
+                $('#roles').val(role_id); 
+            }
+        }else{
+            if(role_id == dataMenuRole[3]){
+                $('#roles').val(role_id); 
+            }
+        }
+    });
+    
+    $("#modulo option").each(function(){
+
+        var modulo_id = $(this).val();
+        /*console.log('Modulo: '+ modulo_id);     */
+        
+        if(modulo_id.split("-")){
+            var modulo = modulo_id.split("-");
+            /*console.log('0: '+modulo[0]+' 1: '+modulo[1]+' 2: '+modulo[2]); */
+            if(modulo[0] == dataMenuRole[1]){
+                $('#modulo').val(modulo_id); 
+            }
+        }else{
+            if(modulo_id == dataMenuRole[1]){
+                $('#modulo').val(modulo_id); 
+            }
+        }
+        cargarOpcion();
+    });
+
+    $("#opcion_padre option").each(function(){
+
+        var op_padre_id = $(this).val();
+        /*console.log('Opcion Padre: '+ op_padre_id);   */  
+
+        if(op_padre_id.split("-")){
+            var op_padre = op_padre_id.split("-");
+            /*console.log('0: '+op_padre[0]+' 1: '+op_padre[1]+' 2: '+op_padre[2]); */
+            if(op_padre[0] == dataMenuRole[2]){
+                $('#opcion_padre').val(op_padre_id); 
+            }
+        }else{
+            if(op_padre_id == dataMenuRole[2]){
+                $('#opcion_padre').val(op_padre_id); 
+            }
+        }
+    });
+
+    /*console.log("group: "+$('#groups').val()+" modulo: "+$('#modulo').val()+" opcion: "+$('#opcion_padre').val()+" role: "+$('#roles').val()+' Op: '+$('#operacion').val());*/
+}
+
+function activeMenuRole(eval){
+
+    console.log("Active");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenuRole = data.split("|");
-    console.log("email: "+dataMenuRole[0]+" group: "+dataMenuRole[1]+" role: "+dataMenuRole[2]+" modulo: "+dataMenuRole[3]+" opcion: "+dataMenuRole[4]+" rolemm: "+dataMenuRole[5]);
+    /*console.log("group: "+dataMenuRole[0]+" modulo: "+dataMenuRole[1]+" opcion: "+dataMenuRole[2]+" role: "+dataMenuRole[3]);*/
     $('#modalRoleConfirm').modal('show');
 
     $("#modal-role-btn-si").on("click", function(){
         console.log("Confirm");
         $.ajax({
             type: "POST",
+            url:'<?php echo base_url() ?>/menu/activeMenuRole',
+            data: {               
+                group:  dataMenuRole[0],
+                modulo: dataMenuRole[1],
+                opcion: dataMenuRole[2],
+                role: dataMenuRole[3],
+                
+            },
+            success: function(rsp) {
+                console.log(rsp);
+                window.location.reload();
+            },
+            error: function(rsp) {
+                console.log(rsp);
+            },
+            complete: function() {
+
+            }
+        });
+        $("#modalRoleConfirm").modal('hide');
+    });
+
+    $("#modal-role-btn-no").on("click", function(){
+        console.log("Cancel");
+        $("#modalRoleConfirm").modal('hide');
+    });
+}
+
+function deleteMenuRole(eval){
+
+    console.log("Delete");
+    var data= $(eval).closest('tr').attr('id');
+   /* console.log("Data: "+data);*/
+    var dataMenuRole = data.split("|");
+    /*console.log("group: "+dataMenuRole[0]+" modulo: "+dataMenuRole[1]+" opcion: "+dataMenuRole[2]+" role: "+dataMenuRole[3]);*/
+    $('#modalRoleConfirm').modal('show');
+    
+    $("#modal-role-btn-si").on("click", function(){
+        console.log("Confirm");
+        $.ajax({
+            type: "POST",
             url:'<?php echo base_url() ?>/menu/deleteMenuRole',
-            data: {
-                email: dataMenuRole[0],
-                group:  dataMenuRole[1],
-                role:   dataMenuRole[2],
-                modulo: dataMenuRole[3],
-                opcion: dataMenuRole[4],
-                rolemm: dataMenuRole[5],
+            data: {               
+                group:  dataMenuRole[0],
+                modulo: dataMenuRole[1],
+                opcion: dataMenuRole[2],
+                role: dataMenuRole[3],
                 
             },
             success: function(rsp) {
@@ -439,15 +569,29 @@ function deleteMenuRole(eval){
 
 function accionBtn(btn){
 
+    /*console.log("group: "+$('#groups').val()+" modulo: "+$('#modulo').val()+" opcion: "+$('#opcion_padre').val()+" role: "+$('#roles').val()+' Op: '+$('#operacion').val());*/
+
     if(btn == 2 ){
+
         $('#btnCerrarMenuRole').show();
         $('#btnSaveMenuRole').hide();
         $('#CancelMenuRole').hide();
+
     }else{
         $('#btnCerrarMenuRole').hide();
         $('#btnSaveMenuRole').show();
-        $('#btnSaveMenuRole').attr("disabled", true);
+        if($('#operacion').val() == 'insert'){
+            $('#btnSaveMenuRole').attr("disabled", true);        
+        }
+        if($('#operacion').val() == 'update'){
+            $('#btnSaveMenuRole').attr("disabled", false);
+        }               
         $('#CancelMenuRole').show();
+        
+        $('#groups').attr("style", "pointer-events: auto;");
+        $('#roles').attr("style", "pointer-events: auto;");
+        $('#modulo').attr("style", "pointer-events: auto;");
+        $('#opcion_padre').attr("style", "pointer-events: auto;");
     }
 
 }

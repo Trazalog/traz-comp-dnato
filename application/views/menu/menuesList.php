@@ -69,7 +69,7 @@
                                         }else{
                                             echo '<span data-toggle="tooltip" title="" class="badge badge-danger" style="background-color: red;">Inactivo</span>';
                                         }
-                                    '</td>';
+                                    echo '</td>';
                                     echo '<td class="hidden">'.$menu->fec_alta.'</td>';
                                     echo '<td class="hidden">'.$menu->usuario.'</td>';
                                     echo '<td class="hidden">'.$menu->usuario_app.'</td>';
@@ -91,9 +91,9 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title"><strong>Menu</strong> </h4>
+                <h4 class="modal-title"><strong>Menú</strong> </h4>
                 <h5>Hola <?php use function PHPSTORM_META\type; echo $first_name; ?>,</h5>
-                <h5>Por favor ingrese la informacion requerida a continuacion.</h5>       
+                <h5>Por favor ingrese la información requerida a continuación.</h5>       
                 <?php 
                     $fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data'  );
                     echo form_open('/menu/addMenu', $fattr);
@@ -103,10 +103,10 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <label for="modulo">Modulo: (*)</label>
+                            <label for="modulo">Módulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
                             <?php
-                                echo '<option value="-1" disabled selected >-Seleccione un modulo-</option>';
+                                echo '<option value="-1" disabled selected >-Seleccione un módulo-</option>';
                                 foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado
                                     echo '<option value="'.$modulo->modulo.'">'.$modulo->modulo.'</option>';
                                 }    
@@ -117,7 +117,7 @@
 
                     <div class="col-xs-12 col-md-6">
                         <div class="form-group">
-                            <label for="opcion">Opcion: (*)</label>
+                            <label for="opcion">Opción: (*)</label>
                             <?php echo form_input(array('name'=>'opcion', 'id'=> 'opcion', 'placeholder'=>'Opcion', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Nombre de referencia, sin espacios, utilizando guiones bajos para separar las palabras.', 'value' => set_value('opcion'))); ?>
                             <?php echo form_error('opcion');?>
                         </div>
@@ -138,9 +138,9 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-8">
                         <div class="form-group">
-                            <label for="opcion_padre">Opcion Padre: (*)</label>                            
+                            <label for="opcion_padre">Opción Padre: (*)</label>                            
                             <select class="form-control" name="opcion_padre" id="opcion_padre" data-placement="top" title= "Indica el orden en que se visualiza el menú. Si es padre estará como principal, los sucesores hijos o nietos, se iran anidando como submenus.">
-                                <option value="-1">-Seleccione una opcion-</option>                            
+                                <option value="-1">-Seleccione una opción-</option>                            
                             </select>
                         </div>
                     </div>
@@ -157,7 +157,7 @@
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
                             <label for="orden">URL:</label>
-                            <?php echo form_input(array('name'=>'url', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Corresponde a la dirección de la ruta del menú. Escriba respetando el formato: modulo/nombre/dash', 'value' => set_value('url'))); ?>
+                            <?php echo form_input(array('name'=>'url', 'id'=> 'url', 'placeholder'=>'URL', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Corresponde a la dirección de la ruta del menú. Escriba respetando el formato: módulo/nombre/dash', 'value' => set_value('url'))); ?>
                             <?php echo form_error('url');?>
                         </div>
                     </div>
@@ -177,7 +177,7 @@
                     <div class="col-xs-12 col-md-12">
                         <div class="form-group">
                             <label for="orden">Texto Hover:</label>
-                            <?php echo form_input(array('name'=>'texto_onmouseover', 'id'=> 'texto_onmouseover', 'placeholder'=>'Texto Hover', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Este texto se mostrará cada vez que pase el cursor de su ratón por encima del menu.', 'value' => set_value('texto_onmouseover'))); ?>
+                            <?php echo form_input(array('name'=>'texto_onmouseover', 'id'=> 'texto_onmouseover', 'placeholder'=>'Texto Hover', 'class'=>'form-control', 'data-placement'=>'top',  'title'=> 'Este texto se mostrará cada vez que pase el cursor de su ratón por encima del menú.', 'value' => set_value('texto_onmouseover'))); ?>
                             <?php echo form_error('texto_onmouseover');?>
                         </div>
                     </div>
@@ -255,7 +255,7 @@ $('#btnAgreMenu').click(function cargarModal() {
     $('#modalMenu').modal('show');
     accionBtn(1); 
     clearMenu(1);
-    $('h4.modal-title').text('Agregar Menu');
+    $('h4.modal-title').text('Agregar Menú');
     $('#operacion').val('insert');
 
 });
@@ -313,9 +313,9 @@ function activeMenu(eval){
 
     console.log("Active");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
+    /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);*/
     $('#modalConfirm').modal('show');
     $('h4.modal-title').text('Deseas activar este registro?');
     
@@ -353,10 +353,10 @@ function deleteMenu(eval){
 
     console.log("Delete");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
-    $('#modalConfirm').modal('show');
+    /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
+    $('#modalConfirm').modal('show');*/
     $('h4.modal-title').text('Deseas desactivar este registro?');
 
     $("#modal-btn-si").on("click", function(){
@@ -399,9 +399,9 @@ function editMenu(eval){
 
     console.log("Edit");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    $('h4.modal-title').text('Actualizar Menu');
+    $('h4.modal-title').text('Actualizar Menú');
 
     accionBtn(1); 
     clearMenu(2);
@@ -427,9 +427,9 @@ function getMenu(eval){
 
     console.log("Get");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    $('h4.modal-title').text('Visualizar Menu');
+    $('h4.modal-title').text('Visualizar Menú');
     
     accionBtn(2);   
 
@@ -522,9 +522,9 @@ function cargarOpcion(){
     
     console.log('cargarOpcion');
     var modulo =$('#modulo').val();
-    console.log("modulo: "+modulo);
+    /*console.log("modulo: "+modulo);*/
     var op_padres = <?php echo json_encode($op_padres) ?>;
-    console.log("op_padres: "+op_padres);
+    /*console.log("op_padres: "+op_padres);*/
 
     addOptions("opcion_padre", op_padres, modulo);
 }
@@ -538,10 +538,10 @@ function addOptions(domElement, json ,modulo){
    
 
     Object.keys(json).forEach(function(elm) {
-        console.log("Elm: "+elm); 
+        /*console.log("Elm: "+elm); */
         if(elm-1  == -1){
             
-            option = '<option value="-1" disabled selected >-Seleccione una opcion-</option>';
+            option = '<option value="-1" disabled selected >-Seleccione una opción-</option>';
             $('#opcion_padre').append(option);
             /*
             option = '<option value="null">-Es padre-</option>';
@@ -550,13 +550,13 @@ function addOptions(domElement, json ,modulo){
 
         }       
         if(modulo == json[elm]['modulo']){
-            console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);
+            /*console.log(" Modulo: "+json[elm]['modulo']+" Opcion: "+json[elm]['opcion']);*/
             if(json[elm]['opcion'] == null){
                 option = '<option value="null">Es padre</option>';
-                console.log("OPTION: "+option);
+                /*console.log("OPTION: "+option);*/
             }else{
                 option = '<option value="'+json[elm]['opcion']+'">'+json[elm]['texto']+'  ['+json[elm]['opcion']+']</option>';
-                console.log("OPTION: "+option);
+               /* console.log("OPTION: "+option);*/
             }            
             $('#opcion_padre').append(option);
         }       
