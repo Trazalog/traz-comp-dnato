@@ -8,15 +8,15 @@ class Empresas extends CI_Model
     }
 
     /**
-		* Trae listado de Empresas
-		* @param
-		* @return array con Empresas 
-		*/
-		function listarEmpresas(){
-            log_message('DEBUG','#TRAZA|EMPRESAS|listarEmpresas');
-            $aux = $this->rest->callAPI("GET",REST_CORE."/empresas");
-            $aux =json_decode($aux["data"]);
-            return $aux->empresas->empresa;
+    * Trae listado de Empresas
+    * @param
+    * @return array con Empresas 
+    */
+    function listarEmpresas(){
+        log_message('DEBUG','#TRAZA|EMPRESAS|listarEmpresas');
+        $aux = $this->rest->callAPI("GET",REST_CORE."/empresas");
+        $aux =json_decode($aux["data"]);
+        return $aux->empresas->empresa;
     }
 
     public function listarPaises() {
@@ -77,10 +77,10 @@ class Empresas extends CI_Model
         $empresa['pais_id'] = $d['pais_id'];
         $empresa['prov_id'] = $d['prov_id'];
         $empresa['loca_id'] = $d['loca_id'];    
-        $post['_post_empresa'] = $empresa;
-
+        $post['empresa'] = $empresa;
+        // POST http://10.142.0.13:8280/tools/core/empresa
         $resource = '/empresa';
-        $url = REST_CORE . $resource;
+        $url = 'http://10.142.0.13:8280/tools/core' . $resource;
         $aux = $this->rest->callApi("POST", $url, $post); 
         return $aux;
     }
