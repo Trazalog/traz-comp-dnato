@@ -60,6 +60,7 @@ class Menu extends CI_Controller {
         $data['groupsBpm'] = $this->Roles->getBpmGroups();
         $result = $this->mmenu->getMenues();
         $data['modulos'] = $this->mmenu->getModulos();
+        $data['iconos'] = $this->mmenu->getIconos();
         $data['op_padres'] = $this->mmenu->getOpcionPadre();
 										
         $data['title'] = "Listado de Menues";
@@ -76,6 +77,7 @@ class Menu extends CI_Controller {
         log_message('DEBUG','#TRAZA|Menu|menuesList()  $data[email]: >> '.json_encode($data['email']));
         log_message('DEBUG','#TRAZA|Menu|menuesList()  $data[menues]: >> '.json_encode($data['menues']));
         log_message('DEBUG','#TRAZA|Menu|menuesList()  $data[modulos]: >> '.json_encode($data['modulos']));
+        log_message('DEBUG','#TRAZA|Menu|menuesList()  $data[iconos]: >> '.json_encode($data['iconos']));
         log_message('DEBUG','#TRAZA|Menu|menuesList()  $data[op_padres]: >> '.json_encode($data['op_padres']));
         log_message('DEBUG','#TRAZA|Menu|menuesList()  $data[totalDatos]: >> '.json_encode($data['totalDatos']));
         //check user level
