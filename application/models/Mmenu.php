@@ -26,6 +26,16 @@ class Mmenu extends CI_Model {
         return $query->result();
     }
 
+    function getIconos(){
+
+        $this->db->select("icono");
+        $this->db->from('core.iconos');
+        $this->db->order_by("icono", "asc");
+        $query = $this->db->get();
+
+        return $query->result();
+    }
+
     function getOpcionPadre(){
 
         

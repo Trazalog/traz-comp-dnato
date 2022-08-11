@@ -106,7 +106,7 @@
                             <label for="modulo">Módulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
                             <?php
-                                echo '<option value="-1" disabled selected >-Seleccione un módulo-</option>';
+                                echo '<option value="-1" selected >-Seleccione un módulo-</option>';
                                 foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado
                                     echo '<option value="'.$modulo->modulo.'">'.$modulo->modulo.'</option>';
                                 }    
@@ -162,13 +162,19 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
-                        <div class="form-group">
-                            <label for="orden">Icono:</label>
-                            <?php echo form_input(array('name'=>'url_icono', 'id'=> 'url_icono', 'placeholder'=>'Icono', 'class'=>'form-control', 'value' => set_value('url_icono'))); ?>
-                            <?php echo form_error('url_icono');?>
+                    <div class="form-group">
+                            <label for="modulo">Icono: (*)</label>
+                            <select class="form-control " name="url_icono" id="url_icono",  required="true">
+                            <?php
+                                echo '<option value="-1" selected >-Seleccione un icono-</option>';
+                                foreach($iconos as $icono){    ///Emrpesas del Usuario conectado
+                                    echo '<option value="'.$icono->icono.'">'.$icono->icono.'</option>';
+                                }    
+                            ?>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -253,8 +259,10 @@ $('#btnAgreMenu').click(function cargarModal() {
 
     console.log("Modal");
     $('#modalMenu').modal('show');
-    accionBtn(1); 
+
     clearMenu(1);
+    accionBtn(1); 
+    
     $('h4.modal-title').text('Agregar Menú');
     $('#operacion').val('insert');
 
@@ -275,38 +283,6 @@ $('#btnSaveMenu').click(function cargarModal() {
     var texto_on =  $('#texto_onmouseover').val();
     var eliminado = $('#eliminado').val();
     var operacion =  $('#operacion').val();
-
-    
-        /*$('#btnSaveMenu').prop('disabled', false);*/
-        
-        /*$.ajax({
-            type: "POST",
-            url:'<?php echo base_url() ?>/menu/addMenu',
-            data: {
-                modulo: modulo,
-                opcion: opcion,
-                texto : texto,
-                opcion_padre : opcion_padre,
-                orden: orden,
-                url: url,
-                url_icono: url_icono,
-                texto_on: texto_on,
-                eliminado: eliminado,
-                operacion: operacion
-            },
-            success: function(rsp) {
-                console.log(rsp);
-                
-            },
-            error: function(rsp) {
-                console.log(rsp);
-            },
-            complete: function() {
-
-            }
-        });*/
-
-    /*}*/    
 });
 
 function activeMenu(eval){
@@ -355,8 +331,8 @@ function deleteMenu(eval){
     var data= $(eval).closest('tr').attr('id');
     /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
-    /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);
-    $('#modalConfirm').modal('show');*/
+    /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);*/
+    $('#modalConfirm').modal('show');
     $('h4.modal-title').text('Deseas desactivar este registro?');
 
     $("#modal-btn-si").on("click", function(){
@@ -399,15 +375,19 @@ function editMenu(eval){
 
     console.log("Edit");
     var data= $(eval).closest('tr').attr('id');
-    /*console.log("Data: "+data);*/
+    console.log("Data: "+data);
     var dataMenu = data.split("|");
     $('h4.modal-title').text('Actualizar Menú');
 
-    accionBtn(1); 
     clearMenu(2);
+    accionBtn(1); 
 
     $('#modalMenu').modal('show');
     $('#modulo').val(dataMenu[0]);
+
+    var op_padres = <?php echo json_encode($op_padres) ?>;
+    addOptions("opcion_padre", op_padres, dataMenu[0]);
+
     $('#modulo').prop('readonly', true);
     $('#opcion').val(dataMenu[1]);
     $('#opcion').prop('readonly', true);
@@ -427,15 +407,19 @@ function getMenu(eval){
 
     console.log("Get");
     var data= $(eval).closest('tr').attr('id');
-    /*console.log("Data: "+data);*/
+    console.log("Data: "+data);
     var dataMenu = data.split("|");
     $('h4.modal-title').text('Visualizar Menú');
-    
-    accionBtn(2);   
-
+    $('#operacion').val('view');
     $('#modalMenu').modal('show');
+
+    accionBtn(2);   
     
-    $('#modulo').val(dataMenu[0]);    
+    $('#modulo').val(dataMenu[0]);
+
+    var op_padres = <?php echo json_encode($op_padres) ?>;
+    addOptions("opcion_padre", op_padres, dataMenu[0]);
+
     $('#opcion').val(dataMenu[1]);
     $('#texto').val(dataMenu[2]);
     $('#opcion_padre').val(dataMenu[4]);
@@ -444,14 +428,14 @@ function getMenu(eval){
     $('#url_icono').val(dataMenu[8]);
     $('#texto_onmouseover').val(dataMenu[6]);
     $('#eliminado').val(dataMenu[9]);
-
+    
     $('#modulo').attr("style", "pointer-events: none;");
     $('#opcion').prop('readonly', true);
     $('#texto').prop('readonly', true);
     $('#opcion_padre').attr("style", "pointer-events: none;");
     $('#orden').prop('readonly', true);
-    $('#url').prop('readonly', true);
-    $('#url_icono').prop('readonly', true);
+    $('#url').prop('readonly', true);    
+    $('#url_icono').attr("style", "pointer-events: none;");
     $('#texto_onmouseover').prop('readonly', true);
     $('#eliminado').attr("style", "pointer-events: none;");
    
@@ -475,24 +459,24 @@ function clearMenu(operacion){
 
     if(operacion == 1) {
 
-        $('#modulo').val('');
+        $('#modulo').val(-1);
         $('#opcion').val('');
         $('#texto').val('');
-        $('#opcion_padre').val('');
+        $('#opcion_padre').val(-1);
         $('#orden').val('');
         $('#url').val('');
-        $('#url_icono').val('');
+        $('#url_icono').val(-1);
         $('#texto_onmouseover').val('');
         $('#eliminado').val('');
         $('#operacion').val('');
 
-        $('#modulo').prop('readonly', false);
+        $('#modulo').attr("style", "pointer-events: auto;");
         $('#opcion').prop('readonly', false);
         $('#texto').prop('readonly', false);
-        $('#opcion_padre').prop('readonly', false);
+        $('#opcion_padre').attr("style", "pointer-events: auto;");
         $('#orden').prop('readonly', false);
         $('#url').prop('readonly', false);
-        $('#url_icono').prop('readonly', false);
+        $('#url_icono').attr("style", "pointer-events: auto;");
         $('#texto_onmouseover').prop('readonly', false);
         $('#eliminado').prop('readonly', false);
 
@@ -510,8 +494,10 @@ function clearMenu(operacion){
         $('#texto').prop('readonly', false);
         $('#orden').prop('readonly', false);
         $('#url').prop('readonly', false);
-        $('#url_icono').prop('readonly', false);
+        $('#url_icono').attr("style", "pointer-events: auto;");
         $('#texto_onmouseover').prop('readonly', false);
+        $('#btnSaveMenu').attr("disabled", false);
+
 
 
     }
@@ -541,7 +527,7 @@ function addOptions(domElement, json ,modulo){
         /*console.log("Elm: "+elm); */
         if(elm-1  == -1){
             
-            option = '<option value="-1" disabled selected >-Seleccione una opción-</option>';
+            option = '<option value="-1" selected >-Seleccione una opción-</option>';
             $('#opcion_padre').append(option);
             /*
             option = '<option value="null">-Es padre-</option>';
