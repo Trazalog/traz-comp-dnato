@@ -21,7 +21,7 @@
                     echo '<td>'.$row->descripcion.'</td>';
                     echo '<td>'.$row->telefono.'</td>';
                     echo '<td>'.$row->email.'</td>';
-                    echo '<td>'.$row->pais_id.'</td>';
+                    echo '<td>'.$row->pais.'</td>';
                     echo '<td>'.$row->estado.'</td>';
                     echo '<td>'.$row->localidad.'</td>';
                 }
