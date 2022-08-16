@@ -43,7 +43,7 @@
         </select>
     </div>
     <div class="form-group">
-        <select onchange="seleccionEstado()" class="form-control select select-hidden-accesible habilitar" name="estado" id="estado" style='width: 100%;'>
+        <select onchange="seleccionEstado()" class="form-control select select-hidden-accesible habilitar" name="prov_id" id="prov_id" style='width: 100%;'>
             <option value="" disabled selected>-Seleccione opción-</option>	
             <?php
                 foreach ($tipos_clientes as $tipos) {
@@ -53,7 +53,7 @@
         </select>
     </div>
     <div class="form-group">
-        <select class="form-control select select-hidden-accesible habilitar" name="localidad" id="localidad" style='width: 100%;'>
+        <select class="form-control select select-hidden-accesible habilitar" name="loca_id" id="loca_id" style='width: 100%;'>
             <option value="" disabled selected>-Seleccione opción-</option>	
             <?php
                 foreach ($tipos_clientes as $tipos) {
@@ -80,21 +80,21 @@
             data: {id_pais: id_pais},
             url:'<?php echo base_url() ?>Empresa/getEstados',
             success: function(rsp) {
-                $('#estado').empty();
-                $('#localidad').empty();
+                $('#prov_id').empty();
+                $('#loca_id').empty();
                 if (rsp != null) {
                     /* habilitarEdicion(); */
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
-                    $('#localidad').html(datos);
+                    $('#loca_id').html(datos);
                     for (let i = 0; i < rsp.length; i++) {
                         var datito = encodeURIComponent(rsp[i].tabl_id);
                         datos += "<option value=" + datito + ">" + rsp[i].valor + "</option>";
                     }
-                    $('#estado').html(datos);
+                    $('#prov_id').html(datos);
                 } else {
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
-                    $('#estado').html(datos);
-                    $('#localidad').html(datos);                   
+                    $('#prov_id').html(datos);
+                    $('#loca_id').html(datos);                   
                     alertify.error("El País no contiene estados");
                 }    
                 /* wc(); */
@@ -107,31 +107,31 @@
 
     /* carga Localidades dependiendo del estado seleccionado*/
     function seleccionEstado() {
-        var id_pais = $("#pais option:selected").text();
-        var id_estado = $("#estado option:selected").text();
-        wo();
+        var id_pais = $("#pais_id option:selected").text();
+        var id_estado = $("#prov_id option:selected").text();
+        /* wo(); */
         $.ajax({
             type: 'GET',
             dataType: "json",
             data: {id_pais, id_estado},
             url:'<?php echo base_url() ?>Empresa/getLocalidades',
             success: function(rsp) {
-                $('#localidad').empty();
+                $('#loca_id').empty();
                 if (rsp != null) {
-                    habilitarEdicion();
+                    /* habilitarEdicion(); */
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
                     for (let i = 0; i < rsp.length; i++) {
                         var valor = encodeURIComponent(rsp[i].tabl_id);
                         /* datos += "<option value='"+ rsp[i].tabl_id + "'>"+ rsp[i].valor + "</option>";*/
                         datos += "<option value=" + valor + ">" + rsp[i].valor + "</option>";
                     }
-                    $('#localidad').html(datos);
+                    $('#loca_id').html(datos);
                 } else {
                     var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
-                    $('#localidad').html(datos); 
+                    $('#loca_id').html(datos); 
                     alertify.error("El Estado no contiene localidades");
                 }
-                wc();
+                /* wc(); */
             },
             error: function(data) {
                 alert('Error');

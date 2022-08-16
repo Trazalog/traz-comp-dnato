@@ -73,15 +73,21 @@ class Empresa extends CI_Controller {
                     redirect(base_url().'empresa/agregarEmpresa');
                 }else{
                     $post = $this->input->post(NULL, TRUE);
+					$pais_id = urlencode($this->input->post('pais_id'));
+					$prov_id = urldecode($this->input->post('prov_id'));
+    				$loca_id = urldecode($this->input->post('loca_id'));
                     $cleanPost = $this->security->xss_clean($post);
                     $cleanPost['nombre'] = $this->input->post('nombre');
                     $cleanPost['cuit'] = $this->input->post('cuit');
                     $cleanPost['descripcion'] = $this->input->post('descripcion');
                     $cleanPost['telefono'] = $this->input->post('telefono');
                     $cleanPost['email'] = $this->input->post('email');
-                    $cleanPost['pais_id'] = $this->input->post('pais_id');
-                    $cleanPost['prov_id'] = $this->input->post('prov_id');
-                    $cleanPost['loca_id'] = $this->input->post('loca_id');
+                    $cleanPost['pais_id'] = $pais_id;
+                    $cleanPost['prov_id'] = $prov_id;
+                    $cleanPost['loca_id'] = $loca_id;
+                    // $cleanPost['pais_id'] = $this->input->post('pais_id');
+                    // $cleanPost['prov_id'] = $this->input->post('prov_id');
+                    // $cleanPost['loca_id'] = $this->input->post('loca_id');
 
 					//Codificamos imagen
 					// $cleanPost['image_name'] = $_FILES['image']['name'];
