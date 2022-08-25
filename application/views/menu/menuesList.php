@@ -298,9 +298,9 @@ function activeMenu(eval){
     var dataMenu = data.split("|");
     /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);*/
     $('#modalConfirm').modal('show');
+
     $('h4.modal-title').text('Deseas activar este registro?');
     
-
     $("#modal-btn-si").on("click", function(){
         console.log("Confirm");
         $.ajax({
