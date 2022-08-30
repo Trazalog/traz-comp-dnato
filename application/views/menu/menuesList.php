@@ -49,6 +49,7 @@
                                     echo '<td>';                                    
                                     echo '<i class="fa fa-fw fa-eye text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenu(this)"></i>';
                                     echo '<i class="fa fa-pencil-square-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenu(this)"></i>';                                    
+                                       
                                         if(!$menu->eliminado)
                                            echo '<i class="fa fa-fw fa-toggle-on text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Inactivar"  id="btnDeleteMenu" onclick="deleteMenu(this)"></i>';
                                         else
