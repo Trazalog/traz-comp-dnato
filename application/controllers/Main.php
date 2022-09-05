@@ -73,9 +73,9 @@ class Main extends CI_Controller {
 			
 			$result = $this->user_model->getAllSettings();
 			$stLe = $result->site_title;
-		$tz = $result->timezone;
+			$tz = $result->timezone;
 		
-		$now = new DateTime();
+			$now = new DateTime();
 			$now->setTimezone(new DateTimezone($tz));
 			$dTod =  $now->format('Y-m-d');
 			$dTim =  $now->format('H:i:s');
