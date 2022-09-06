@@ -49,6 +49,7 @@
                                     echo '<td>';                                    
                                     echo '<i class="fa fa-fw fa-eye text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenu(this)"></i>';
                                     echo '<i class="fa fa-pencil-square-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenu(this)"></i>';                                    
+                                       
                                         if(!$menu->eliminado)
                                            echo '<i class="fa fa-fw fa-toggle-on text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Inactivar"  id="btnDeleteMenu" onclick="deleteMenu(this)"></i>';
                                         else
@@ -166,12 +167,12 @@
                 <div class="row">
                     <div class="col-xs-12 col-md-12">
                     <div class="form-group">
-                            <label for="modulo">Icono: (*)</label>
-                            <select class="form-control " name="url_icono" id="url_icono",  required="true">
+                            <label for="icono">Icono: (*)</label>
+                            <select class="form-control " name="url_icono" id="url_icono", style="width: 100%;" required="true">
                             <?php
                                 echo '<option value="-1" selected >-Seleccione un icono-</option>';
                                 foreach($iconos as $icono){    ///Emrpesas del Usuario conectado
-                                    echo '<option value="'.$icono->icono.'">'.$icono->icono.'</option>';
+                                    echo '<option value="'.$icono->icono.'">'.$icono->icono.' </option>';
                                 }    
                             ?>
                             </select>
@@ -243,8 +244,10 @@
 
 <script>
 
+
+
 $(document).ready(function () {
-    $('#menues').DataTable();
+   $('#menues').DataTable();
 
     $('#btnSaveMenu').attr("disabled", true);
 
@@ -253,7 +256,10 @@ $(document).ready(function () {
         var buttonDisabled =  $('#opcion_padre').val() == -1 || $('#modulo').val() == null || $('#opcion').val().length == 0 || $('#texto').val().length == 0 || $('#url').val().length == 0 || $('#orden').val().length == 0;
         $('#btnSaveMenu').attr("disabled", buttonDisabled);
     });
+
+    /*jQuery.noConflict();*/    
 });
+
 
 $('#btnAgreMenu').click(function cargarModal() {
 
@@ -293,9 +299,9 @@ function activeMenu(eval){
     var dataMenu = data.split("|");
     /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);*/
     $('#modalConfirm').modal('show');
+
     $('h4.modal-title').text('Deseas activar este registro?');
     
-
     $("#modal-btn-si").on("click", function(){
         console.log("Confirm");
         $.ajax({
@@ -375,7 +381,7 @@ function editMenu(eval){
 
     console.log("Edit");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
     $('h4.modal-title').text('Actualizar Menú');
 
@@ -396,7 +402,19 @@ function editMenu(eval){
     $('#opcion_padre').prop('readonly', true);
     $('#orden').val(dataMenu[5]);
     $('#url').val(dataMenu[3]);
-    $('#url_icono').val(dataMenu[8]);
+    /*$('#url_icono').val(dataMenu[8]);*/
+    
+    $("#url_icono option").each(function(){
+
+        var url_icono = $(this).val();
+        /*console.log('Icono: '+ url_icono +" Select: "+dataMenu[8]); */
+        if(url_icono == dataMenu[8]){
+            /*console.log("Encontro: " + url_icono);        */
+            $('#select2-url_icono-container').find("span").text(url_icono);
+        }
+
+    });
+
     $('#texto_onmouseover').val(dataMenu[6]);
     $('#eliminado').val(dataMenu[9]);
     $('#operacion').val('update');
@@ -407,7 +425,7 @@ function getMenu(eval){
 
     console.log("Get");
     var data= $(eval).closest('tr').attr('id');
-    console.log("Data: "+data);
+    /*console.log("Data: "+data);*/
     var dataMenu = data.split("|");
     $('h4.modal-title').text('Visualizar Menú');
     $('#operacion').val('view');
@@ -425,7 +443,19 @@ function getMenu(eval){
     $('#opcion_padre').val(dataMenu[4]);
     $('#orden').val(dataMenu[5]);
     $('#url').val(dataMenu[3]);
-    $('#url_icono').val(dataMenu[8]);
+    /*$('#url_icono').val(dataMenu[8]);*/
+    
+    $("#url_icono option").each(function(){
+
+        var url_icono = $(this).val();
+        /*console.log('Icono: '+ url_icono +" Select: "+dataMenu[8]); */
+        if(url_icono == dataMenu[8]){
+            /*console.log("Encontro: " + url_icono);        */
+            $('#select2-url_icono-container').find("span").text(url_icono);
+        }
+        
+    });
+
     $('#texto_onmouseover').val(dataMenu[6]);
     $('#eliminado').val(dataMenu[9]);
     
@@ -548,6 +578,29 @@ function addOptions(domElement, json ,modulo){
         }       
     });
 }
+
+function formatState (state) {
+
+    /*console.log(state);*/
+    if (!state.text) {
+        return state.text;
+    } 
+
+    var $span = $("<span><i class='"+state.text+"' aria-hidden='true'></i> " + state.text + "</span>");
+    $span.find("span").text(state.text);
+    return $span;;
+}
+
+$("#url_icono").select2({
+    templateResult: function (data) {
+        /*console.log(data);*/
+        var $span = $("<span><i class='"+data.text+"' aria-hidden='true'></i> " + data.text + "</span>");
+        return $span;
+    },
+    templateSelection: formatState
+});
+
+
 
 
 </script>

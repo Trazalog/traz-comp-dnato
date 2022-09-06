@@ -24,7 +24,9 @@ $theme = $result->theme;
         <link rel="stylesheet" href="<?php echo base_url().'public/css/main.css' ?>">
         <!-- JQuery -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet"/>
+        
         <!-- DataTables 1.10.7 -->
         <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/dataTables.bootstrap.css">
         <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.dataTables.min.css">
@@ -32,4 +34,4 @@ $theme = $result->theme;
 
         <!-- <script src='https://www.google.com/recaptcha/api.js'></script> -->
     </head>
-    <body>
+<body>

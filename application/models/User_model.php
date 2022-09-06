@@ -512,6 +512,7 @@ class User_model extends CI_Model {
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
         $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
         $this->db->order_by("first_name", "asc");
+        
         $query = $this->db->get();
         
 
