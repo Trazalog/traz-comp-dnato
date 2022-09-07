@@ -547,7 +547,7 @@ class Main extends CI_Controller {
 			$data = $this->session->userdata;
 			if(empty($data['role'])){
 				redirect(base_url().'main/login/');
-		}
+			}
 
 			$dataInfo = array(
 					'firstName'=> $data['first_name'],
@@ -583,11 +583,12 @@ class Main extends CI_Controller {
 					$cleanPost['lastname'] = $this->input->post('lastname');
 					unset($cleanPost['passconf']);
 					if(!$this->user_model->updateProfile($cleanPost)){
-							$this->session->set_flashdata('flash_message', 'There was a problem updating your profile');
+						
+						$this->session->set_flashdata('flash_message', 'Tu perfil no ha podido ser actualizado');
 					}else{
-							$this->session->set_flashdata('success_message', 'Your profile has been updated.');
+						$this->session->set_flashdata('success_message', 'Tu perfil ha sido actualizado.');
 					}
-					redirect(base_url().'main/');
+					redirect(base_url().'main/changeuser');
 			}
 	}
 
