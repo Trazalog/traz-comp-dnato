@@ -11,6 +11,7 @@
             <th>País</th>
             <th>Estado</th>
             <th>Localidad</th>
+            <th>Logo</th>
         </tr>
             <?php
                 foreach($lista_empresas as $row){                                               
@@ -24,6 +25,7 @@
                     echo '<td>'.$row->pais.'</td>';
                     echo '<td>'.$row->estado.'</td>';
                     echo '<td>'.$row->localidad.'</td>';
+                    echo '<td><img src="'.imageAdmin($row->image, $row->imagepath).'" class="user-image" alt="Empresa Imagen" style="height: 3em;"/></td>';
                 }
             ?>
     </table>
