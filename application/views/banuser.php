@@ -7,9 +7,13 @@
     <div class="form-group">
         <select class="form-control" name="email" id="email">
             <?php
-            foreach($groups as $row)
-            { 
-              echo '<option value="'.$row->email.'">'.$row->email.'</option>';
+            foreach($usersList as $row){
+
+              foreach($emp_connect as $emp){
+                
+                if($emp->group === $row->busines)
+                  echo '<option value="'.$row->email.'">'.$row->email.'</option>';
+              }
             }
             ?>
             </select>

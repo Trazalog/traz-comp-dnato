@@ -9,14 +9,44 @@
       <?php
           // groups de BPM
           $opciones= array('' => 'Seleccione Empresa...');
-          foreach ($empresas as $value) {
+          foreach ($empresas as $empresa) {
+
+            if(strpos($empresa->name,'-') !== false){
+              // Explode con - 
+              list($id_empresa, $empresa_name) = explode ("-",$empresa->name);
+            
+              if($id_empresa && $empresa_name){
+                $key = $empresa->name;
+                if(!in_array($key, $opciones)){                  
+                  $opciones[$key] = $empresa->displayName;  
+                }
+              }
+            }elseif(strpos($empresa->name,' ') !== false){
+              // Explode con espacios 
+              list($id_empresa, $name_empresa) = explode (" ",$empresa->name);
+              if($id_empresa && $empresa_name){
+                $key = $empresa->name;
+                if(!in_array($key, $opciones)){                  
+                  $opciones[$key] = $empresa->displayName;  
+                }
+              }
+
+            }else{
+              
+              if(!in_array($empresa->name, $opciones)){
+                $key = $empresa->name;
+                $opciones[$key] = $empresa->displayName;
+              }
+            }
+
 
             // $nom = explode("-", $value->name);
             // $empr_id = $nom[0];
             // $key = $empr_id;
-            $key = $value->name;
-            $opciones[$key] = $value->displayName;
+            //$key = $value->name;
+            //$opciones[$key] = $value->displayName;
           }
+
           $empr_id = 'empr_id';
           echo form_dropdown($empr_id, $opciones, set_value($empr_id),'class = "form-control" id="empr_id"');
           //echo form_dropdown('name', 'opciones', 'opcion seleccionada', 'atributos del select(id,onChange, etc')

@@ -343,21 +343,21 @@ class Main extends CI_Controller {
 		$data['emp_connect'] =  $this->user_model->gestMembershipsUserInfo($data['email'],1); 			// Empresas Usuario Conectado
 		$data['usersList'] = $this->user_model->getListUserData();										// Listado de Usuarios
 		$data['user'] = $this->user_model->getUserInfo($id); 											// Datos Usuario Seleccionado
-		$data['mem_user'] = $this->user_model->gestMembershipsUserInfo($data['user']->email,0); 			// Empresas usuario Seleccionado
+		$data['mem_user'] = $this->user_model->gestMembershipsUserInfo($data['user']->email,0); 		// Empresas usuario Seleccionado
 		$data['dd_list'] = $this->Roles->obtener(); 													// Perfil Cn
 		$data['groups'] = $this->Roles->getBpmGroups(); 												// Grupos Bonita
 		$data['roles'] = $this->Roles->getBpmRoles();   												// Roles Bonita
 		$data['emp_core'] = $this->user_model->getInfoEmpCore();										// Empresas
 		
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data[emp_connect]: >> '.json_encode($data['emp_connect']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[mem_user]: >> '.json_encode($data['mem_user']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[dd_list]: >> '.json_encode($data['dd_list']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[groups]: >> '.json_encode($data['groups']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[roles]: >> '.json_encode($data['roles']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[emp_core]: >> '.json_encode($data['emp_core']));
-		//log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[group]: >> '.json_encode($data['group']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data: >> '.json_encode($data));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel()  $data[emp_connect]: >> '.json_encode($data['emp_connect']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[user]: >> '.json_encode($data['user']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[mem_user]: >> '.json_encode($data['mem_user']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[dd_list]: >> '.json_encode($data['dd_list']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[groups]: >> '.json_encode($data['groups']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[roles]: >> '.json_encode($data['roles']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[emp_core]: >> '.json_encode($data['emp_core']));
+		log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[group]: >> '.json_encode($data['group']));
 
  
 		//check is admin or not
@@ -441,6 +441,57 @@ class Main extends CI_Controller {
 	}
 
 	//ban or unban user
+	public function banuser_old()
+	{
+		$data = $this->session->userdata;
+		//check user level
+		if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+		}
+		$dataLevel = $this->userlevel->checkLevel($data['role']);
+		//check user level
+
+		$data['title'] = "Habilitar/Deshabilitar Usuarios";
+		$data['groups'] = $this->user_model->getUserDataAll();												// Grupos Bonita
+		$data['emp_connect'] =  $this->user_model->gestMembershipsUserInfo($data['email'],1); 				// Empresas Usuario Conectado
+		$data['usersList'] = $this->user_model->getListUserData();											// Listado de Usuarios
+		$data['groupsBpm'] = $this->Roles->getBpmGroups();
+
+		//log_message('DEBUG','#TRAZA|MAIN|banuser() ->$data[groups]: >> '.json_encode($data['groups']));
+		//log_message('DEBUG','#TRAZA|MAIN|banuser() ->$data[groups]: >> '.json_encode($data['usersList']));
+		//log_message('DEBUG','#TRAZA|MAIN|banuser() ->$data[groups]: >> '.json_encode($data['groupsBpm']));
+
+
+		//check is admin or not
+		if($dataLevel == "is_admin"){
+
+					$this->form_validation->set_rules('email', 'Your Email', 'required');
+					$this->form_validation->set_rules('banuser', 'Ban or Unban', 'required');
+
+					if ($this->form_validation->run() == FALSE) {
+							$this->load->view('header', $data);
+							$this->load->view('navbar', $data);
+							$this->load->view('container');
+							$this->load->view('banuser', $data);
+							$this->load->view('footer');
+					}else{
+							$post = $this->input->post(NULL, TRUE);
+							$cleanPost = $this->security->xss_clean($post);
+							$cleanPost['email'] = $this->input->post('email');
+							$cleanPost['banuser'] = $this->input->post('banuser');
+							if(!$this->user_model->updateUserban($cleanPost)){
+									$this->session->set_flashdata('flash_message', 'Error al borrar usuario');
+							}else{
+									$this->session->set_flashdata('success_message', 'El usuario ha sido borrado exitosamente.');
+							}
+							redirect(base_url().'main/banuser');
+					}
+		}else{
+				redirect(base_url().'main/');
+		}
+	}
+
+	//2022 Habilitar y deshabilitar usuarios
 	public function banuser()
 	{
 		$data = $this->session->userdata;
@@ -452,9 +503,13 @@ class Main extends CI_Controller {
 		//check user level
 
 		$data['title'] = "Habilitar/Deshabilitar Usuarios";
-		$data['groups'] = $this->user_model->getUserDataAll();
-		$data['usersList'] = $this->user_model->getListUserData();
-		$data['groupsBpm'] = $this->Roles->getBpmGroups();
+		$data['emp_connect'] =  $this->user_model->gestMembershipsUserInfo($data['email'],1); 				// Empresas Usuario Conectado
+		$data['usersList'] = $this->user_model->getListUserData();											// Listado de Usuarios
+		$data['groupsBpm'] = $this->Roles->getBpmGroups();													// Grupos Bonita
+
+		//log_message('DEBUG','#TRAZA|MAIN|banuser() -> $data[emp_connect]: >> '.json_encode($data['emp_connect']));
+		//log_message('DEBUG','#TRAZA|MAIN|banuser() -> $data[usersList]: >> '.json_encode($data['usersList']));
+		//log_message('DEBUG','#TRAZA|MAIN|banuser() -> $data[groupsBpm]: >> '.json_encode($data['groupsBpm']));
 
 
 		//check is admin or not
@@ -557,7 +612,7 @@ class Main extends CI_Controller {
 	}
 
 	//delete user
-	public function deleteuser($id) {
+	public function deleteuser($id,$busines) {
 
 		$data = $this->session->userdata;
 		if(empty($data['role'])){
@@ -575,14 +630,15 @@ class Main extends CI_Controller {
 			$data['user'] = $this->user_model->getUserInfo($id);
 			$data['memberships'] = $this->user_model->getMembershipsUserInfoEmpresa($data['user']->email, $emplevel);
 
-			//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[user]: >> '.json_encode($data['user'])); 
-			//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[memberships]: >> '.json_encode($data['memberships'])); 
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[user]: >> '.json_encode($data['user'])); 
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[memberships]: >> '.json_encode($data['memberships'])); 
+			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[groupBpm]: >> '.json_encode($data['memberships'])); 
 
 			if($data['memberships']){
 				$this->session->set_flashdata('flash_message', 'Error, Este Usuario tiene roles de sistema en la empresa asignados!');
 			}else{	
 				/**Eliminar tabla seg.users_bisiness */
-				$deleteUserBusines = $this->user_model->deleteUserBusines($data['user']->email,$data['groupBpm']);
+				$deleteUserBusines = $this->user_model->deleteUserBusines($data['user']->email,$busines);
 
 				if(!$deleteUserBusines ){
 					$this->session->set_flashdata('flash_message', 'Error, no se puede elminar el UserBusines del usuario '.$data['user']->email);
@@ -1193,6 +1249,8 @@ class Main extends CI_Controller {
 							//log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()) . '| '.json_encode($this->input->post()));
 							// traigo los groups de BPM para lleba
 							$data['empresas'] = $this->Roles->getBpmGroups();
+
+							log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[empresas]: >> '.json_encode($data['empresas']));
 							
 							$this->load->view('header', $data);
 							$this->load->view('container');

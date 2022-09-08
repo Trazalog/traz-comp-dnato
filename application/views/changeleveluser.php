@@ -61,9 +61,9 @@
                     
                     <table id="tbl_temporal" class="table table-striped">
                             <thead >					
-                                    <th>email</th>										
-                                    <th>group_id</th>					
-                                    <th>role_id</th>					
+                                    <th class="hidden">email</th>										
+                                    <th class="hidden">group_id</th>					
+                                    <th class="hidden">role_id</th>					
                                     <th>Empresa</th>					
                                     <th>Rol</th>					
                                     <th>Acción</th>
@@ -111,9 +111,9 @@
 
                                             if($idGroup != '' && $nameGroup != ''  && $idRole != '' && $nameRole) {
                                                 echo "<tr id='".$membUser->email."/".$idGroup."/".$idRole."'>";                                            
-                                                echo "<td>".$membUser->email ."</td>";
-                                                echo "<td>".$idGroup ."</td>";
-                                                echo "<td>".$idRole ."</td>";
+                                                echo "<td class='hidden'>".$membUser->email ."</td>";
+                                                echo "<td class='hidden'>".$idGroup ."</td>";
+                                                echo "<td class='hidden'>".$idRole ."</td>";
                                                 echo "<td>".$nameGroup ."</td>";
                                                 echo "<td>".$nameRole ."</td>";
                                                 echo "<td><i class='fa fa-trash text-red' aria-hidden='true' style='cursor: pointer;' onclick='EliminarRolUsuario(this)'></i></td>";
@@ -175,7 +175,7 @@
 					<div class="form-group">
 						<label class=" control-label" for="codigo">Empresa:</label>
 						<select class="form-control " name="groups" id="groups" onchange="CargarRolesEmpresas();" >
-						<option value="-1" disabled selected>-Seleccione Grupos BPM-</option>
+						    <option value="-1" disabled selected>-Seleccione Grupos BPM-</option>
 						<?php
 
 
@@ -229,27 +229,33 @@
     function CargarRolesEmpresas(){
 
         var group =$('#groups').val();
-        console.log(group);
+        /*console.log("group: "+group);*/
         var role = <?php echo json_encode($roles) ?>;
-        /*console.log(role);*/
+        /*console.log("role: "+JSON.stringify(role));*/
 
         sgroup = group.split("-");
-        console.log(sgroup[1]);
+        /*console.log("empId: "+sgroup[1]);*/
         addOptions("roles", role,sgroup[1]);
     }
 
     /* Rutina para agregar opciones a un <select>*/
     function addOptions(domElement, json, sgroup) {
-        var select = document.getElementsByName(domElement)[0];
 
-        /*console.log(select);*/
+        var option = '';
         var srole ='';
+        /*$("#roles").empty();*/
+        /*console.log("DE: "+domElement+" JSON: "+JSON.stringify(json)+" SGROUP: "+sgroup);*/
+        $('#roles')[0].options.length = 0;
+        var select = document.getElementsByName(domElement)[0];
+        
+        /*console.log("select: "+select);*/
         Object.keys(json).forEach(function(elm) {
             /*console.log("Name: "+ json[elm]['name']+" id: "+ json[elm]['name']+" displayName: "+ json[elm]['displayName']);*/
             srole= json[elm]['name'].split("-");
+            /*console.log("sgroup: "+sgroup+" srole[0]: "+srole[0]+" srole[1]: "+srole[1]);*/
             if(sgroup == srole[0]){
-                var option = '<option value="'+json[elm]['id']+'-'+json[elm]['name']+'">'+json[elm]['displayName']+'</option>';
-                /*console.log(option);*/
+                option = '<option value="'+json[elm]['id']+'-'+json[elm]['name']+'">'+json[elm]['displayName']+'</option>';
+                console.log("OPTION: "+option);
                 $('#roles').append(option);
             }
         
@@ -309,9 +315,9 @@
             var group_nombre = $("#groups option:selected").text();
             var role_nombre = $("#roles option:selected").text();
             var row =   "<tr id='"+email+'/'+groupId+'/'+roleId+"'>"+    
-                        '<td>' + email + '</td>'+
-                        '<td>' + groupId + '</td>'+
-                        '<td>' + roleId + '</td>'+
+                        '<td class="hidden">' + email + '</td>'+
+                        '<td class="hidden">' + groupId + '</td>'+
+                        '<td class="hidden">' + roleId + '</td>'+
                         '<td>'+ group_nombre  +'</td>'+
                         '<td>'+ role_nombre  +'</td>'+
                         '<td><i class="fa fa-trash text-red" aria-hidden="true" style="cursor: pointer;" onclick="EliminarRolUsuario(this)"></td>'+
