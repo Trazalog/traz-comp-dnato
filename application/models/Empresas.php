@@ -67,8 +67,7 @@ class Empresas extends CI_Model
     //agrega nueva empresa
     public function agregarEmpresa($d)
     {
-        log_message('DEBUG','#TRAZA| TRAZ-TOOLS | EMPRESA | guardarEmpresa()  $d: >> '.json_encode($d));
-        
+        log_message('DEBUG','#TRAZA| TRAZ-TOOLS | EMPRESA | guardarEmpresa()  $d: >> '.json_encode($d));        
         $empresa['nombre'] = $d['nombre'];
         $empresa['cuit'] = $d['cuit'];
         $empresa['descripcion'] = $d['descripcion'];
@@ -76,13 +75,21 @@ class Empresas extends CI_Model
         $empresa['email'] = $d['email'];
         $empresa['pais_id'] = $d['pais_id'];
         $empresa['prov_id'] = $d['prov_id'];
-        $empresa['loca_id'] = $d['loca_id'];    
+        $empresa['loca_id'] = $d['loca_id'];
+        $empresa['imagepath'] = $d['imagepath'];
+        $empresa['image'] = $d['image'];
         $post['empresa'] = $empresa;
-        // POST http://10.142.0.13:8280/tools/core/empresa
         $resource = '/empresa';
-        $url = 'http://10.142.0.13:8280/tools/core' . $resource;
-        $aux = $this->rest->callApi("POST", $url, $post); 
+        $url = API_CORE . $resource;
+        $aux = $this->rest->callApi("POST", $url, $post);
         return $aux;
+    }
+
+    //revisar que este duplicado el mail
+    public function isDuplicate($email)
+    {
+        $this->db->get_where('core.empresas', array('email' => $email), 1);
+        return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
     }
 
 }
