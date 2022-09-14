@@ -1,9 +1,30 @@
 <div class="col-lg-4 col-lg-offset-4">
     <h2>Editar perfil</h2>
     <h5>Hola <span><?php echo $first_name; ?></span>.</h5>     
+    
 <?php 
-    $fattr = array('class' => 'form-signin');
+    $fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data');
+    /*$fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data'  );*/
     echo form_open(site_url().'main/changeuser/', $fattr); ?>
+
+    <div class="user-profile" style="width: 50%;  display: block;  margin-left: auto;  margin-right: auto; ">
+			<div class="user-avatar">
+      <?php
+        foreach($usersList as $user){
+          if(($email == $user->email) && ($usernick == $user->usernick)){                             
+            echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="img-responsive" style="border: 1px solid #000;" alt="User Image"/>';
+            break;
+          }
+        }
+      ?>
+		</div>
+    <br>
+		</div>
+
+    <div class="form-group">
+      <?php echo form_input(array('name'=>'image', 'accept' => 'image/*', 'id'=> 'image', 'type' => 'file', 'placeholder'=>'Foto Perfil', 'class'=>'form-control', 'value'=> set_value('image'))); ?>
+      <?php echo form_error('image');?>
+    </div>
     
     <div class="form-group">
       <?php echo form_input(array('name'=>'firstname', 'id'=> 'firstname', 'placeholder'=>'Nombre', 'class'=>'form-control', 'value' => set_value('firstname', $groups->first_name))); ?>

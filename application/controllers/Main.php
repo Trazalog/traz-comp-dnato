@@ -554,7 +554,7 @@ class Main extends CI_Controller {
 					'id'=>$data['id'],
 			);
 
-			$data['title'] = "Change Password";
+			$data['title'] = "Editar perfil";
 			$data['usersList'] = $this->user_model->getListUserData();
 
 			$this->form_validation->set_rules('firstname', 'First Name', 'required');
@@ -576,12 +576,22 @@ class Main extends CI_Controller {
 					$post = $this->input->post(NULL, TRUE);
 					$cleanPost = $this->security->xss_clean($post);
 					$hashed = $this->password->create_hash($cleanPost['password']);
+
 					$cleanPost['password'] = $hashed;
 					$cleanPost['user_id'] = $dataInfo['id'];
 					$cleanPost['email'] = $this->input->post('email');
 					$cleanPost['firstname'] = $this->input->post('firstname');
 					$cleanPost['lastname'] = $this->input->post('lastname');
+
+					//Codificamos imagen
+					$cleanPost['image_name'] = $_FILES['image']['name'];
+					$cleanPost['ext'] = $_FILES['image']['type'];	
+					$cleanPost['image'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+
 					unset($cleanPost['passconf']);
+
+					log_message('DEBUG','#TRAZA|MAIN|changeuser()  $CleanPost: >> '.json_encode($cleanPost)); 
+
 					if(!$this->user_model->updateProfile($cleanPost)){
 						
 						$this->session->set_flashdata('flash_message', 'Tu perfil no ha podido ser actualizado');
@@ -621,6 +631,7 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		$emplevel = $data['groupBpm'];
+		
 		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.json_encode($data)); 
 		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[groupBpm] >> '.$data['groupBpm']); 
 		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.$emplevel); 
