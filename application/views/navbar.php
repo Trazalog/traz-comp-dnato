@@ -88,6 +88,8 @@
                           foreach($usersList as $user){
                             if(($email == $user->email) && ($usernick == $user->usernick)){                             
                               echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+                              $first_name = $user->first_name;
+                              $last_name = $user->last_name;
                               break;
                             }
                           }

@@ -452,19 +452,38 @@ class User_model extends CI_Model {
     {   
         if($post['image_name'] && $post['image']){
             $data = array(
-                'password' => $post['password'], 
                 'email' => $post['email'], 
                 'first_name' => $post['firstname'], 
                 'last_name' => $post['lastname'],
                 'image_name' => $post['image_name'],
                 'image' => $post['image']);
         }else{
-            $data = array(
-                'password' => $post['password'], 
+            $data = array(                
                 'email' => $post['email'], 
                 'first_name' => $post['firstname'], 
                 'last_name' => $post['lastname']);
         }
+        
+
+        $this->db->where('id', $post['user_id']);
+        $this->db->update('seg.users', $data);
+        $success = $this->db->affected_rows(); 
+        
+        if(!$success){
+            error_log('Unable to updatePassword('.$post['user_id'].')');
+            return false;
+        }        
+        return true;
+    }
+    
+    public function updatePass($post)
+    {   
+
+        $data = array(
+            'password' => $post['password'], 
+            'first_name' => $post['firstname'], 
+            'last_name' => $post['lastname']
+        );
         
 
         $this->db->where('id', $post['user_id']);
