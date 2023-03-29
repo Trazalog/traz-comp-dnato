@@ -32,7 +32,7 @@
       <?php echo form_error('email');?>
     </div>
     <div class="form-group">
-        <select onchange="seleccionPais()" class="form-control select select-hidden-accesible" name="pais_id" id="pais_id" style='width: 100%;'>
+        <select onchange="seleccionPais()" class="form-control select select-hidden-accesible" name="pais_id" id="pais_id" style='width: 100%;' required>
             <option value="" disabled selected>-Seleccione País-</option>	
             <?php
                 foreach ($listarPaises as $pais) {
@@ -42,12 +42,12 @@
         </select>
     </div>
     <div class="form-group">
-        <select onchange="seleccionEstado()" class="form-control select select-hidden-accesible habilitar" name="prov_id" id="prov_id" style='width: 100%;'>
+        <select onchange="seleccionEstado()" class="form-control select select-hidden-accesible habilitar" name="prov_id" id="prov_id" style='width: 100%;' required>
             <option value="" disabled selected>-Seleccione Estado/Provincia-</option>
         </select>
     </div>
     <div class="form-group">
-        <select class="form-control select select-hidden-accesible habilitar" name="loca_id" id="loca_id" style='width: 100%;'>
+        <select class="form-control select select-hidden-accesible habilitar" name="loca_id" id="loca_id" style='width: 100%;' required>
             <option value="" disabled selected>-Seleccione Localidad-</option>
         </select>
     </div>
