@@ -532,7 +532,12 @@ class Main extends CI_Controller {
 							if(!$this->user_model->updateUserban($cleanPost)){
 									$this->session->set_flashdata('flash_message', 'Error al borrar usuario');
 							}else{
-									$this->session->set_flashdata('success_message', 'El usuario ha sido borrado exitosamente.');
+
+								if (strpos($cleanPost['banuser'], 'unban') !== false) {
+									$this->session->set_flashdata('success_message', 'El usuario fue habilitado con éxito.');
+								} elseif (strpos($cleanPost['banuser'], 'ban') !== false) {
+									$this->session->set_flashdata('success_message', 'El usuario ha sido inhabilitado exitosamente.');
+								}
 							}
 							redirect(base_url().'main/banuser');
 					}
