@@ -96,7 +96,7 @@
                         ?>
                         
                         <!--<img src="<?php /*echo site_url()*/?>/public/img/user2-160x160.jpg" class="user-image" alt="User Image">-->
-                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?></span>
+                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?> </span>
                       </a>
                         
 

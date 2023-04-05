@@ -217,18 +217,19 @@ class Mmenu extends CI_Model {
     
     function deleteMenu($dataPost){
 
-        $this->db->select("*");
-        $this->db->where('modulo', $dataPost['modulo']);
-        $this->db->where('opcion', $dataPost['opcion']);
-        $this->db->from('seg.memberships_menues');        
-        $query = $this->db->get();
+        // $this->db->select("*");
+        // $this->db->where('modulo', $dataPost['modulo']);
+        // $this->db->where('opcion', $dataPost['opcion']);
+        // $this->db->from('seg.memberships_menues');        
+        // $query = $this->db->get();
 
-        log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $dataPost: >> '.$query->result());
-        log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $dataPost: >> '.count($query->result()));
+        // log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $dataPost: >> '.$query->result());
+        // log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $dataPost: >> '.count($query->result()));
 
-        if($query->result()){
-            return -1; /* Existe*/
-        }else{
+        // if($query->result()){
+        //     return -1; /* Existe*/
+            
+        // }else{
         
             $this->db->where('modulo', $dataPost['modulo']);
             $this->db->where('opcion', $dataPost['opcion']);
@@ -240,7 +241,7 @@ class Mmenu extends CI_Model {
             }else {
                 return FALSE;
             }
-        }        
+        // }        
     }
     
     function deleteMenuRole($dataPost){
