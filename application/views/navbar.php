@@ -101,7 +101,17 @@
                         
 
                       <ul class="dropdown-menu">
-                        <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li>
+                        <!-- <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li> -->
+                        <?php
+                          foreach ($emp_connect as $emp_con) {
+                            foreach ($usersList as $row) {
+                             if ($row->busines == $emp_con->group) {?>
+                              <!-- <li><a href="<?php echo site_url();?>main/profile"><i class='fa fa-check'></i><?php echo " ". $row->first_name.$row->last_name; ?></a></li> -->
+                              <li><a href="#"><?php echo " ". $row->first_name. " ".$row->last_name; ?></a></li>
+                             <?php }
+                            }
+                          }
+                        ?>
                         <li><a href="<?php echo site_url();?>main/changeuser">Editar Perfil</a></li>
                         <li role="separator" class="divider"></li>
 
