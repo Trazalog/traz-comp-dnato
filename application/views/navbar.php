@@ -88,18 +88,30 @@
                           foreach($usersList as $user){
                             if(($email == $user->email) && ($usernick == $user->usernick)){                             
                               echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+                              $first_name = $user->first_name;
+                              $last_name = $user->last_name;
                               break;
                             }
                           }
                         ?>
                         
                         <!--<img src="<?php /*echo site_url()*/?>/public/img/user2-160x160.jpg" class="user-image" alt="User Image">-->
-                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?></span>
+                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?> </span>
                       </a>
                         
 
                       <ul class="dropdown-menu">
-                        <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li>
+                        <!-- <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li> -->
+                        <?php
+                          foreach ($emp_connect as $emp_con) {
+                            foreach ($usersList as $row) {
+                             if ($row->busines == $emp_con->group) {?>
+                              <!-- <li><a href="<?php echo site_url();?>main/profile"><i class='fa fa-check'></i><?php echo " ". $row->first_name.$row->last_name; ?></a></li> -->
+                              <li><a href="#"><?php echo " ". $row->first_name. " ".$row->last_name; ?></a></li>
+                             <?php }
+                            }
+                          }
+                        ?>
                         <li><a href="<?php echo site_url();?>main/changeuser">Editar Perfil</a></li>
                         <li role="separator" class="divider"></li>
 

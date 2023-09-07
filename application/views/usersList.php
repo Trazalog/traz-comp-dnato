@@ -17,10 +17,9 @@
             <?php                    
                     foreach($emp_connect as $emp_con){
                         foreach($usersList as $row){
-                            
+                           
                             if($row->busines == $emp_con->group){  //Filtra Empresa del conectado
-                                if(($email != $row->email) && ($usernick != $row->usernick)){   // No                            
-                                                                
+                                //if(($email != $row->email) && ($usernick != $row->usernick)){   // No                             
                                     echo "<tr id='".$row->id."|".$row->busines."|".$row->first_name."|".$row->last_name."|".$row->email."|".$row->last_login."|".$row->nombre."|".$row->status."'>";
                                     echo '<td>'.$row->id.'</td>';
                                     echo '<td class="hidden">'.$row->busines.'</td>';
@@ -37,7 +36,7 @@
                                     echo '<a href="'.site_url().'main/changeleveluser/'.$row->id.'"><i class="fa fa-fw fa-address-card-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Asignar Rol"  id="btnEditUser"></i></a>';
                                     echo '<a href="'.site_url().'main/deleteuser/'.$row->id.'/'.$row->busines.'"><i class="fa fa-fw fa-trash-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Eliminar Usuario"  id="btnDeleteUser"></i></a>';                                    
                                     echo '</td></tr>';
-                                }
+                                //}
                             }
                         }
                     }
