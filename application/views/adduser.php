@@ -11,7 +11,7 @@ use function PHPSTORM_META\type;
 
 
 echo $first_name; ?>,</h2>
-    <h5>Por favor ingrese la informacion requerida a continuacion.</h5>     
+    <h5>Por favor ingrese la información requerida a continuación.</h5>     
     <?php 
         $fattr = array('class' => 'form-signin', 'enctype'=>'multipart/form-data'  );
         echo form_open('/main/adduser', $fattr);

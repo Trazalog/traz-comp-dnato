@@ -677,4 +677,25 @@ class User_model extends CI_Model {
 
         return $list;*/
     }
+    /**
+	* Agrega un usuario a MariaDB de Asset
+	* @param array datos ingresados en formulario
+	* @return 
+	*/
+    public function addUserAsset($data){
+        $post['_post_assetuser_add']= array(
+            'nick' => $data['usernick'],
+            'name' => $data['firstname'],
+            'lastName' => $data['lastname'],
+            'pass' => $data['password'],
+            'image' => $data['image']
+        );
+
+        $url = REST_CORE."/assetuser/add";
+        $aux = $this->rest->callAPI("POST",$url,$post);
+
+        log_message('DEBUG', "#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: >> " . json_encode($aux));
+
+        return $aux;
+    }
 }

@@ -301,7 +301,8 @@ class Main extends CI_Controller {
 									
 									//insert to database
 									$usr_id = $this->user_model->addUser($cleanPost);
-
+									//Insert to MariaDB Asset
+									$this->user_model->addUserAsset($cleanPost);
 									//
 
 									//crea usr en BPM
