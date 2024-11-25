@@ -217,17 +217,31 @@ class Mmenu extends CI_Model {
     
     function deleteMenu($dataPost){
 
-        $this->db->where('modulo', $dataPost['modulo']);
-        $this->db->where('opcion', $dataPost['opcion']);
-        $this->db->update('seg.menues', array(  'eliminado' => '1' ));
+        // $this->db->select("*");
+        // $this->db->where('modulo', $dataPost['modulo']);
+        // $this->db->where('opcion', $dataPost['opcion']);
+        // $this->db->from('seg.memberships_menues');        
+        // $query = $this->db->get();
 
-        $success = $this->db->affected_rows(); 
-        if($success){
-            return TRUE;
-        }
-        else {
-            return FALSE;
-        }
+        // log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $dataPost: >> '.$query->result());
+        // log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $dataPost: >> '.count($query->result()));
+
+        // if($query->result()){
+        //     return -1; /* Existe*/
+            
+        // }else{
+        
+            $this->db->where('modulo', $dataPost['modulo']);
+            $this->db->where('opcion', $dataPost['opcion']);
+            $this->db->update('seg.menues', array(  'eliminado' => '1' ));
+
+            $success = $this->db->affected_rows(); 
+            if($success){
+                return TRUE;
+            }else {
+                return FALSE;
+            }
+        // }        
     }
     
     function deleteMenuRole($dataPost){

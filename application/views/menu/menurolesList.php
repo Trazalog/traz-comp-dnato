@@ -271,6 +271,8 @@ $('#btnAgreMenuRol').click(function cargarModal() {
     $('#modalMenuRole').modal('show');
 
     $('h4.modal-title').text('Agregar Menú Role');
+    $('.modal-header h5').css("display", "block");
+
     $('#operacion').val('insert');
 
     clearForm(1);
@@ -368,6 +370,7 @@ function editMenuRole(eval){
     /*console.log(" group: "+dataMenuRole[1]+" role: "+dataMenuRole[2]+" modulo: "+dataMenuRole[3]+" opcion: "+dataMenuRole[4]+" rolemm: "+dataMenuRole[5]);*/
     $('#modalMenuRole').modal('show');
     $('h4.modal-title').text('Actualizar Opciones de Menú Roles');
+    $('.modal-header h5').css("display", "block");
     $('#operacion').val('update');
 
     accionBtn(1);
@@ -388,6 +391,7 @@ function getMenuRole(eval){
     var dataMenuRole = data.split("|");
     /*console.log("group: "+dataMenuRole[0]+" modulo: "+dataMenuRole[1]+" opcion: "+dataMenuRole[2]+" role: "+dataMenuRole[3]);*/
     $('#modalMenuRole').modal('show');
+    $('.modal-header h5').css("display", "none");
     $('h4.modal-title').text('Visualizar Opciones de Menú Roles');
 
     accionBtn(2);   
@@ -399,7 +403,6 @@ function getMenuRole(eval){
     $('#roles').attr("style", "pointer-events: none;");
     $('#modulo').attr("style", "pointer-events: none;");
     $('#opcion_padre').attr("style", "pointer-events: none;");
-
 }
 
 function cargarInfoSelect(dataMenuRole){
@@ -607,6 +610,5 @@ function clearForm(btn){
 
     }
 }
-
 
 </script>

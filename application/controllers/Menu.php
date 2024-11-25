@@ -254,11 +254,19 @@ class Menu extends CI_Controller {
         log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $$dataPost[opcion]: >> '.json_encode($dataPost['opcion']));
         log_message('DEBUG','#TRAZA|Menu|deleteMenu()  $infoDelete: >> '.$infoDelete);
 
-        if(!$infoDelete){
+        if($infoDelete === FALSE){
             $this->session->set_flashdata('flash_message', 'Error, no se puede desactivado el registro');
         }else{
-            $this->session->set_flashdata('success_message', 'Desactivado correctamente el registro.');
+            if( $infoDelete === TRUE){
+                $this->session->set_flashdata('success_message', 'Desactivado correctamente el registro.');
+            }
+            else{
+                if($infoDelete === -1 ){
+                    $this->session->set_flashdata('flash_message', 'Error, La opción ya se encuentra asignado a un módulo. No puede desactivarse');
+                }
+            }
         }
+             
     }
 
     public function deleteMenuRole(){

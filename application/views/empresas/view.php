@@ -12,15 +12,15 @@
         echo form_open('/empresa/agregarEmpresa', $fattr);
     ?>
     <div class="form-group">
-      <?php echo form_input(array('name'=>'nombre', 'id'=> 'nombre', 'placeholder'=>'Nombre', 'class'=>'form-control', 'value' => set_value('nombre'))); ?>
+      <?php echo form_input(array('name'=>'nombre', 'id'=> 'nombre', 'placeholder'=>'Nombre (*)', 'class'=>'form-control', 'value' => set_value('nombre'))); ?>
       <?php echo form_error('nombre');?>
     </div>
     <div class="form-group">
-      <?php echo form_input(array('name'=>'cuit', 'id'=> 'cuit', 'placeholder'=>'Cuit', 'class'=>'form-control', 'value'=> set_value('cuit'))); ?>
+      <?php echo form_input(array('name'=>'cuit', 'id'=> 'cuit', 'placeholder'=>'CUIT (*)', 'class'=>'form-control', 'value'=> set_value('cuit'))); ?>
       <?php echo form_error('cuit');?>
     </div>
     <div class="form-group">
-      <?php echo form_input(array('name'=>'descripcion', 'id'=> 'descripcion', 'placeholder'=>'Descripción', 'class'=>'form-control', 'value'=> set_value('descripciondescripcion'))); ?>
+      <?php echo form_input(array('name'=>'descripcion', 'id'=> 'descripcion', 'placeholder'=>'Descripción (*)', 'class'=>'form-control', 'value'=> set_value('descripciondescripcion'))); ?>
       <?php echo form_error('descripcion');?>
     </div>
     <div class="form-group">
@@ -31,10 +31,9 @@
       <?php echo form_input(array('name'=>'email', 'id'=> 'email', 'placeholder'=>'Email', 'class'=>'form-control', 'value'=> set_value('email'))); ?>
       <?php echo form_error('email');?>
     </div>
-
     <div class="form-group">
-        <select onchange="seleccionPais()" class="form-control select select-hidden-accesible" name="pais_id" id="pais_id" style='width: 100%;'>
-            <option value="" disabled selected>-Seleccione opción-</option>	
+        <select onchange="seleccionPais()" class="form-control select select-hidden-accesible" name="pais_id" id="pais_id" style='width: 100%;' required>
+            <option value="" disabled selected>-Seleccione País-</option>	
             <?php
                 foreach ($listarPaises as $pais) {
                 echo '<option  value="'.$pais->tabl_id.'">'.$pais->valor.'</option>';
@@ -43,28 +42,20 @@
         </select>
     </div>
     <div class="form-group">
-        <select onchange="seleccionEstado()" class="form-control select select-hidden-accesible habilitar" name="prov_id" id="prov_id" style='width: 100%;'>
-            <option value="" disabled selected>-Seleccione opción-</option>	
-            <?php
-                foreach ($tipos_clientes as $tipos) {
-                echo '<option  value="'.$tipos->tabl_id.'">'.$tipos->valor.'</option>';
-                }
-            ?>
+        <select onchange="seleccionEstado()" class="form-control select select-hidden-accesible habilitar" name="prov_id" id="prov_id" style='width: 100%;' required>
+            <option value="" disabled selected>-Seleccione Estado/Provincia-</option>
         </select>
     </div>
     <div class="form-group">
-        <select class="form-control select select-hidden-accesible habilitar" name="loca_id" id="loca_id" style='width: 100%;'>
-            <option value="" disabled selected>-Seleccione opción-</option>	
-            <?php
-                foreach ($tipos_clientes as $tipos) {
-                echo '<option  value="'.$tipos->tabl_id.'">'.$tipos->valor.'</option>';
-                }
-            ?>
+        <select class="form-control select select-hidden-accesible habilitar" name="loca_id" id="loca_id" style='width: 100%;' required>
+            <option value="" disabled selected>-Seleccione Localidad-</option>
         </select>
     </div>
-    <!-- <h5><strong>Logo de la empresa</strong></h5>
+    <h5><strong>Logo de la empresa</strong></h5>
     <div class="form-group">
-    </div> -->
+      <?php echo form_input(array('name'=>'image', 'accept' => 'image/*', 'id'=> 'image', 'type' => 'file', 'placeholder'=>'Foto Perfil', 'class'=>'form-control', 'value'=> set_value('image'))); ?>
+      <?php echo form_error('image');?>
+    </div>
     
     <?php echo form_submit(array('value'=>'Guardar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
     <?php echo form_close(); ?>
@@ -84,19 +75,21 @@
                 $('#loca_id').empty();
                 if (rsp != null) {
                     /* habilitarEdicion(); */
-                    var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
-                    $('#loca_id').html(datos);
+                    var datos = "<option value='' disabled selected>-Seleccione Estado/Provincia-</option>";
                     for (let i = 0; i < rsp.length; i++) {
                         var datito = encodeURIComponent(rsp[i].tabl_id);
                         datos += "<option value=" + datito + ">" + rsp[i].valor + "</option>";
                     }
                     $('#prov_id').html(datos);
+                    var datos = "<option value='' disabled selected>-Seleccione Localidad-</option>";
+                    $('#loca_id').html(datos);
                 } else {
-                    var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
-                    $('#prov_id').html(datos);
-                    $('#loca_id').html(datos);                   
+                    var provincia = "<option value='' disabled selected>-Seleccione Estado/Provincia-</option>";
+                    $('#prov_id').html(provincia);
+                    var localidad = "<option value='' disabled selected>-Seleccione Localidad-</option>";
+                    $('#loca_id').html(localidad);
                     alertify.error("El País no contiene estados");
-                }    
+                }
                 /* wc(); */
             },
             error: function(data) {
@@ -119,19 +112,17 @@
                 $('#loca_id').empty();
                 if (rsp != null) {
                     /* habilitarEdicion(); */
-                    var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
+                    var datos = "<option value='' disabled selected>-Seleccione Localidad-</option>";
                     for (let i = 0; i < rsp.length; i++) {
                         var valor = encodeURIComponent(rsp[i].tabl_id);
-                        /* datos += "<option value='"+ rsp[i].tabl_id + "'>"+ rsp[i].valor + "</option>";*/
                         datos += "<option value=" + valor + ">" + rsp[i].valor + "</option>";
                     }
                     $('#loca_id').html(datos);
                 } else {
-                    var datos = "<option value='' disabled selected>-Seleccione opción-</option>";
+                    var datos = "<option value='' disabled selected>-Seleccione Localidad-</option>";
                     $('#loca_id').html(datos); 
                     alertify.error("El Estado no contiene localidades");
                 }
-                /* wc(); */
             },
             error: function(data) {
                 alert('Error');

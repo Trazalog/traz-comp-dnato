@@ -68,10 +68,10 @@ class Empresa extends CI_Controller {
                 $this->load->view('empresas/view', $data);
                 $this->load->view('footer');
             }else{
-                if($this->user_model->isDuplicate($this->input->post('email'))){
-                    $this->session->set_flashdata('flash_message', ' Ya existe un usuario asociado a ese Email');
-                    redirect(base_url().'empresa/agregarEmpresa');
-                }else{
+                // if($this->Empresas->isDuplicate($this->input->post('email'))){
+                //     $this->session->set_flashdata('flash_message', ' Ya existe una empresa asociada a ese Email');
+                //     redirect(base_url().'empresa/agregarEmpresa');
+                // }else{
                     $post = $this->input->post(NULL, TRUE);
 					$pais_id = urlencode($this->input->post('pais_id'));
 					$prov_id = urldecode($this->input->post('prov_id'));
@@ -85,21 +85,18 @@ class Empresa extends CI_Controller {
                     $cleanPost['pais_id'] = $pais_id;
                     $cleanPost['prov_id'] = $prov_id;
                     $cleanPost['loca_id'] = $loca_id;
-                    // $cleanPost['pais_id'] = $this->input->post('pais_id');
-                    // $cleanPost['prov_id'] = $this->input->post('prov_id');
-                    // $cleanPost['loca_id'] = $this->input->post('loca_id');
 
 					//Codificamos imagen
-					// $cleanPost['image_name'] = $_FILES['image']['name'];
+					$cleanPost['imagepath'] = $_FILES['image']['name'];
 					// $cleanPost['ext'] = $_FILES['image']['type'];	
-					// $cleanPost['imagepath'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+					$cleanPost['image'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
                     
                     //insert to database
                     $usr_id = $this->Empresas->agregarEmpresa($cleanPost);
 
                     //redirect(base_url().'main/users/'.$usr_id);
                     redirect(base_url().'empresa/listarEmpresas/');
-                };
+                // };
             }
 		}else{
 				redirect(base_url().'empresa/');

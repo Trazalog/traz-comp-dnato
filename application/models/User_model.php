@@ -429,10 +429,65 @@ class User_model extends CI_Model {
     }
 
     //update profile user
-    public function updateProfile($post)
+    public function updateProfile_old($post)
     {   
         $this->db->where('id', $post['user_id']);
-        $this->db->update('seg.users', array('password' => $post['password'], 'email' => $post['email'], 'first_name' => $post['firstname'], 'last_name' => $post['lastname']));
+        $this->db->update('seg.users', array(
+                                            'password' => $post['password'], 
+                                            'email' => $post['email'], 
+                                            'first_name' => $post['firstname'], 
+                                            'last_name' => $post['lastname'],
+                                            'image_name' => $post['image_name'],
+                                            'image' => $post['image']));
+        $success = $this->db->affected_rows(); 
+        
+        if(!$success){
+            error_log('Unable to updatePassword('.$post['user_id'].')');
+            return false;
+        }        
+        return true;
+    }
+    
+    public function updateProfile($post)
+    {   
+        if($post['image_name'] && $post['image']){
+            $data = array(
+                'email' => $post['email'], 
+                'first_name' => $post['firstname'], 
+                'last_name' => $post['lastname'],
+                'image_name' => $post['image_name'],
+                'image' => $post['image']);
+        }else{
+            $data = array(                
+                'email' => $post['email'], 
+                'first_name' => $post['firstname'], 
+                'last_name' => $post['lastname']);
+        }
+        
+
+        $this->db->where('id', $post['user_id']);
+        $this->db->update('seg.users', $data);
+        $success = $this->db->affected_rows(); 
+        
+        if(!$success){
+            error_log('Unable to updatePassword('.$post['user_id'].')');
+            return false;
+        }        
+        return true;
+    }
+    
+    public function updatePass($post)
+    {   
+
+        $data = array(
+            'password' => $post['password'], 
+            'first_name' => $post['firstname'], 
+            'last_name' => $post['lastname']
+        );
+        
+
+        $this->db->where('id', $post['user_id']);
+        $this->db->update('seg.users', $data);
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -512,6 +567,7 @@ class User_model extends CI_Model {
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
         $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
         $this->db->order_by("first_name", "asc");
+        
         $query = $this->db->get();
         
 
@@ -620,5 +676,26 @@ class User_model extends CI_Model {
         }
 
         return $list;*/
+    }
+    /**
+	* Agrega un usuario a MariaDB de Asset
+	* @param array datos ingresados en formulario
+	* @return 
+	*/
+    public function addUserAsset($data){
+        $post['_post_assetuser_add']= array(
+            'nick' => $data['usernick'],
+            'name' => $data['firstname'],
+            'lastName' => $data['lastname'],
+            'pass' => $data['password'],
+            'image' => $data['image']
+        );
+
+        $url = REST_CORE."/assetuser/add";
+        $aux = $this->rest->callAPI("POST",$url,$post);
+
+        log_message('DEBUG', "#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: >> " . json_encode($aux));
+
+        return $aux;
     }
 }

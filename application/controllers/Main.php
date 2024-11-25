@@ -73,9 +73,9 @@ class Main extends CI_Controller {
 			
 			$result = $this->user_model->getAllSettings();
 			$stLe = $result->site_title;
-		$tz = $result->timezone;
+			$tz = $result->timezone;
 		
-		$now = new DateTime();
+			$now = new DateTime();
 			$now->setTimezone(new DateTimezone($tz));
 			$dTod =  $now->format('Y-m-d');
 			$dTim =  $now->format('H:i:s');
@@ -301,7 +301,8 @@ class Main extends CI_Controller {
 									
 									//insert to database
 									$usr_id = $this->user_model->addUser($cleanPost);
-
+									//Insert to MariaDB Asset
+									$this->user_model->addUserAsset($cleanPost);
 									//
 
 									//crea usr en BPM
@@ -532,7 +533,12 @@ class Main extends CI_Controller {
 							if(!$this->user_model->updateUserban($cleanPost)){
 									$this->session->set_flashdata('flash_message', 'Error al borrar usuario');
 							}else{
-									$this->session->set_flashdata('success_message', 'El usuario ha sido borrado exitosamente.');
+
+								if (strpos($cleanPost['banuser'], 'unban') !== false) {
+									$this->session->set_flashdata('success_message', 'El usuario fue habilitado con éxito.');
+								} elseif (strpos($cleanPost['banuser'], 'ban') !== false) {
+									$this->session->set_flashdata('success_message', 'El usuario ha sido inhabilitado exitosamente.');
+								}
 							}
 							redirect(base_url().'main/banuser');
 					}
@@ -541,29 +547,29 @@ class Main extends CI_Controller {
 		}
 	}
 
-	//edit user
-	public function changeuser()
-	{
+	//edit pass user
+	public function changeuser(){
 			$data = $this->session->userdata;
 			if(empty($data['role'])){
 				redirect(base_url().'main/login/');
-		}
+			}
 
 			$dataInfo = array(
 					'firstName'=> $data['first_name'],
 					'id'=>$data['id'],
 			);
 
-			$data['title'] = "Change Password";
+			$data['title'] = "Editar perfil";
 			$data['usersList'] = $this->user_model->getListUserData();
 
-			$this->form_validation->set_rules('firstname', 'First Name', 'required');
+			/*$this->form_validation->set_rules('firstname', 'First Name', 'required');
 			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
-			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');*/
 			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
 			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
 
 			$data['groups'] = $this->user_model->getUserInfo($dataInfo['id']);
+			log_message('DEBUG','#TRAZA|MAIN|changeuser()  $$data[groups]: >> '.json_encode($data['groups'])); 
 
 			if ($this->form_validation->run() == FALSE) {
 					$this->load->view('header', $data);
@@ -576,18 +582,86 @@ class Main extends CI_Controller {
 					$post = $this->input->post(NULL, TRUE);
 					$cleanPost = $this->security->xss_clean($post);
 					$hashed = $this->password->create_hash($cleanPost['password']);
+
 					$cleanPost['password'] = $hashed;
 					$cleanPost['user_id'] = $dataInfo['id'];
 					$cleanPost['email'] = $this->input->post('email');
 					$cleanPost['firstname'] = $this->input->post('firstname');
 					$cleanPost['lastname'] = $this->input->post('lastname');
+
 					unset($cleanPost['passconf']);
-					if(!$this->user_model->updateProfile($cleanPost)){
-							$this->session->set_flashdata('flash_message', 'There was a problem updating your profile');
+
+					log_message('DEBUG','#TRAZA|MAIN|changeuser()  $CleanPost: >> '.json_encode($cleanPost)); 
+					
+
+					if(!$this->user_model->updatePass($cleanPost)){
+						
+						$this->session->set_flashdata('flash_message', 'Tu contraseña no ha podido ser actualizada');
 					}else{
-							$this->session->set_flashdata('success_message', 'Your profile has been updated.');
+						$this->session->set_flashdata('success_message', 'Tu contraseña ha sido actualizada.');
 					}
-					redirect(base_url().'main/');
+					redirect(base_url().'main/changeuser');
+			}
+	}
+	//edit user
+	public function updateuser(){
+			$data = $this->session->userdata;
+			if(empty($data['role'])){
+				redirect(base_url().'main/login/');
+			}
+
+			$dataInfo = array(
+					'firstName'=> $data['first_name'],
+					'id'=>$data['id'],
+			);
+
+			$data['title'] = "Editar perfil";
+			$data['usersList'] = $this->user_model->getListUserData();
+
+			$this->form_validation->set_rules('firstnameuser', 'First Name', 'required');
+			$this->form_validation->set_rules('lastnameuser', 'Last Name', 'required');
+			$this->form_validation->set_rules('emailuser', 'Email', 'required|valid_email');
+			/*$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
+			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');*/
+
+			$data['groups'] = $this->user_model->getUserInfo($dataInfo['id']);
+			log_message('DEBUG','#TRAZA|MAIN|changeuser()  $$data[groups]: >> '.json_encode($data['groups'])); 
+
+			if ($this->form_validation->run() == FALSE) {
+					$this->load->view('header', $data);
+					$this->load->view('navbar', $data);
+					$this->load->view('container');
+					$this->load->view('changeuser', $data);
+					$this->load->view('footer');
+			}else{
+					/*$this->load->library('password');
+					$post = $this->input->post(NULL, TRUE);
+					$cleanPost = $this->security->xss_clean($post);
+					$hashed = $this->password->create_hash($cleanPost['password']);
+
+					$cleanPost['password'] = $hashed;*/
+					$cleanPost['user_id'] = $dataInfo['id'];
+					$cleanPost['email'] = $this->input->post('emailuser');
+					$cleanPost['firstname'] = $this->input->post('firstnameuser');
+					$cleanPost['lastname'] = $this->input->post('lastnameuser');
+
+					//Codificamos imagen
+					$cleanPost['image_name'] = $_FILES['image']['name'];
+					$cleanPost['ext'] = $_FILES['image']['type'];	
+					$cleanPost['image'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+
+					/*unset($cleanPost['passconf']);*/
+
+					log_message('DEBUG','#TRAZA|MAIN|changeuser()  $CleanPost: >> '.json_encode($cleanPost)); 
+					
+
+					if(!$this->user_model->updateProfile($cleanPost)){
+						
+						$this->session->set_flashdata('flash_message', 'Tu perfil no ha podido ser actualizado');
+					}else{
+						$this->session->set_flashdata('success_message', 'Tu perfil ha sido actualizado.');
+					}
+					redirect(base_url().'main/changeuser');
 			}
 	}
 
@@ -620,6 +694,7 @@ class Main extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		$emplevel = $data['groupBpm'];
+		
 		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.json_encode($data)); 
 		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[groupBpm] >> '.$data['groupBpm']); 
 		//log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data: >> '.$emplevel); 
@@ -635,7 +710,7 @@ class Main extends CI_Controller {
 			log_message('DEBUG','#TRAZA|MAIN|deleteuser()  $data[groupBpm]: >> '.json_encode($data['memberships'])); 
 
 			if($data['memberships']){
-				$this->session->set_flashdata('flash_message', 'Error, Este Usuario tiene roles de sistema en la empresa asignados!');
+				$this->session->set_flashdata('flash_message', 'Error, Este usuario tiene roles de sistema en la empresa asignados!');
 			}else{	
 				/**Eliminar tabla seg.users_bisiness */
 				$deleteUserBusines = $this->user_model->deleteUserBusines($data['user']->email,$busines);

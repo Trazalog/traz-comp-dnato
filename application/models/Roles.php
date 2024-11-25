@@ -125,7 +125,7 @@ class Roles extends CI_Model
 			//TODO: DESHARDCODEAR SESSION
 			$session = "X-Bonita-API-Token%3D7e2dbb6d-2261-4571-809e-d2b55144a75d%3BJSESSIONID%3DD82EE7AD27E388E1624433D7BE30BA07%3Bbonita.tenant%3D1%3B";
 			$url = REST_BPM."/users/".$usrNick."/session/".$session;
-			$aux = $this->rest->callAPI("GET", REST_BPM."/users/".$usrNick."/session/".$session);
+			$aux = $this->rest->callAPI("GET", REST_BPM."/users/".urlencode($usrNick)."/session/".$session);
 			$aux =json_decode($aux["data"]);
 
 			return $aux->payload[0];

@@ -49,6 +49,7 @@
                                     echo '<td>';                                    
                                     echo '<i class="fa fa-fw fa-eye text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Ver" id="btnGetMenu" onclick="getMenu(this)"></i>';
                                     echo '<i class="fa fa-pencil-square-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Editar" id="btnEditMenu" onclick="editMenu(this)"></i>';                                    
+                                       
                                         if(!$menu->eliminado)
                                            echo '<i class="fa fa-fw fa-toggle-on text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Inactivar"  id="btnDeleteMenu" onclick="deleteMenu(this)"></i>';
                                         else
@@ -105,6 +106,7 @@
                         <div class="form-group">
                             <label for="modulo">Módulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
+                            
                             <?php
                                 echo '<option value="-1" selected >-Seleccione un módulo-</option>';
                                 foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado
@@ -298,9 +300,9 @@ function activeMenu(eval){
     var dataMenu = data.split("|");
     /*console.log("Modulo: "+dataMenu[0]+" Opcion: "+dataMenu[1]);*/
     $('#modalConfirm').modal('show');
+
     $('h4.modal-title').text('Deseas activar este registro?');
     
-
     $("#modal-btn-si").on("click", function(){
         console.log("Confirm");
         $.ajax({
