@@ -1,3 +1,6 @@
+<link href='<?php  echo base_url();?>assets/fullcalendar/lib/main.min.css' rel='stylesheet' />
+
+        
         <style>
           .navbar-nav>.user-menu .user-image {
             float: left;
@@ -41,17 +44,39 @@
                         if($dataLevel == 'is_admin'){ //Check user level if is Admin
                             echo'
                             <li class="dropdown">
-                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestion de Usuarios <span class="caret"></span></a>
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestión de Usuarios <span class="caret"></span></a>
                               <ul class="dropdown-menu">
                                 <li><a href="'.site_url().'main/users">Lista de Usuarios</a></li>
-
-                                <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>
-                                
-                                <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>
-                              
-                                </ul>
+                                <li><a href="'.site_url().'main/adduser">Agregar Usuario</a></li>                                
+                                <li><a href="'.site_url().'main/banuser">Habilitar/Deshabilitar Usuario</a></li>                              
+                              </ul>
+                            </li>';
+                        }
+                    ?>
+                    <?php
+                        if($this->session->userdata['email'] == TOOLS_ADMIN_USER){
+                        // if($dataLevel == 'is_admin'){ //Check user level if is Admin
+                            echo'
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestión de Empresas <span class="caret"></span></a>
+                              <ul class="dropdown-menu">
+                                <li><a href="'.site_url().'empresa/listarEmpresas">Lista de Empresas</a></li>
+                                <li><a href="'.site_url().'empresa/agregarEmpresa">Agregar Empresa</a></li>
+                              </ul>
+                            </li>';
+                        }
+                    ?>
+                    <?php
+                        if($dataLevel == 'is_admin'){ //Check user level if is Admin
+                            echo'
+                            <li class="dropdown">
+                              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i> Gestión de Menues <span class="caret"></span></a>
+                              <ul class="dropdown-menu">
+                                <li><a href="'.site_url().'menu/menuesList">Menues</a></li>
+                                <li><a href="'.site_url().'menu/rolesList">Menu por Rol</a></li>
+                              </ul>
                             </li>
-                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuracion</a></li>';
+                            <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuración</a></li>';
                         }
                     ?>
                   </ul>
@@ -62,19 +87,31 @@
                         <?php
                           foreach($usersList as $user){
                             if(($email == $user->email) && ($usernick == $user->usernick)){                             
-                              echo '<img src="'.image($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+                              echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
+                              $first_name = $user->first_name;
+                              $last_name = $user->last_name;
                               break;
                             }
                           }
                         ?>
                         
                         <!--<img src="<?php /*echo site_url()*/?>/public/img/user2-160x160.jpg" class="user-image" alt="User Image">-->
-                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?></span>
+                        <span class="hidden-xs"><?php echo $first_name. ' '.$last_name; ?> </span>
                       </a>
                         
 
                       <ul class="dropdown-menu">
-                        <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li>
+                        <!-- <li><a href="<?php echo site_url();?>main/profile"><?php echo $email; ?></a></li> -->
+                        <?php
+                          foreach ($emp_connect as $emp_con) {
+                            foreach ($usersList as $row) {
+                             if ($row->busines == $emp_con->group) {?>
+                              <!-- <li><a href="<?php echo site_url();?>main/profile"><i class='fa fa-check'></i><?php echo " ". $row->first_name.$row->last_name; ?></a></li> -->
+                              <li><a href="#"><?php echo " ". $row->first_name. " ".$row->last_name; ?></a></li>
+                             <?php }
+                            }
+                          }
+                        ?>
                         <li><a href="<?php echo site_url();?>main/changeuser">Editar Perfil</a></li>
                         <li role="separator" class="divider"></li>
 

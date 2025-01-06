@@ -94,13 +94,9 @@ class Roles extends CI_Model
 		* @return string stats de respuesta del servicio
 		*/
 		function guardarMembershipBPM($membershipBPM, $userNick){
-
-			//log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $membershipBPM >> '.json_encode($membershipBPM));
-			//log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $userNick >> '.json_encode($userNick));
-
 			// trae info de usuario en BPM
 			$info_bpm = $this->getInfoBPM($userNick);
-			log_message('DEBUG','#TRAZA|ROLES|guardarMembershipBPM($membershipBPM, $userNick): $info_bpm >> '.json_encode($info_bpm));
+			log_message('DEBUG','#TRAZA | #TRAZ-COMP-DNATO | ROLES | guardarMembershipBPM($membershipBPM, $userNick): $info_bpm >> '.json_encode($info_bpm));
 
 			//TODO: SACAR HARDCODEO ACA
 			$session = '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"';
@@ -110,7 +106,7 @@ class Roles extends CI_Model
 			$post["session"] = $session;
 			$post["payload"] = $datos;
 
-			$aux = $this->rest->callAPI("POST",REST_BPM."/memberships", $post); 
+			$aux = $this->rest->callAPI("POST",REST_BPM."/memberships", $post);
 			$aux =json_decode($aux["data"]);
 			return $aux;
 		}
@@ -121,11 +117,11 @@ class Roles extends CI_Model
 		* @return array con info de usuario en BPM
 		*/
 		function getInfoBPM($usrNick){
-
+			log_message('DEBUG',"#TRAZA | #TRAZ-COMP-DNATO | ROLES | getInfoBPM($usrNick)");
 			//TODO: DESHARDCODEAR SESSION
 			$session = "X-Bonita-API-Token%3D7e2dbb6d-2261-4571-809e-d2b55144a75d%3BJSESSIONID%3DD82EE7AD27E388E1624433D7BE30BA07%3Bbonita.tenant%3D1%3B";
 			$url = REST_BPM."/users/".$usrNick."/session/".$session;
-			$aux = $this->rest->callAPI("GET", REST_BPM."/users/".$usrNick."/session/".$session);
+			$aux = $this->rest->callAPI("GET", REST_BPM."/users/".urlencode($usrNick)."/session/".$session);
 			$aux =json_decode($aux["data"]);
 
 			return $aux->payload[0];

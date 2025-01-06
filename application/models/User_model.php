@@ -253,14 +253,15 @@ class User_model extends CI_Model {
 		* @param string email
 		* @return arrray con info de usuario de sistema
 		*/
-    public function getUserInfoByEmail($email)
-    {
+    public function getUserInfoByEmail($email){
+        log_message("DEBUG","#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | getUserInfoByEmail($email)");
         $q = $this->db->get_where('seg.users', array('email' => $email), 1);
         if($this->db->affected_rows() > 0){
             $row = $q->row();
+            log_message("DEBUG","#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | getUserInfoByEmail($email) >> User DATA found: >>".json_encode($row) );
             return $row;
         }else{
-            error_log('no user found getUserInfo('.$email.')');
+            log_message("ERROR","#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | getUserInfoByEmail($email) >> no user found getUserInfo" );
             return false;
         }
     }
@@ -369,19 +370,19 @@ class User_model extends CI_Model {
 		}
 
 		/**
-		* Asocia usuario a roles y grupos de BPM en BD
+		* Asocia usuario a roles y grupos de BPM en la tabla seg.memberships_users
 		* @param $usr_id, $group, $rol
 		* @return int id de asociacion insertado
 		*/
 		public function guardarMembership($membership){
-
+            log_message("DEBUG","#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | guardarMembership($membership) >> membership: ".json_encode($membership));
 			$query = $this->db->insert('seg.memberships_users',$membership);
 			$error = $this->db->error();
 
 			if($error['message'] == ""){
 				return true;
 			}else{
-				//log_message('ERROR','#TRAZA|USER_MODEL|GUARDARUSRBPM($membership) >> ERROR -> '.json_encode($error['message']));
+				log_message('ERROR','#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | GUARDARUSRBPM($membership) >> '.json_encode($error['message']));
 				return false;
 			}
 		}
@@ -392,8 +393,7 @@ class User_model extends CI_Model {
 		* @return string resultado del borrado		
 		*/
 		function borrarMembership($membership){
-
-            //log_message('DEBUG','#TRAZA|MAIN|borrarMembership($membership)  $membership: >> '.json_encode($membership) );
+            log_message('DEBUG',"#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | borrarMembership($membership)  membership: >> ".json_encode($membership) );
 			
 			$this->db->where('role', trim($membership['role']));
 			$this->db->where('group', $membership['group']);
@@ -404,7 +404,7 @@ class User_model extends CI_Model {
 			if($this->db->affected_rows() > 0 ){
 				return TRUE;
 			}else{
-				//log_message('ERROR','#TRAZA|USER_MODEL|BORRARMEMBERSHIP($membership) >> ERROR -> '.json_encode($error['message']));
+				log_message('ERROR',"#TRAZA | #TRAZ-COMP-DNATO | USER_MODEL | borrarMembership($membership) >> ERROR -> ".json_encode($error['message']));
 				return FALSE;
 			}
 
@@ -429,10 +429,65 @@ class User_model extends CI_Model {
     }
 
     //update profile user
-    public function updateProfile($post)
+    public function updateProfile_old($post)
     {   
         $this->db->where('id', $post['user_id']);
-        $this->db->update('seg.users', array('password' => $post['password'], 'email' => $post['email'], 'first_name' => $post['firstname'], 'last_name' => $post['lastname']));
+        $this->db->update('seg.users', array(
+                                            'password' => $post['password'], 
+                                            'email' => $post['email'], 
+                                            'first_name' => $post['firstname'], 
+                                            'last_name' => $post['lastname'],
+                                            'image_name' => $post['image_name'],
+                                            'image' => $post['image']));
+        $success = $this->db->affected_rows(); 
+        
+        if(!$success){
+            error_log('Unable to updatePassword('.$post['user_id'].')');
+            return false;
+        }        
+        return true;
+    }
+    
+    public function updateProfile($post)
+    {   
+        if($post['image_name'] && $post['image']){
+            $data = array(
+                'email' => $post['email'], 
+                'first_name' => $post['firstname'], 
+                'last_name' => $post['lastname'],
+                'image_name' => $post['image_name'],
+                'image' => $post['image']);
+        }else{
+            $data = array(                
+                'email' => $post['email'], 
+                'first_name' => $post['firstname'], 
+                'last_name' => $post['lastname']);
+        }
+        
+
+        $this->db->where('id', $post['user_id']);
+        $this->db->update('seg.users', $data);
+        $success = $this->db->affected_rows(); 
+        
+        if(!$success){
+            error_log('Unable to updatePassword('.$post['user_id'].')');
+            return false;
+        }        
+        return true;
+    }
+    
+    public function updatePass($post)
+    {   
+
+        $data = array(
+            'password' => $post['password'], 
+            'first_name' => $post['firstname'], 
+            'last_name' => $post['lastname']
+        );
+        
+
+        $this->db->where('id', $post['user_id']);
+        $this->db->update('seg.users', $data);
         $success = $this->db->affected_rows(); 
         
         if(!$success){
@@ -512,6 +567,7 @@ class User_model extends CI_Model {
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
         $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
         $this->db->order_by("first_name", "asc");
+        
         $query = $this->db->get();
         
 
@@ -620,5 +676,26 @@ class User_model extends CI_Model {
         }
 
         return $list;*/
+    }
+    /**
+	* Agrega un usuario a MariaDB de Asset
+	* @param array datos ingresados en formulario
+	* @return 
+	*/
+    public function addUserAsset($data){
+        $post['_post_assetuser_add']= array(
+            'nick' => $data['usernick'],
+            'name' => $data['firstname'],
+            'lastName' => $data['lastname'],
+            'pass' => $data['password'],
+            'image' => $data['image']
+        );
+
+        $url = REST_CORE."/assetuser/add";
+        $aux = $this->rest->callAPI("POST",$url,$post);
+
+        log_message('DEBUG', "#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: >> " . json_encode($aux));
+
+        return $aux;
     }
 }
