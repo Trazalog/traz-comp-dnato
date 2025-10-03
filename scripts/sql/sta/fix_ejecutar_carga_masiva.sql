@@ -1,3 +1,6 @@
+-- Script para corregir el stored procedure ejecutar_carga_masiva
+-- Este script corrige el problema de búsqueda de stored procedures con esquema incluido
+
 -- DROP FUNCTION sta.ejecutar_carga_masiva(varchar, text, int4);
 
 CREATE OR REPLACE FUNCTION sta.ejecutar_carga_masiva(p_stored_procedure character varying, p_url_archivo text, p_empr_id integer)
@@ -39,10 +42,9 @@ BEGIN
         PERFORM sta.insert_log_message('ERROR', v_message, 'ejecutar_carga_masiva');
         
         -- Recopilar mensajes de log
-        SELECT string_agg(level || ': ' || message, ' | ') 
+        SELECT string_agg(level || ': ' || message, ' | ' ORDER BY timestamp) 
         INTO v_log_messages
-        FROM temp_log_messages 
-        ORDER BY timestamp;
+        FROM temp_log_messages;
         
         RETURN 'ERROR: ' || v_message || ' | LOGS: ' || COALESCE(v_log_messages, '');
     END IF;
@@ -69,10 +71,9 @@ BEGIN
     END;
     
     -- Recopilar todos los mensajes de log
-    SELECT string_agg(level || ': ' || message, ' | ') 
+    SELECT string_agg(level || ': ' || message, ' | ' ORDER BY timestamp) 
     INTO v_log_messages
-    FROM temp_log_messages 
-    ORDER BY timestamp;
+    FROM temp_log_messages;
     
     -- Retornar resultado con logs
     IF v_success THEN

@@ -1,9 +1,9 @@
 -- =====================================================
--- BULKLOAD ARTICULOS CON LOGGING TEMPORAL - CORREGIDO
+-- FIX SYNTAX ERROR IN BULKLOAD_ARTICULOS
 -- =====================================================
+-- Corrige el error de sintaxis en el comando FORMAT
 
--- DROP FUNCTION sta.bulkload_articulos(varchar, int4);
-
+-- Aplicar la corrección al stored procedure existente
 CREATE OR REPLACE FUNCTION sta.bulkload_articulos(p_archivo character varying, p_empr_id integer)
  RETURNS TEXT
  LANGUAGE plpgsql
@@ -27,7 +27,8 @@ AS $function$
 						FROM sta.articulos ar
 						WHERE ar.procesado = FALSE;
  	BEGIN
-		/**
+		
+		/* 
 		 * Carga de un archivo csv
 		 * 	con columnas "Código","Descripción", "U. Medida"
 		 * los datos en alm_articulos

@@ -48,13 +48,38 @@ class Bulkload extends CI_Controller {
      */
     public function index() {
         try {
-            log_message('info', 'Bulkload index method called');
+            log_message('info', '=== INICIANDO Bulkload index ===');
+            log_message('info', 'Usuario actual: ' . $this->session->userdata('email'));
+            log_message('info', 'Empresa ID: ' . $this->session->userdata('empr_id'));
             
+            log_message('info', 'Obteniendo entidades de negocio desde WSO2...');
             // Obtener entidades de negocio desde WSO2
-            $entidades = $this->bulkloads->obtenerEntidadesNegocio();
-            
-            if ($entidades === false) {
-                log_message('warning', 'WSO2 not available, using test data');
+            try {
+                $entidades = $this->bulkloads->obtenerEntidadesNegocio();
+                
+                if ($entidades === false) {
+                    log_message('warning', 'WSO2 no disponible - usando datos de prueba');
+                    // Datos de prueba para testing
+                    $entidades = array(
+                        array(
+                            'nombre' => 'Artículos',
+                            'stored_procedure' => 'sta.sp_carga_masiva_articulos',
+                            'template' => 'Template de prueba para artículos'
+                        ),
+                        array(
+                            'nombre' => 'Herramientas',
+                            'stored_procedure' => 'sta.sp_carga_masiva_herramientas',
+                            'template' => 'Template de prueba para herramientas'
+                        )
+                    );
+                    $this->session->set_flashdata('warning_message', 'Usando datos de prueba. WSO2 no disponible.');
+                    log_message('info', 'Datos de prueba configurados: ' . count($entidades) . ' entidades');
+                } else {
+                    log_message('info', 'Entidades obtenidas desde WSO2: ' . count($entidades) . ' entidades');
+                }
+            } catch (Exception $e) {
+                log_message('error', 'Error al obtener entidades desde WSO2: ' . $e->getMessage());
+                log_message('warning', 'Usando datos de prueba debido a error en WSO2');
                 // Datos de prueba para testing
                 $entidades = array(
                     array(
@@ -68,9 +93,11 @@ class Bulkload extends CI_Controller {
                         'template' => 'Template de prueba para herramientas'
                     )
                 );
-                $this->session->set_flashdata('warning_message', 'Usando datos de prueba. WSO2 no disponible.');
+                $this->session->set_flashdata('warning_message', 'Usando datos de prueba. Error en WSO2: ' . $e->getMessage());
+                log_message('info', 'Datos de prueba configurados: ' . count($entidades) . ' entidades');
             }
             
+            log_message('info', 'Preparando datos para la vista...');
             // Preparar datos para la vista (igual que Main)
             $data = $this->session->userdata();
             $data['title'] = 'Carga Masiva de Datos';
@@ -78,16 +105,35 @@ class Bulkload extends CI_Controller {
             $data['user_model'] = $this->user_model;
             $data['userlevel'] = $this->userlevel;
             
-            log_message('debug', 'Bulkload index data prepared: ' . json_encode($data));
+            // Agregar datos necesarios para el navbar
+            log_message('info', 'Cargando datos adicionales para navbar...');
+            $this->load->model('Roles');
+            $data['usersList'] = $this->user_model->getListUserData();
+            $data['emp_connect'] = $this->user_model->gestMembershipsUserInfo($data['email'], 1);
+            $data['groups'] = $this->Roles->getBpmGroups();
             
+            log_message('info', 'Datos de navbar cargados:');
+            log_message('debug', 'usersList count: ' . (is_array($data['usersList']) ? count($data['usersList']) : 'no es array'));
+            log_message('debug', 'emp_connect count: ' . (is_array($data['emp_connect']) ? count($data['emp_connect']) : 'no es array'));
+            log_message('debug', 'groups count: ' . (is_array($data['groups']) ? count($data['groups']) : 'no es array'));
+            
+            log_message('info', 'Datos preparados exitosamente');
+            log_message('debug', 'Estructura de datos: ' . json_encode(array_keys($data)));
+            log_message('debug', 'Entidades finales: ' . json_encode($entidades));
+            
+            log_message('info', 'Cargando vistas...');
             // Cargar vistas
             $this->load->view('header', $data);
             $this->load->view('navbar', $data);
             $this->load->view('bulkload/index', $data);
             $this->load->view('footer');
             
+            log_message('info', '=== FINALIZANDO Bulkload index exitosamente ===');
+            
         } catch (Exception $e) {
-            log_message('error', 'Error in bulkload index: ' . $e->getMessage());
+            log_message('error', 'Exception en bulkload index: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
             $this->session->set_flashdata('error_message', 'Error interno del sistema. Contacte al administrador.');
             redirect('main/dashboard');
         }
@@ -106,26 +152,37 @@ class Bulkload extends CI_Controller {
     public function procesarCarga() {
         try {
             log_message('info', '=== INICIANDO procesarCarga ===');
-            log_message('info', 'Bulkload process started');
-            log_message('debug', 'POST data received: ' . json_encode($this->input->post()));
-            log_message('debug', 'FILES data received: ' . json_encode($_FILES));
+            log_message('info', 'Usuario: ' . $this->session->userdata('email'));
+            log_message('info', 'Empresa ID: ' . $this->session->userdata('empr_id'));
+            log_message('info', 'Iniciando proceso de carga masiva...');
+            
+            log_message('debug', 'Datos POST recibidos: ' . json_encode($this->input->post()));
+            log_message('debug', 'Datos FILES recibidos: ' . json_encode($_FILES));
+            log_message('debug', 'Cantidad de archivos: ' . count($_FILES));
             
             // Validar entrada
+            log_message('info', 'Configurando reglas de validación...');
             $this->form_validation->set_rules('entidad_negocio', 'Entidad de Negocio', 'required');
             
+            log_message('info', 'Ejecutando validación del formulario...');
             if (!$this->form_validation->run()) {
+                log_message('warning', 'Validación falló: ' . validation_errors());
                 $this->session->set_flashdata('error_message', validation_errors());
                 $this->session->set_userdata('selected_entidad', $this->input->post('entidad_negocio'));
                 redirect('bulkload');
                 return;
             }
+            log_message('info', 'Validación del formulario exitosa');
             
             // Obtener datos del formulario
             $entidad_negocio = $this->input->post('entidad_negocio');
             $stored_procedure = $this->input->post('stored_procedure');
             
-            log_message('debug', 'Processing bulkload for entity: ' . $entidad_negocio);
+            log_message('info', 'Datos del formulario extraídos:');
+            log_message('debug', 'Entidad de negocio: ' . $entidad_negocio);
             log_message('debug', 'Stored procedure: ' . $stored_procedure);
+            log_message('debug', 'Tipo de entidad_negocio: ' . gettype($entidad_negocio));
+            log_message('debug', 'Tipo de stored_procedure: ' . gettype($stored_procedure));
             
             // Validar archivo
             if (!isset($_FILES['archivo_excel']) || $_FILES['archivo_excel']['error'] !== UPLOAD_ERR_OK) {
@@ -177,32 +234,63 @@ class Bulkload extends CI_Controller {
             log_message('info', 'File moved to staging: ' . $filepath);
             
             // Convertir Excel a CSV
-            $csv_filepath = $this->convertirExcelACsv($filepath, $extension);
-            
-            if ($csv_filepath === false) {
-                $this->session->set_flashdata('error_message', 'Error al convertir el archivo Excel a CSV. Verifique que el archivo sea válido.');
+            log_message('info', 'Iniciando conversión de Excel a CSV...');
+            try {
+                $csv_filepath = $this->convertirExcelACsv($filepath, $extension);
+                
+                if ($csv_filepath === false) {
+                    log_message('error', 'La conversión devolvió false');
+                    $this->session->set_flashdata('error_message', 'Error al convertir el archivo Excel a CSV. Verifique que el archivo sea válido.');
+                    redirect('bulkload');
+                    return;
+                }
+                
+                log_message('info', 'Excel converted to CSV: ' . $csv_filepath);
+            } catch (Exception $e) {
+                log_message('error', 'Error al convertir Excel a CSV: ' . $e->getMessage());
+                $this->session->set_flashdata('error_message', 'Error al convertir el archivo: ' . $e->getMessage());
                 redirect('bulkload');
                 return;
             }
-            
-            log_message('info', 'Excel converted to CSV: ' . $csv_filepath);
             
             // Obtener empr_id de la sesión
-            $empr_id = $this->bulkloads->obtenerEmpresaId();
-            
-            if ($empr_id === false) {
-                $this->session->set_flashdata('error_message', 'Error al obtener información de la empresa. Verifique su sesión.');
+            log_message('info', 'Obteniendo ID de empresa de la sesión...');
+            try {
+                $empr_id = $this->bulkloads->obtenerEmpresaId();
+                
+                if ($empr_id === false) {
+                    log_message('error', 'No se pudo obtener empr_id de la sesión');
+                    $this->session->set_flashdata('error_message', 'Error al obtener información de la empresa. Verifique su sesión.');
+                    redirect('bulkload');
+                    return;
+                }
+                
+                log_message('info', 'Empresa ID obtenido exitosamente: ' . $empr_id);
+                log_message('debug', 'Tipo de empr_id: ' . gettype($empr_id));
+            } catch (Exception $e) {
+                log_message('error', 'Error al obtener empr_id: ' . $e->getMessage());
+                $this->session->set_flashdata('error_message', 'Error al obtener información de la empresa: ' . $e->getMessage());
                 redirect('bulkload');
                 return;
             }
             
-            log_message('debug', 'Company ID from session: ' . $empr_id);
-            
             // Enviar archivo al dataservice
-            $resultado = $this->bulkloads->enviarADataservice($csv_filepath, $stored_procedure, $empr_id);
-            
-            if ($resultado === false) {
-                $this->session->set_flashdata('error_message', 'Error al procesar el archivo en el sistema. Intente nuevamente.');
+            log_message('info', 'Enviando archivo al dataservice...');
+            try {
+                $resultado = $this->bulkloads->enviarADataservice($csv_filepath, $stored_procedure, $empr_id);
+                
+                if ($resultado === false) {
+                    log_message('error', 'El dataservice devolvió false');
+                    $this->session->set_flashdata('error_message', 'Error al procesar el archivo en el sistema. Intente nuevamente.');
+                    redirect('bulkload');
+                    return;
+                }
+                
+                log_message('info', 'Archivo procesado por el dataservice');
+                log_message('debug', 'Resultado del dataservice: ' . json_encode($resultado));
+            } catch (Exception $e) {
+                log_message('error', 'Error al procesar archivo en dataservice: ' . $e->getMessage());
+                $this->session->set_flashdata('error_message', 'Error al procesar el archivo: ' . $e->getMessage());
                 redirect('bulkload');
                 return;
             }
@@ -225,8 +313,10 @@ class Bulkload extends CI_Controller {
             redirect('bulkload');
             
             } catch (Exception $e) {
-                log_message('error', 'Exception in procesarCarga: ' . $e->getMessage());
-                $this->session->set_flashdata('error_message', 'Error interno del sistema. Contacte al administrador.');
+                log_message('error', 'Exception en procesarCarga: ' . $e->getMessage());
+                log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+                log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+                $this->session->set_flashdata('error_message', 'Error interno del sistema: ' . $e->getMessage());
                 $this->session->set_userdata('selected_entidad', $this->input->post('entidad_negocio'));
                 redirect('bulkload');
             }
@@ -245,8 +335,12 @@ class Bulkload extends CI_Controller {
             log_message('info', 'Converting Excel to CSV: ' . $filepath);
             log_message('debug', 'File extension: ' . $extension);
             
-            // Verificar si SimpleXLSX está disponible
-            $simplexlsx_available = class_exists('Shuchkin\SimpleXLSX');
+            // Cargar SimpleXLSX manualmente para PHP 5.6 compatibility
+            if (!class_exists('SimpleXLSX')) {
+                require_once APPPATH . 'third_party/simplexlsx/SimpleXLSX.php';
+            }
+            
+            $simplexlsx_available = class_exists('SimpleXLSX');
             log_message('debug', 'SimpleXLSX available: ' . ($simplexlsx_available ? 'YES' : 'NO'));
             
             if ($simplexlsx_available) {
@@ -258,8 +352,10 @@ class Bulkload extends CI_Controller {
             }
             
         } catch (Exception $e) {
-            log_message('error', 'Exception in convertirExcelACsv: ' . $e->getMessage());
-            return false;
+            log_message('error', 'Exception en convertirExcelACsv: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Propagar la excepción
         }
     }
 
@@ -279,9 +375,9 @@ class Bulkload extends CI_Controller {
             }
             
             // Cargar archivo Excel
-            $xlsx = \Shuchkin\SimpleXLSX::parse($filepath);
+            $xlsx = SimpleXLSX::parse($filepath);
             if (!$xlsx) {
-                log_message('error', 'Failed to parse XLSX file: ' . \Shuchkin\SimpleXLSX::parseError());
+                log_message('error', 'Failed to parse XLSX file: ' . SimpleXLSX::parseError());
                 return false;
             }
             
@@ -319,8 +415,10 @@ class Bulkload extends CI_Controller {
             return $csv_filepath;
             
         } catch (Exception $e) {
-            log_message('error', 'Exception in convertirConSimpleXLSX: ' . $e->getMessage());
-            return false;
+            log_message('error', 'Exception en convertirConSimpleXLSX: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Propagar la excepción
         }
     }
 
@@ -343,8 +441,10 @@ class Bulkload extends CI_Controller {
                 return false;
             }
         } catch (Exception $e) {
-            log_message('error', 'Exception in convertirManual: ' . $e->getMessage());
-            return false;
+            log_message('error', 'Exception en convertirManual: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Propagar la excepción
         }
     }
     
@@ -454,8 +554,10 @@ class Bulkload extends CI_Controller {
             return $csv_filepath;
             
         } catch (Exception $e) {
-            log_message('error', 'Exception in convertirXlsxManual: ' . $e->getMessage());
-            return false;
+            log_message('error', 'Exception en convertirXlsxManual: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Propagar la excepción
         }
     }
     
@@ -487,8 +589,10 @@ class Bulkload extends CI_Controller {
             return $csv_filepath;
             
         } catch (Exception $e) {
-            log_message('error', 'Exception in convertirXlsManual: ' . $e->getMessage());
-            return false;
+            log_message('error', 'Exception en convertirXlsManual: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Propagar la excepción
         }
     }
     
@@ -551,7 +655,10 @@ class Bulkload extends CI_Controller {
             }
             
         } catch (Exception $e) {
-            log_message('error', 'Exception in limpiarArchivosTemporales: ' . $e->getMessage());
+            log_message('error', 'Exception en limpiarArchivosTemporales: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            throw $e; // Propagar la excepción
         }
     }
 
@@ -583,22 +690,75 @@ class Bulkload extends CI_Controller {
                 return;
             }
             
-            log_message('debug', 'Template found for entity: ' . $entidad['nombre']);
+            $template_url = $entidad['template'];
+            log_message('debug', 'Template URL: ' . $template_url);
             
-            // Preparar respuesta para descarga
-            $filename = 'template_' . strtolower(str_replace(' ', '_', $entidad['nombre'])) . '.txt';
+            // Verificar que la URL no esté vacía
+            if (empty($template_url)) {
+                show_error('No hay template disponible para esta entidad', 404);
+                return;
+            }
             
-            header('Content-Type: text/plain; charset=utf-8');
+            // Descargar el archivo desde la URL
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $template_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+            
+            $template_content = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curl_error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($curl_error) {
+                log_message('error', 'cURL Error downloading template: ' . $curl_error);
+                show_error('Error al descargar el template: ' . $curl_error, 500);
+                return;
+            }
+            
+            if ($http_code !== 200) {
+                log_message('error', 'HTTP Error downloading template: ' . $http_code);
+                show_error('Error al descargar el template. Código HTTP: ' . $http_code, 500);
+                return;
+            }
+            
+            if (empty($template_content)) {
+                show_error('El template está vacío', 404);
+                return;
+            }
+            
+            // Determinar el tipo de archivo y extensión
+            $file_extension = 'txt';
+            $content_type = 'text/plain';
+            
+            // Verificar si es un archivo Excel
+            if (strpos($template_url, '.xlsx') !== false || strpos($template_url, '.xls') !== false) {
+                $file_extension = pathinfo(parse_url($template_url, PHP_URL_PATH), PATHINFO_EXTENSION);
+                $content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            } elseif (strpos($template_url, '.csv') !== false) {
+                $file_extension = 'csv';
+                $content_type = 'text/csv';
+            }
+            
+            // Generar nombre del archivo
+            $filename = 'template_' . strtolower(str_replace(' ', '_', $entidad['nombre'])) . '.' . $file_extension;
+            
+            // Configurar headers para descarga
+            header('Content-Type: ' . $content_type . '; charset=utf-8');
             header('Content-Disposition: attachment; filename="' . $filename . '"');
-            header('Content-Length: ' . strlen($entidad['template']));
+            header('Content-Length: ' . strlen($template_content));
             
-            echo $entidad['template'];
+            echo $template_content;
             
-            log_message('info', 'Template downloaded successfully: ' . $filename);
+            log_message('info', 'Template downloaded successfully: ' . $filename . ' from URL: ' . $template_url);
             
         } catch (Exception $e) {
-            log_message('error', 'Exception in descargarTemplate: ' . $e->getMessage());
-            show_error('Error interno del sistema', 500);
+            log_message('error', 'Exception en descargarTemplate: ' . $e->getMessage());
+            log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+            log_message('error', 'Stack trace: ' . $e->getTraceAsString());
+            show_error('Error interno del sistema: ' . $e->getMessage(), 500);
         }
     }
 }
