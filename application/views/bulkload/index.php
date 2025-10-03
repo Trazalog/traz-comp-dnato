@@ -68,7 +68,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                                 <label class="col-sm-3 control-label">Descargue Template</label>
                                 <div class="col-sm-9">
                     <a href="#" id="downloadTemplate" class="btn btn-info" target="_blank">
-                        <i class="fa fa-download"></i> Descargar Template
+                        <i class="fa fa-external-link"></i> Abrir Template
                     </a>
                                     <p class="help-block">
                                         Abra el template de Excel y complételo como se indica, 
@@ -146,7 +146,7 @@ $(document).ready(function() {
             
             if (template.includes('docs.google.com') || template.includes('drive.google.com')) {
                 downloadBtn.attr('target', '_blank');
-                downloadBtn.html('<i class="fa fa-download"></i> Descargar Template');
+                downloadBtn.html('<i class="fa fa-external-link"></i> Abrir Template');
             } else {
                 downloadBtn.removeAttr('target');
                 downloadBtn.html('<i class="fa fa-download"></i> Descargar Template');

@@ -297,10 +297,8 @@ class Bulkload extends CI_Controller {
             
             // Procesar resultado
             if ($resultado['success']) {
-                $this->session->set_flashdata('success_message', 'Carga masiva realizada exitosamente. ' . $resultado['output']);
                 log_message('info', 'Bulkload completed successfully: ' . $resultado['output']);
             } else {
-                $this->session->set_flashdata('error_message', 'Error en la carga masiva: ' . $resultado['output']);
                 log_message('error', 'Bulkload failed: ' . $resultado['output']);
             }
             
@@ -310,7 +308,8 @@ class Bulkload extends CI_Controller {
             // Limpiar entidad seleccionada de la sesión
             $this->session->unset_userdata('selected_entidad');
             
-            redirect('bulkload');
+            // Redirigir a página de resultado
+            $this->mostrarResultado($resultado);
             
             } catch (Exception $e) {
                 log_message('error', 'Exception en procesarCarga: ' . $e->getMessage());
@@ -659,6 +658,48 @@ class Bulkload extends CI_Controller {
             log_message('error', 'Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
             log_message('error', 'Stack trace: ' . $e->getTraceAsString());
             throw $e; // Propagar la excepción
+        }
+    }
+
+    /**
+     * Muestra el resultado del procesamiento de carga masiva
+     * 
+     * @param array $resultado Resultado del procesamiento
+     * @return void
+     */
+    private function mostrarResultado($resultado) {
+        try {
+            log_message('info', 'Mostrando resultado de carga masiva');
+            
+            // Preparar datos para la vista (igual que en index)
+            $data = $this->session->userdata();
+            $data['title'] = 'Resultado de Carga Masiva';
+            $data['resultado'] = $resultado;
+            $data['user_model'] = $this->user_model;
+            $data['userlevel'] = $this->userlevel;
+            
+            // Agregar datos necesarios para el navbar
+            log_message('info', 'Cargando datos adicionales para navbar en resultado...');
+            $this->load->model('Roles');
+            $data['usersList'] = $this->user_model->getListUserData();
+            $data['emp_connect'] = $this->user_model->gestMembershipsUserInfo($data['email'], 1);
+            $data['groups'] = $this->Roles->getBpmGroups();
+            
+            log_message('info', 'Datos de navbar cargados para resultado:');
+            log_message('debug', 'usersList count: ' . (is_array($data['usersList']) ? count($data['usersList']) : 'no es array'));
+            log_message('debug', 'emp_connect count: ' . (is_array($data['emp_connect']) ? count($data['emp_connect']) : 'no es array'));
+            log_message('debug', 'groups count: ' . (is_array($data['groups']) ? count($data['groups']) : 'no es array'));
+            
+            // Cargar vistas con navbar
+            $this->load->view('header', $data);
+            $this->load->view('navbar', $data);
+            $this->load->view('bulkload/resultado', $data);
+            $this->load->view('footer');
+            
+        } catch (Exception $e) {
+            log_message('error', 'Error al mostrar resultado: ' . $e->getMessage());
+            $this->session->set_flashdata('error_message', 'Error al mostrar resultado: ' . $e->getMessage());
+            redirect('bulkload');
         }
     }
 
