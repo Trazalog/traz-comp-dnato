@@ -232,6 +232,11 @@ switch (ENVIRONMENT)
 	// Path to the front controller (this file) directory
 	define('FCPATH', dirname(__FILE__).DIRECTORY_SEPARATOR);
 
+	// Load Composer autoloader
+	if (file_exists(FCPATH . 'vendor/autoload.php')) {
+		require_once FCPATH . 'vendor/autoload.php';
+	}
+
 	// Name of the "system" directory
 	define('SYSDIR', basename(BASEPATH));
 

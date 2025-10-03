@@ -127,3 +127,26 @@ define('ASP_112', 'Error al Obtener Comentarios');
 define('ASP_113', 'Usuario No Encontrado');
 define('ASP_114', 'Error al Actualizar Variable');
 define('ASP_115', 'Error al Leer Variable');
+
+/*
+|--------------------------------------------------------------------------
+| WSO2 DataService URLs
+|--------------------------------------------------------------------------
+|
+| URLs para los servicios de datos de WSO2
+|
+*/
+define('COREDataService_URL', 'http://10.142.0.13:8280/services/COREDataService');
+
+/*
+|--------------------------------------------------------------------------
+| Bulkload Configuration
+|--------------------------------------------------------------------------
+|
+| Configuración para la funcionalidad de carga masiva
+|
+*/
+define('BULKLOAD_STAGING_DIR', FCPATH . 'bulkload_stage_files');
+define('BULKLOAD_MAX_FILE_SIZE', 10 * 1024 * 1024); // 10 MB
+define('BULKLOAD_ALLOWED_EXTENSIONS', 'xlsx,xls');
+define('BULKLOAD_TIMEOUT', 60); // segundos

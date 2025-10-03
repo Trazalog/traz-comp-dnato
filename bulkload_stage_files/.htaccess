@@ -1,0 +1,13 @@
+# Denegar acceso a todos los archivos en este directorio
+Order Deny,Allow
+Deny from all
+
+# Permitir solo acceso desde localhost para debugging
+# Allow from 127.0.0.1
+# Allow from ::1
+
+
+
+
+
+
