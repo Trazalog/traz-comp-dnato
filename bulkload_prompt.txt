@@ -1,0 +1,43 @@
+esta perfecto asi. Necesito agregar al sistema lo siguiente:
+
+Tengo que agregar un punto de menu dentro del menú de DNato que permita hacer una Carga Masiva (bulk load) de algunas entidades de negocio de trazalog tools. Debe estar dentro del menú Operaciones -> Carga masiva
+
+
+Este item de menú abrirá una pantalla de Carga masiva. 
+La misma tendrá como titulo "Carga Masiva de Datos".
+La pantalla debe respetar los stylesheet de Dnato, por favor analiza esto y haz el look and Feel coherente.
+
+Debe mostrar un formulario
+
+El primer elemento es un desplegable llamado "Seleccione Entidad de Negocio a Cargar", se puede seleccionar 1 unica opción.
+Los datos de este desplegable deben salir de la tabla postgres sta.entidades_negocio, la cual debe tener estas columnas
+sta.entidades_negocio
+nombre varchar,
+stored_procedure varchar,
+template varchar
+
+El acceso a los datos de la tabla debe realizarse mediante un dataservice de wso2, GET COREDataService/entidades_negocio, la url del dataservice debe armarse con los datos de config/constants.php. 
+El resto del formulario debe estar oculto.
+Al seleccionar una opción de entidad de negocio se mostrarán los siguientes elementos del formulario
+-Descargue Template: mostrar un link de descarga con el contenido de la columna "template". Luego debe ir este texto 'Descargue el archivo excel y completelo como se indica dentro, luego seleccionelo debajo y presione "Cargar"'
+-Seleccione archivo: campo de tipo file, que permita cargar un archivo excel. Debe validar que dicho archivo sea con una extensión válida de excel y que su charset sea utf-8, si no lo es mostrar un error.
+-Botón de "Cargar", el cual submitira el archivo
+
+Este archivo debe ser tomado por el controlador y almacenarlo en un directorio llamado "bulkload_stage_files" en la raiz del proyecto
+Una vez que grabe el archivo en el file system, debe convertirlo a csv.En este proceso hay que tener especial cuidado en convertir al charset correcto, el cual debe ser utf-8
+Luego debe invocar al dataservice POST COREDataService/carga_masiva/archivo el cual recibira en su payload
+url_archivo
+stored_procedure
+empr_id: este dato esta en la sesion, investigar en el codigo de dnato como obtener este dato
+Este dataservice debe invocar dinámicamente al stored_procedure recibido, pasando como parametro al mismoo url_archivo y empr_id
+Luego debe capturar la salida de la ejecución del procedure, y devolverla al controller, la cual puede contener posibles errores en la carga, es importante que el controller pueda parsear estos mensajes correctamente.
+
+Finalmente, si el archivo ejecuto todo exitosamente, se debe mostrar en pantalla que fue un éxito en verde, deshabilitando el botón de cargar (salvo que se seleccione otra Entidad de Negocio), y sino mostrar el output del error en rojo, permitiendo volver a cargar el archivo hasta que no haya errores. 
+
+Genera entonces
+1 - Codigo php + codeigniter, respetando la estructura del presente proyecto, y estandarres. Comenta el codigo tanto a nivel operacion como a nivel comentario inline para programadores. El código debe dejar log, con info indicando la entrada a cada operacion, debug para valores importantes para hcer debug, y error en excepciones capturadas. Capturar excepciones y manejarlas para que el usuario siempre reciba mensajes entendibles. No debe haber valores importantes hardcodeados, deben estar en constants.php
+2 - Codigo wso2 para dataservices, utilizando como carbon datasource AssetPlannerDataSource
+3 - Codigo sql para generar la tabla
+
+cuando tengas todo generado, yo desplegare el wso2 y tabla y te habilitaré para que pruebes.
+
