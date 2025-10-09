@@ -94,9 +94,9 @@ define('BPM_USER_PASS', 'bpm');
 
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
-define('DE', 'http://traz-comp.local/traz-tools/');
-define('DS', 'http://traz-comp.local/traz-comp-dnato/main/login');
-define('DNATO', 'http://traz-comp.local/traz-comp-dnato/');
+define('DE', 'http://localhost/traz-tools/');
+define('DS', 'http://localhost/traz-comp-dnato/main/login');
+define('DNATO', 'http://localhost/traz-comp-dnato/');
 define('SIS_NAME', 'TOOLS');
 
 /*
