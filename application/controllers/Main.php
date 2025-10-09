@@ -301,7 +301,8 @@ class Main extends CI_Controller {
 									
 									//insert to database
 									$usr_id = $this->user_model->addUser($cleanPost);
-
+									//Insert to MariaDB Asset
+									$this->user_model->addUserAsset($cleanPost);
 									//
 
 									//crea usr en BPM
@@ -532,7 +533,12 @@ class Main extends CI_Controller {
 							if(!$this->user_model->updateUserban($cleanPost)){
 									$this->session->set_flashdata('flash_message', 'Error al borrar usuario');
 							}else{
-									$this->session->set_flashdata('success_message', 'El usuario ha sido borrado exitosamente.');
+
+								if (strpos($cleanPost['banuser'], 'unban') !== false) {
+									$this->session->set_flashdata('success_message', 'El usuario fue habilitado con éxito.');
+								} elseif (strpos($cleanPost['banuser'], 'ban') !== false) {
+									$this->session->set_flashdata('success_message', 'El usuario ha sido inhabilitado exitosamente.');
+								}
 							}
 							redirect(base_url().'main/banuser');
 					}
@@ -879,7 +885,6 @@ class Main extends CI_Controller {
 	* @return 
 	*/
 	public function changeLevelRolUser(){
-		# code...
 		$data = $this->session->userdata;
 
 		$dataPost['email'] = $this->input->post('email');
@@ -888,16 +893,9 @@ class Main extends CI_Controller {
 		$dataRole = $this->input->post('dataRole');
 		$dataRole['usuario_app'] = userNick();
 		$user = userNick();
-
 		$dataRoleBpm = $this->input->post('dataRoleBpm');
 
-
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[email]: >> '.$dataPost['email'] ); 
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[level]: >> '.$dataPost['level'] ); 
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRole]: >> '.json_encode( $dataRole) );
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRoleBpm]: >> '. json_encode($dataRoleBpm));
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $user: >> '. $user);
-
+		//Updatea el rol del usuario en la tabla de seg.users por email
 		$userLevel = $this->user_model->updateUserLevel($dataPost);
 
 		if(!$userLevel){
@@ -907,9 +905,9 @@ class Main extends CI_Controller {
 			/*$this->session->set_flashdata('success_message', 'nivelCambiado con exito.'); 
 			$rsp["message"] = true;
 			return true;*/
-			//guarda membership en BD (para menues y manejo local de usr
-			$dataRole = $this->user_model->guardarMembership($dataRole);
-			if(!$dataRole){
+			//guarda asociacion de membership con usuario(email) en la tabla seg.memberships_users
+			$dataRoleResponse = $this->user_model->guardarMembership($dataRole);
+			if(!$dataRoleResponse){
 				//$this->session->set_flashdata('flash_message', 'Fallo asignacion de roles de '.$dataPost['email']); 
 				return false;
 			}else{
@@ -917,11 +915,9 @@ class Main extends CI_Controller {
 				return true;*/
 				//obtiene el nick de un usuario por email
 				$this->load->model('Roles');
-				$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);				
+				$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
 				$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpm, $infoUser->usernick);
-				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
-				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm[payload]: >> '. json_encode($membShipBpm->payload));
-				//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($data));
+				
 				//Verifico si guardo bien el usuario devuelve un user_id
 				if(isset($membShipBpm->payload->user_id)){
 					//$this->session->set_flashdata('success_message', 'Rol Bpm asignado con exito de '.$dataPost['email']);
@@ -929,7 +925,7 @@ class Main extends CI_Controller {
 				}else{
 					//Sino Guardó el usuario, elimine lo que guardo del mismo. 
 					$deleteMemShip = $this->user_model->borrarMembership($dataRole);
-					//$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm de '.$dataPost['email']);
+					$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm de '.$dataPost['email']);
 					return false;
 				}
 			}

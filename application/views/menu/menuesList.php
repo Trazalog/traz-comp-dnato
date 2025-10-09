@@ -106,6 +106,7 @@
                         <div class="form-group">
                             <label for="modulo">Módulo: (*)</label>
                             <select class="form-control " name="modulo" id="modulo",  required="true" onchange="cargarOpcion();" >
+                            
                             <?php
                                 echo '<option value="-1" selected >-Seleccione un módulo-</option>';
                                 foreach($modulos as $modulo){    ///Emrpesas del Usuario conectado

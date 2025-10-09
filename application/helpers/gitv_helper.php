@@ -13,12 +13,26 @@ class ApplicationVersion
     }
 
     public static function getLastVersions() {
-
-        $tagsArray = explode(PHP_EOL, shell_exec('git log --tags --simplify-by-decoration --pretty="format:%ci %d"'));
-
-        return json_encode($tagsArray);
-        
-        
+        try {
+            $gitOutput = shell_exec('git log --tags --simplify-by-decoration --pretty="format:%ci %d"');
+            
+            if (empty($gitOutput)) {
+                return json_encode(['']);
+            }
+            
+            $tagsArray = explode(PHP_EOL, $gitOutput);
+            $tagsArray = array_filter($tagsArray, function($item) {
+                return !empty(trim($item));
+            });
+            
+            if (empty($tagsArray)) {
+                return json_encode(['']);
+            }
+            
+            return json_encode(array_values($tagsArray));
+        } catch (Exception $e) {
+            return json_encode(['']);
+        }
     }
 }
 

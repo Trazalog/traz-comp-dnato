@@ -2,3 +2,7 @@
 application/config/constants.php
 
 application/logs/
+
+bulkload_stage_files/
+
+testing/

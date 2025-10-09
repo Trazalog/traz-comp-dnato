@@ -259,7 +259,8 @@ class Menu extends CI_Controller {
         }else{
             if( $infoDelete === TRUE){
                 $this->session->set_flashdata('success_message', 'Desactivado correctamente el registro.');
-            }else{
+            }
+            else{
                 if($infoDelete === -1 ){
                     $this->session->set_flashdata('flash_message', 'Error, La opción ya se encuentra asignado a un módulo. No puede desactivarse');
                 }
