@@ -132,12 +132,15 @@ class Bulkloads extends CI_Model {
             }
             log_message('info', 'Archivo CSV verificado - existe');
             log_message('debug', 'Tamaño del archivo: ' . filesize($csv_filepath) . ' bytes');
-            
+           
+            /* harkode para usar en desarrollo - descomentar  $csv_filepath para probar y chekear que este el archivo en el server */
+           // $csv_filepath= '/home/soportetrazalog24/bulkload_rodo.csv';
+
             log_message('info', 'Cargando base de datos...');
             // Cargar la base de datos
             $this->load->database();
             log_message('info', 'Base de datos cargada exitosamente');
-            
+
             // Preparar la consulta SQL para llamar al procedimiento
             $sql = "SELECT sta.ejecutar_carga_masiva(?, ?, ?) as resultado";
             $params = array(
@@ -145,7 +148,7 @@ class Bulkloads extends CI_Model {
                 $csv_filepath,
                 intval($empr_id)
             );
-            
+
             log_message('info', 'Preparando consulta SQL...');
             log_message('debug', 'SQL Query: ' . $sql);
             log_message('debug', 'Parámetros preparados: ' . json_encode($params));
@@ -188,21 +191,88 @@ class Bulkloads extends CI_Model {
             
             if ($is_success) {
                 log_message('info', 'Carga masiva procesada exitosamente');
-            } else {
-                log_message('warning', 'Carga masiva completada con errores');
-                log_message('debug', 'Contenido del error: ' . substr($output, 0, 200) . '...');
+
+                // Obtener los SOTR_IDs desde el procedure
+                preg_match('/SOTR_IDs:\s*([0-9,\s]+)/', $output, $matches);
+
+                if (!empty($matches[1])) {
+                    $sotr_ids = array_map('trim', explode(',', $matches[1]));
+
+                    foreach ($sotr_ids as $sotr_id) {
+                        // Obtener los datos del solicitante transporte
+                        $url = REST_RESI . "/getSolicitanteTransporte/" . $sotr_id;
+                        $response = $this->rest->callAPI("GET", $url);
+                        $data = json_decode($response["data"], true);
+
+                        if (!empty($data["transportistas"]["transportista"][0])) {
+                            $sol = $data["transportistas"]["transportista"][0];
+                            $razon_social = $sol["razon_social"];
+                            $cuit = $sol["cuit"];
+
+                            log_message('debug', "Creando empresa para solicitante_transportista SOTR_ID {$sotr_id} - Razon Social: {$razon_social}, CUIT: {$cuit}");
+
+                            $empresa = [
+                                'nombre'      => $razon_social,
+                                'cuit'        => $cuit,
+                                'descripcion' => $razon_social,
+                                'telefono'    => '',
+                                'email'       => '',
+                                'pais_id'     => '',
+                                'prov_id'     => '',
+                                'loca_id'     => '',
+                                'imagepath'   => '',
+                                'image'       => ''
+                            ];
+
+                            $post = ['empresa' => $empresa];
+                            $headers = ['Content-Type: application/json'];
+
+                            // Llamado a la API para crear la empresa en Bonita y core.empresas
+                            $url = API_CORE . "/empresa";
+                            $result = $this->rest->callAPI("POST", $url, $post, $headers);
+                            $result_decoded = json_decode($result["data"], true);
+
+                            log_message('debug', "Empresa creada para SOTR_ID {$sotr_id}");
+                            log_message('debug', "Respuesta API generador/empresa: " . json_encode($result_decoded));
+
+                            // Verificar si la API devolvió un empr_id
+                            if (!empty($result_decoded["respuesta"]["empr_id"])) {
+                                $empr_id = $result_decoded["respuesta"]["empr_id"];
+
+                                // Actualizar la tabla solicitantes_transportista con el nuevo empr_id
+                                $this->db->set('empr_id', $empr_id);
+                                $this->db->where('sotr_id', $sotr_id);
+                                $this->db->update('log.solicitantes_transporte');
+
+                                if ($this->db->affected_rows() > 0) {
+                                    log_message('debug', "Actualizado solicitantes_transporte.empr_id = {$empr_id} para SOTR_ID {$sotr_id}");
+                                } else {
+                                    log_message('error', "No se pudo actualizar empr_id para SOTR_ID {$sotr_id}");
+                                }
+                            } else {
+                                log_message('error', "No se recibió empr_id válido para SOTR_ID {$sotr_id}");
+                            }
+                        } else {
+                            log_message('warning', "No se encontró transportista para SOTR_ID {$sotr_id}");
+                        }
+                    }
+
+                    log_message('debug', 'Procesamiento de transportistas completado');
+                } else {
+                    $sotr_ids = [];
+                }
+
+                $response = array(
+                    'success' => $is_success,
+                    'output' => $output,
+                    'raw_response' => array('output' => $output)
+                );
+                
+                log_message('debug', 'Respuesta final preparada: ' . json_encode($response));
+                log_message('info', '=== FINALIZANDO enviarADataservice ===');
+                
+                return $response;
             }
-            
-            $response = array(
-                'success' => $is_success,
-                'output' => $output,
-                'raw_response' => array('output' => $output)
-            );
-            
-            log_message('debug', 'Respuesta final preparada: ' . json_encode($response));
-            log_message('info', '=== FINALIZANDO enviarADataservice ===');
-            
-            return $response;
             
         } catch (Exception $e) {
             log_message('error', 'Exception en enviarADataservice: ' . $e->getMessage());
