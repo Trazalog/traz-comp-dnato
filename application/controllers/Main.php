@@ -55,7 +55,7 @@ class Main extends CI_Controller {
 				redirect($data['direccion']);
 		}else{
 				//log_message('DEBUG','#Main/index | Error de Redireccionamiento');
-				echo 'Error de Redireccionamiento';
+				redirect(base_url().'main/login/');
 		}
 	}
 
@@ -1139,7 +1139,17 @@ class Main extends CI_Controller {
 											$url = base_url() . 'main/complete/token/' . $qstring;
 											$link = '<a href="' . $url . '">' . $url . '</a>';
 
-											$this->load->library('email');
+											$config = array(
+													'protocol' => 'smtp',
+													'smtp_host' => 'mauriper.ferozo.com',
+													'smtp_port' => 587,
+													'smtp_user' => 'register@trazalog.com',
+													'smtp_pass' => 'Xdv*mq35wW',
+													'mailtype' => 'html',
+													'charset' => 'utf-8',
+													'smtp_timeout' => 30,
+											);
+											$this->load->library('email', $config);
 											$this->load->library('sendmail');
 											
 											$message = $this->sendmail->sendRegister($this->input->post('lastname'),$this->input->post('email'),$link, $sTl);
@@ -1152,7 +1162,8 @@ class Main extends CI_Controller {
 
 											//Sending mail
 											if($this->email->send()){
-													redirect(base_url().'main/successregister/');
+													header('Location: ' . base_url() . 'main/successregister?t=' . time());
+													exit;
 											}else{
 													$this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
 													exit;
@@ -1167,15 +1178,13 @@ class Main extends CI_Controller {
 
 									$config = array(
 											'protocol' => 'smtp',
-											'smtp_host' => 'ssl://smtp.gmail.com',
-											'smtp_auth' => true,
-											'smtp_port' => '587',
-											'smtp_user' => 'soportetrazalog24@gmail.com',
-											'smtp_pass' => '123trazalog24',
+											'smtp_host' => 'mauriper.ferozo.com',
+											'smtp_port' => 587,
+											'smtp_user' => 'register@trazalog.com',
+											'smtp_pass' => 'Xdv*mq35wW',
 											'mailtype' => 'html',
-											'newline' => "\r\n",
-											'crlf' => "\r\n",
 											'charset' => 'utf-8',
+											'smtp_timeout' => 30,
 									);
 									//insert to database
 									$id = $this->user_model->insertUser($clean);
@@ -1198,12 +1207,26 @@ class Main extends CI_Controller {
 									$this->email->set_mailtype("html");
 
 									
-									//Sending mail
-									if($this->email->send()){
-											redirect(base_url().'main/successregister/');
+									//Sending mail - LOGS DETALLADOS
+									log_message('info', '=== INICIO ENVÍO EMAIL REGISTRO ===');
+									log_message('info', 'Destinatario: ' . $to_email);
+									log_message('info', 'Remitente: ' . $this->config->item('register'));
+									log_message('info', 'Asunto: Set Password Login');
+									log_message('info', 'URL de activación: ' . $url);
+									log_message('info', 'Configuración email: ' . json_encode($config));
+									
+									$email_sent = $this->email->send();
+									
+									if($email_sent){
+											log_message('info', '✅ EMAIL ENVIADO EXITOSAMENTE');
+											log_message('info', 'Debug info: ' . $this->email->print_debugger());
+											header('Location: ' . base_url() . 'main/successregister?t=' . time());
+											exit;
 									}else{
+											log_message('error', '❌ ERROR AL ENVIAR EMAIL');
+											log_message('error', 'Debug info: ' . $this->email->print_debugger());
 											show_error($this->email->print_debugger());
-											$this->session->set_flashdata('flash_message', 'Hbo un problema al enviar el email.');
+											$this->session->set_flashdata('flash_message', 'Hubo un problema al enviar el email.');
 											exit;
 									}
 							}
@@ -1214,11 +1237,20 @@ class Main extends CI_Controller {
 	//if success new user register
 	public function successregister()
 	{
+			log_message('info', '=== INICIO SUCCESSREGISTER ===');
+			log_message('info', 'URL actual: ' . current_url());
+			log_message('info', 'User Agent: ' . $_SERVER['HTTP_USER_AGENT']);
+			log_message('info', 'Referer: ' . (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'No referer'));
+			
 			$data['title'] = "Success Register";
+			log_message('info', 'Cargando vistas: header, container, register-info, footer');
+			
 			$this->load->view('header', $data);
 			$this->load->view('container');
 			$this->load->view('register-info');
 			$this->load->view('footer');
+			
+			log_message('info', '=== FIN SUCCESSREGISTER ===');
 	}
 
 	//if success after set password
@@ -1275,17 +1307,18 @@ class Main extends CI_Controller {
 					unset($cleanPost['passconf']);
 					$userInfo = $this->user_model->updateUserInfo($cleanPost);
 
-					if(!$userInfo){
-							$this->session->set_flashdata('flash_message', 'Hubo un problema actualizando su Usuario...');
-							redirect(base_url().'main/login');
-					}
+                    if(!$userInfo){
+                            $this->session->set_flashdata('flash_message', 'Hubo un problema actualizando su Usuario...');
+                            redirect(base_url().'main/login');
+                    }
 
 					unset($userInfo->password);
 
-					foreach($userInfo as $key=>$val){
-							$this->session->set_userdata($key, $val);
-					}
-					redirect(base_url().'main/');
+                    foreach($userInfo as $key=>$val){
+                            $this->session->set_userdata($key, $val);
+                    }
+                    // Redirigir siempre al éxito de registro
+                    redirect(base_url().'register/register_success');
 
 			}
 	}

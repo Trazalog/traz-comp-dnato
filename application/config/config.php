@@ -549,7 +549,7 @@ $config['banned_users'] = array('unban', 'ban');
 | This is about email sender
 |
 */
-$config['register'] = 'soportetrazalog24@gmail.com';
-$config['forgot'] = 'soportetrazalog24@gmail.com';
+$config['register'] = 'register@trazalog.com';
+$config['forgot'] = 'register@trazalog.com';
 
 
