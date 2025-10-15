@@ -150,3 +150,20 @@ define('BULKLOAD_STAGING_DIR', FCPATH . 'bulkload_stage_files');
 define('BULKLOAD_MAX_FILE_SIZE', 10 * 1024 * 1024); // 10 MB
 define('BULKLOAD_ALLOWED_EXTENSIONS', 'xlsx,xls');
 define('BULKLOAD_TIMEOUT', 60); // segundos
+
+/*
+|--------------------------------------------------------------------------
+| Registro de Usuarios Configuration
+|--------------------------------------------------------------------------
+|
+| Configuración para la funcionalidad de registro de usuarios
+|
+*/
+define('REST_CORE_PAISES', REST_CORE . '/tablas/paises_registracion');
+
+// Campos adicionales para usuarios
+define('CAMPOS_USUARIO_ADICIONALES', array(
+    'reg_pais_id',
+    'reg_razon_social', 
+    'telefono'
+));

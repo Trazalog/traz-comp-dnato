@@ -17,17 +17,37 @@ class User_model extends CI_Model {
     //insert user into database
     public function insertUser($d)
     {  
-				$string = array(
-						'first_name'=>$d['firstname'],
-						'last_name'=>$d['lastname'],
-						'email'=>$d['email'],
-						'role'=>$this->roles[0],
-						'status'=>$this->status[0],
-						'banned_users'=>$this->banned_users[0]
-				);
-				$q = $this->db->insert_string('seg.users',$string);
-				$this->db->query($q);
-				return $this->db->insert_id();
+        log_message('INFO', '#TRAZA|USER_MODEL|insertUser() >> Insertando nuevo usuario');
+        
+        $string = array(
+            'first_name' => $d['firstname'],
+            'last_name' => $d['lastname'],
+            'email' => $d['email'],
+            'role' => $this->roles[0],
+            'status' => $this->status[0],
+            'banned_users' => $this->banned_users[0]
+        );
+        
+        // Agregar campos adicionales si existen
+        if (isset($d['reg_pais_id'])) {
+            $string['reg_pais_id'] = $d['reg_pais_id'];
+        }
+        if (isset($d['reg_razon_social'])) {
+            $string['reg_razon_social'] = $d['reg_razon_social'];
+        }
+        if (isset($d['telefono'])) {
+            $string['telefono'] = $d['telefono'];
+        }
+        
+        log_message('DEBUG', '#TRAZA|USER_MODEL|insertUser() >> Datos a insertar: ' . json_encode($string));
+        
+        $q = $this->db->insert_string('seg.users', $string);
+        $this->db->query($q);
+        
+        $insert_id = $this->db->insert_id();
+        log_message('INFO', '#TRAZA|USER_MODEL|insertUser() >> Usuario insertado con ID: ' . $insert_id);
+        
+        return $insert_id;
     }
     
     //check is duplicate
@@ -697,5 +717,80 @@ class User_model extends CI_Model {
         log_message('DEBUG', "#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: >> " . json_encode($aux));
 
         return $aux;
+    }
+
+    /**
+     * Obtiene lista de países desde REST_CORE
+     * @return array|false Lista de países o false si hay error
+     */
+    public function obtenerPaisesRegistracion()
+    {
+        log_message('INFO', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Iniciando obtención de países');
+        
+        try {
+            $this->load->library('rest');
+            
+            $response = $this->rest->callAPI("GET", REST_CORE_PAISES, array());
+            
+            if ($response && isset($response['data'])) {
+                // Limpiar la respuesta antes de decodificar
+                $cleanResponse = trim($response['data']);
+                log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Respuesta limpia: ' . substr($cleanResponse, 0, 200) . '...');
+                
+                $data = json_decode($cleanResponse, true);
+                
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Error JSON: ' . json_last_error_msg());
+                    log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Respuesta cruda: ' . $cleanResponse);
+                    return false;
+                }
+                
+                if (isset($data['tablas']['tabla']) && is_array($data['tablas']['tabla'])) {
+                    log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Países obtenidos: ' . count($data['tablas']['tabla']));
+                    return $data['tablas']['tabla'];
+                } else {
+                    log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Estructura de respuesta: ' . json_encode($data));
+                }
+            } else {
+                log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Respuesta completa: ' . json_encode($response));
+            }
+            
+            log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Error al obtener países');
+            return false;
+            
+        } catch (Exception $e) {
+            log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Excepción: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Valida formato de teléfono según país
+     * @param string $telefono
+     * @param int $reg_pais_id
+     * @return bool
+     */
+    public function validarTelefonoPorPais($telefono, $reg_pais_id)
+    {
+        log_message('INFO', '#TRAZA|USER_MODEL|validarTelefonoPorPais() >> Validando teléfono para país: ' . $reg_pais_id);
+        
+        // Patrones básicos por país usando los IDs de la base de datos
+        $patrones = array(
+            'paises_registracionAR' => '/^\+?54\s?9?\d{4}\s?\d{6}$/', // Argentina
+            'paises_registracionBR' => '/^\+?55\s?\d{2}\s?\d{4,5}\s?\d{4}$/', // Brasil
+            'paises_registracionCL' => '/^\+?56\s?9?\d{8}$/', // Chile
+            'paises_registracionUY' => '/^\+?598\s?9?\d{7}$/', // Uruguay
+            'paises_registracionPE' => '/^\+?51\s?9?\d{8}$/', // Perú
+            'paises_registracionEC' => '/^\+?593\s?9?\d{8}$/', // Ecuador
+            'paises_registracionMX' => '/^\+?52\s?9?\d{10}$/', // México
+            'paises_registracionBO' => '/^\+?591\s?9?\d{8}$/', // Bolivia
+        );
+        
+        $patron = isset($patrones[$reg_pais_id]) ? $patrones[$reg_pais_id] : '/^\+?[\d\s\-\(\)]{7,15}$/';
+        
+        $valido = preg_match($patron, $telefono);
+        log_message('DEBUG', '#TRAZA|USER_MODEL|validarTelefonoPorPais() >> Teléfono válido: ' . ($valido ? 'Sí' : 'No'));
+        
+        return $valido;
     }
 }

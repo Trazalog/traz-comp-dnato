@@ -1,4 +1,7 @@
-1 - Todo el codigo a generar debe dividirse en model, view y controller. En el model deben ir todas las llamadas a servicios de wso2, y en casos particulares, las llamadas a base de datos. En el view todo el html. En el controller se cargarn el resto de los componentes, y es quien coordina las ainteracciones entre los demas elementos, pero nunca imprime valores en pantalla ni hace operaciones en servicios o base de datos
+1 - Todo el codigo a generar debe respetar CodeIgniter 5.7 y debe dividirse en model, view y controller. 
+    En el model deben ir todas las llamadas a servicios de wso2, y en casos particulares, las llamadas a base de datos. 
+    En el view todo el html. En el controller se cargarn el resto de los componentes, y es quien coordina las ainteracciones entre los demas elementos, 
+    pero nunca imprime valores en pantalla ni hace operaciones en servicios o base de datos
 2 - No deben hardcodearse valores, se deben dejar parametros en constants.php
 3 - todas las llamadas a endpoints de servicios no deben estar hardcodeada, deben ester en constant.php, con variables como por ej REST_CORE para el COREDataService
 4 - usamos logging, se debe poner mensajes de info en la entrada de toda operacion, debug cuando queramos mostrar valores importantes de variables, o parametros que estamos enviando a un servicio, y ERROR en caso de excepcion (y luego propagar el error)

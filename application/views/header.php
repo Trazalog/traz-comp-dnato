@@ -1,8 +1,13 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-$result = $this->user_model->getAllSettings();
-$theme = $result->theme;
+// Para la página de registro, no cargar ningún tema Bootstrap
+if (strpos(current_url(), 'register') !== false) {
+    $theme = ''; // No cargar tema Bootstrap para evitar interferencias
+} else {
+    $result = $this->user_model->getAllSettings();
+    $theme = $result->theme;
+}
 ?>
 
 <!doctype html>
@@ -20,8 +25,10 @@ $theme = $result->theme;
         
         <!--CSS-->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <?php if (strpos(current_url(), 'register') === false): ?>
         <link rel="stylesheet" href="<?php echo $theme; ?>">
         <link rel="stylesheet" href="<?php echo base_url().'public/css/main.css' ?>">
+        <?php endif; ?>
         <!-- JQuery -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>

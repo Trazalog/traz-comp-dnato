@@ -1093,145 +1093,94 @@ class Main extends CI_Controller {
 	//register new user from frontend
 	public function register()
 	{
-			$data['title'] = "Registro Nuevo Usuario";
-			$this->load->library('curl');
-			$this->load->library('recaptcha');
-			$this->form_validation->set_rules('firstname', 'First Name', 'required');
-			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
-			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+		log_message('INFO', '#TRAZA|MAIN|register() >> Iniciando proceso de registro');
+		
+		$data['title'] = "Registro Nuevo Usuario";
+		$this->load->library('curl');
+		$this->load->library('recaptcha');
+		$this->load->helper('flag');
+		
+		// Reglas de validación
+		$this->form_validation->set_rules('firstname', 'Nombre', 'required');
+		$this->form_validation->set_rules('lastname', 'Apellido', 'required');
+		$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+		$this->form_validation->set_rules('reg_razon_social', 'Razón Social de la Empresa', 'required');
+		$this->form_validation->set_rules('telefono', 'Teléfono', 'required');
+		$this->form_validation->set_rules('reg_pais_id', 'País', 'required');
 
-			$result = $this->user_model->getAllSettings();
-			$sTl = $result->site_title;
-			$data['recaptcha'] = $result->recaptcha;
-			// Si esprimera vez al entrar carga pantalla ara registrarse
-			if ($this->form_validation->run() == FALSE) {
-					// traigo los groups de BPM para lleba
-					$data['empresas'] = $this->Roles->getBpmGroups();
-					$this->load->view('header', $data);
-					$this->load->view('container');
-					$this->load->view('register');
-					$this->load->view('footer');
-			}else{
-					if($this->user_model->isDuplicate($this->input->post('email'))){
-							$this->session->set_flashdata('flash_message', 'El email que intenta registrar ya existe...');
-							redirect(base_url().'main/register');
-					}else{
-							$post = $this->input->post(NULL, TRUE);
-							$clean = $this->security->xss_clean($post);
-
-							if($data['recaptcha'] == 'yes'){
-									//recaptcha
-									$recaptchaResponse = $this->input->post('g-recaptcha-response');
-									$userIp = $_SERVER['REMOTE_ADDR'];
-									$key = $this->recaptcha->secret;
-									$url = "https://www.google.com/recaptcha/api/siteverify?secret=".$key."&response=".$recaptchaResponse."&remoteip=".$userIp; //link
-									$response = $this->curl->simple_get($url);
-									$status= json_decode($response, true);
-
-									//recaptcha check
-									if($status['success']){
-											//insert to database
-											$id = $this->user_model->insertUser($clean);
-											$token = $this->user_model->insertToken($id);
-
-											//generate token
-											$qstring = $this->base64url_encode($token);
-											$url = base_url() . 'main/complete/token/' . $qstring;
-											$link = '<a href="' . $url . '">' . $url . '</a>';
-
-											$config = array(
-													'protocol' => 'smtp',
-													'smtp_host' => 'mauriper.ferozo.com',
-													'smtp_port' => 587,
-													'smtp_user' => 'register@trazalog.com',
-													'smtp_pass' => 'Xdv*mq35wW',
-													'mailtype' => 'html',
-													'charset' => 'utf-8',
-													'smtp_timeout' => 30,
-											);
-											$this->load->library('email', $config);
-											$this->load->library('sendmail');
-											
-											$message = $this->sendmail->sendRegister($this->input->post('lastname'),$this->input->post('email'),$link, $sTl);
-											$to_email = $this->input->post('email');
-											$this->email->from($this->config->item('register'), 'Set Password ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
-											$this->email->to($to_email);
-											$this->email->subject('Set Password Login');
-											$this->email->message($message);
-											$this->email->set_mailtype("html");
-
-											//Sending mail
-											if($this->email->send()){
-													header('Location: ' . base_url() . 'main/successregister?t=' . time());
-													exit;
-											}else{
-													$this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
-													exit;
-											}
-									}else{
-											//recaptcha failed
-											$this->session->set_flashdata('flash_message', 'Error...! Google Recaptcha UnSuccessful!');
-											redirect(base_url().'main/register/');
-											exit;
-									}
-							}else{
-
-									$config = array(
-											'protocol' => 'smtp',
-											'smtp_host' => 'mauriper.ferozo.com',
-											'smtp_port' => 587,
-											'smtp_user' => 'register@trazalog.com',
-											'smtp_pass' => 'Xdv*mq35wW',
-											'mailtype' => 'html',
-											'charset' => 'utf-8',
-											'smtp_timeout' => 30,
-									);
-									//insert to database
-									$id = $this->user_model->insertUser($clean);
-									$token = $this->user_model->insertToken($id);
-
-									//generate token
-									$qstring = $this->base64url_encode($token);
-									$url = base_url() . 'main/complete/token/' . $qstring;
-									$link = '<a href="' . $url . '">' . $url . '</a>';
-
-									$this->load->library('email',$config);
-									$this->load->library('sendmail');
-
-									$message = $this->sendmail->sendRegister($this->input->post('lastname'),$this->input->post('email'),$link,$sTl);
-									$to_email = $this->input->post('email');
-									$this->email->from($this->config->item('register'), 'Set Password ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
-									$this->email->to($to_email);
-									$this->email->subject('Set Password Login');
-									$this->email->message($message);
-									$this->email->set_mailtype("html");
-
-									
-									//Sending mail - LOGS DETALLADOS
-									log_message('info', '=== INICIO ENVÍO EMAIL REGISTRO ===');
-									log_message('info', 'Destinatario: ' . $to_email);
-									log_message('info', 'Remitente: ' . $this->config->item('register'));
-									log_message('info', 'Asunto: Set Password Login');
-									log_message('info', 'URL de activación: ' . $url);
-									log_message('info', 'Configuración email: ' . json_encode($config));
-									
-									$email_sent = $this->email->send();
-									
-									if($email_sent){
-											log_message('info', '✅ EMAIL ENVIADO EXITOSAMENTE');
-											log_message('info', 'Debug info: ' . $this->email->print_debugger());
-											header('Location: ' . base_url() . 'main/successregister?t=' . time());
-											exit;
-									}else{
-											log_message('error', '❌ ERROR AL ENVIAR EMAIL');
-											log_message('error', 'Debug info: ' . $this->email->print_debugger());
-											show_error($this->email->print_debugger());
-											$this->session->set_flashdata('flash_message', 'Hubo un problema al enviar el email.');
-											exit;
-									}
-							}
-					};
+		$result = $this->user_model->getAllSettings();
+		$sTl = $result->site_title;
+		$data['recaptcha'] = $result->recaptcha;
+		
+		// Si es primera vez al entrar carga pantalla para registrarse
+		if ($this->form_validation->run() == FALSE) {
+			log_message('INFO', '#TRAZA|MAIN|register() >> Mostrando formulario de registro');
+			
+			// Obtener países desde REST_CORE
+			$data['paises'] = $this->user_model->obtenerPaisesRegistracion();
+			
+			if (!$data['paises']) {
+				log_message('ERROR', '#TRAZA|MAIN|register() >> Error al obtener países');
+				$this->session->set_flashdata('flash_message', 'Error al cargar lista de países. Intente nuevamente.');
 			}
+			
+			// Mantener valores del formulario después de error
+			$data['form_data'] = array(
+				'firstname' => $this->input->post('firstname'),
+				'lastname' => $this->input->post('lastname'),
+				'email' => $this->input->post('email'),
+				'reg_razon_social' => $this->input->post('reg_razon_social'),
+				'telefono' => $this->input->post('telefono'),
+				'reg_pais_id' => $this->input->post('reg_pais_id')
+			);
+			
+			$this->load->view('header', $data);
+			// No cargar container.php para evitar contenedores Bootstrap con fondo azul
+			$this->load->view('register', $data);
+			// No cargar footer.php para evitar contenedores Bootstrap
+			echo '</body></html>';
+		} else {
+			log_message('INFO', '#TRAZA|MAIN|register() >> Procesando datos de registro');
+			
+			if ($this->user_model->isDuplicate($this->input->post('email'))) {
+				log_message('WARNING', '#TRAZA|MAIN|register() >> Email duplicado: ' . $this->input->post('email'));
+				$this->session->set_flashdata('flash_message', 'El email que intenta registrar ya existe...');
+				redirect(base_url() . 'main/register');
+			} else {
+				$post = $this->input->post(NULL, TRUE);
+				$clean = $this->security->xss_clean($post);
+				
+				// Validar teléfono según país
+				if (!$this->user_model->validarTelefonoPorPais($clean['telefono'], $clean['reg_pais_id'])) {
+					log_message('WARNING', '#TRAZA|MAIN|register() >> Teléfono inválido para el país seleccionado');
+					$this->session->set_flashdata('flash_message', 'El formato del teléfono no es válido para el país seleccionado.');
+					redirect(base_url() . 'main/register');
+				}
+
+				if ($data['recaptcha'] == 'yes') {
+					// recaptcha
+					$recaptchaResponse = $this->input->post('g-recaptcha-response');
+					$userIp = $_SERVER['REMOTE_ADDR'];
+					$key = $this->recaptcha->secret;
+					$url = "https://www.google.com/recaptcha/api/siteverify?secret=" . $key . "&response=" . $recaptchaResponse . "&remoteip=" . $userIp;
+					$response = $this->curl->simple_get($url);
+					$status = json_decode($response, true);
+
+					// recaptcha check
+					if ($status['success']) {
+						log_message('INFO', '#TRAZA|MAIN|register() >> reCAPTCHA válido, procediendo con registro');
+						$this->procesarRegistro($clean);
+					} else {
+						log_message('WARNING', '#TRAZA|MAIN|register() >> reCAPTCHA inválido');
+						$this->session->set_flashdata('flash_message', 'Error en la validación reCAPTCHA. Intente nuevamente.');
+						redirect(base_url() . 'main/register');
+					}
+				} else {
+					log_message('INFO', '#TRAZA|MAIN|register() >> Sin reCAPTCHA, procediendo con registro');
+					$this->procesarRegistro($clean);
+				}
+			}
+		}
 	}
 
 	//if success new user register
@@ -1593,5 +1542,40 @@ class Main extends CI_Controller {
 		return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, '=', STR_PAD_RIGHT));
 	}
 
+	/**
+	 * Procesa el registro del usuario
+	 * @param array $clean Datos limpios del formulario
+	 */
+	public function procesarRegistro($clean)
+	{
+		log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Procesando registro de usuario');
+		
+		// insert to database
+		$id = $this->user_model->insertUser($clean);
+		$token = $this->user_model->insertToken($id);
+
+		// generate token
+		$qstring = $this->base64url_encode($token);
+		$url = base_url() . 'main/complete/token/' . $qstring;
+		$link = '<a href="' . $url . '">' . $url . '</a>';
+
+        $this->load->library('email');
+        // Usar configuración global (protocol sendmail) definida en application/config/email.php
+        $this->email->set_mailtype('html');
+        $this->email->from('register@trazalog.com', 'Trazalog Tools');
+		$this->email->to($clean['email']);
+		$this->email->subject('Set Password Login');
+		$this->email->message('Hi, ' . $clean['firstname'] . '<br><br>Welcome! you have signed up with our website with the following information:<br><br><strong>Username : ' . $clean['email'] . '</strong><br><strong>Password : (Not Set) </strong><br><br>Before you can login, you need to activate and set your Password<br>account by clicking on this link:<br><br>' . $link . '<br><br>Sincerely yours,<br>Tools');
+
+		if ($this->email->send()) {
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Email de activación enviado correctamente');
+			$this->session->set_flashdata('success_message', 'Registro exitoso! Revise su email para activar su cuenta.');
+		} else {
+			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al enviar email: ' . $this->email->print_debugger());
+			$this->session->set_flashdata('flash_message', 'Error al enviar email de activación. Contacte al administrador.');
+		}
+
+		redirect(base_url() . 'main/register');
+	}
 
 }
