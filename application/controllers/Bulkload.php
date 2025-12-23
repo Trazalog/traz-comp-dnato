@@ -217,7 +217,7 @@ class Bulkload extends CI_Controller {
             // Generar nombre único para el archivo
             $timestamp = date('Y-m-d_H-i-s');
 #            $filename = 'bulkload_' . $timestamp . '_' . uniqid() . '.' . $extension;
-            $filename = 'bulkload_rodo.' . $extension;
+            $filename = 'bulkload_solicitante.' . $extension;
             $filepath = $staging_dir . '/' . $filename;
             
             log_message('debug', 'Generated filename: ' . $filename);
