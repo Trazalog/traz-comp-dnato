@@ -76,6 +76,7 @@
                                 <li><a href="'.site_url().'menu/rolesList">Menu por Rol</a></li>
                               </ul>
                             </li>
+                            <li><a href="'.site_url().'bulkload"><i class="fa fa-upload" aria-hidden="true"></i> Carga Masiva</a></li>
                             <li><a href="'.site_url().'main/settings"><i class="glyphicon glyphicon-cog" aria-hidden="true"></i> Configuración</a></li>';
                         }
                     ?>

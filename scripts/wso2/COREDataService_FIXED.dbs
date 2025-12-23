@@ -1,0 +1,62 @@
+<data name="COREDataService" serviceGroup="" serviceNamespace="" targetNamespace="">
+   <description>Core Data Service for Trazalog Tools - JSON/REST Only</description>
+   <config id="ToolsDataSource">
+      <property name="org.wso2.ws.dataservice.driver">org.postgresql.Driver</property>
+      <property name="org.wso2.ws.dataservice.protocol">jdbc:postgresql://10.142.0.13:5432/tools_prod_t</property>
+      <property name="org.wso2.ws.dataservice.user">postgres</property>
+      <property name="org.wso2.ws.dataservice.password">!Password00</property>
+      <property name="org.wso2.ws.dataservice.minpoolsize">1</property>
+      <property name="org.wso2.ws.dataservice.maxpoolsize">20</property>
+      <property name="org.wso2.ws.dataservice.validationQuery">SELECT 1</property>
+   </config>
+   
+   <!-- Query para obtener entidades de negocio -->
+   <query id="getEntidadesNegocio" useConfig="ToolsDataSource">
+      <sql>SELECT nombre, stored_procedure, template, fec_alta, usuario FROM sta.entidades_negocio ORDER BY nombre</sql>
+      <result outputType="json">{"response":{"entidades":[{"nombre":"$nombre","stored_procedure":"$stored_procedure","template":"$template","fec_alta":"$fec_alta","usuario":"$usuario"}]}}</result>
+      <element name="nombre" column="nombre" xsdType="string"/>
+      <element name="stored_procedure" column="stored_procedure" xsdType="string"/>
+      <element name="template" column="template" xsdType="string"/>
+      <element name="fec_alta" column="fec_alta" xsdType="string"/>
+      <element name="usuario" column="usuario" xsdType="string"/>
+   </query>
+   
+   <!-- Query para procesar carga masiva - USANDO PROCEDIMIENTO PADRE -->
+   <query id="procesarCargaMasiva" useConfig="ToolsDataSource">
+      <sql>SELECT sta.ejecutar_carga_masiva(:stored_procedure, :url_archivo, CAST(:empr_id AS INTEGER)) as resultado</sql>
+      <result outputType="json">{"response":{"resultado":[{"output":"$resultado"}]}}</result>
+      <param name="stored_procedure" sqlType="STRING"/>
+      <param name="url_archivo" sqlType="STRING"/>
+      <param name="empr_id" sqlType="STRING"/>
+      <element name="output" column="resultado" xsdType="string"/>
+   </query>
+   
+   <!-- Query para health check -->
+   <query id="getHealthCheck" useConfig="ToolsDataSource">
+      <sql>SELECT 'OK' as status, CURRENT_TIMESTAMP as timestamp</sql>
+      <result outputType="json">{"response":{"health":[{"status":"$status","timestamp":"$timestamp"}]}}</result>
+      <element name="status" column="status" xsdType="string"/>
+      <element name="timestamp" column="timestamp" xsdType="string"/>
+   </query>
+   
+   <!-- REST Resources - Solo JSON/REST -->
+   
+   <!-- GET: Obtener entidades de negocio -->
+   <resource method="GET" path="/entidades_negocio">
+      <call-query href="getEntidadesNegocio"/>
+   </resource>
+   
+   <!-- POST: Procesar carga masiva -->
+   <resource method="POST" path="/carga_masiva/archivo">
+      <call-query href="procesarCargaMasiva">
+         <with-param name="stored_procedure" query-param="_post_carga_masiva_archivo.stored_procedure"/>
+         <with-param name="url_archivo" query-param="_post_carga_masiva_archivo.url_archivo"/>
+         <with-param name="empr_id" query-param="_post_carga_masiva_archivo.empr_id"/>
+      </call-query>
+   </resource>
+   
+   <!-- GET: Health check del servicio -->
+   <resource method="GET" path="/health">
+      <call-query href="getHealthCheck"/>
+   </resource>
+</data>

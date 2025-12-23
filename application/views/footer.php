@@ -52,7 +52,13 @@
 
         function cargarCalendar(){
 
-            var tagsLastCommits = <?php echo ApplicationVersion::getLastVersions(); ?>;
+            var tagsLastCommits = <?php 
+                try {
+                    echo ApplicationVersion::getLastVersions();
+                } catch (Exception $e) {
+                    echo '[""]';
+                }
+            ?>;
             /*console.log(tagsLastCommits);*/
 
             let lastCommits = tagsLastCommits[0].split("\n");  
@@ -99,7 +105,7 @@
             });
 
             calendar.render();
-            }
+        }
     </script>
 
     <script src='<?php  echo base_url();?>assets/fullcalendar/lib/main.js'></script>
