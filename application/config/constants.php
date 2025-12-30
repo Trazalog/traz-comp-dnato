@@ -89,13 +89,15 @@ define('REST_BPM', 'http://10.142.0.13:8280/tools/bpm');
 define('API_CORE', 'http://10.142.0.13:8280/tools/core');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
+define('FRM', 'traz-comp-formularios/');
+define('FORMULARIO_REGISTRO_ID', 72);
 define('TOOLS_ADMIN_USER','admin@gmail.com');
 define('BPM_USER_PASS', 'bpm');
 
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
-define('DE', 'http://traz-comp.local/traz-tools/');
-define('DS', 'http://traz-comp.local/traz-comp-dnato/main/login');
+define('DE', 'http://traz-comp.local/');
+define('DS', 'http://traz-comp.local/main/login');
 define('DNATO', 'http://traz-comp.local/traz-comp-dnato/');
 define('SIS_NAME', 'TOOLS');
 
@@ -167,3 +169,77 @@ define('CAMPOS_USUARIO_ADICIONALES', array(
     'reg_razon_social', 
     'telefono'
 ));
+
+define('REGISTRACION_PASSWORD_DEFAULT', '12345');
+
+define('REGISTRACION_USUARIOS_DEFAULT', array(
+    'usuario' => array(
+        'Solicitante de Almacén',
+        'Solicitante de Mantenimiento'
+    ),
+    'almacen' => array(
+        'Responsable de Almacén'
+    ),
+    'panol' => array(
+        'Responsable de Pañol'
+    ),
+    'produccion' => array(
+        'Responsable de Producción'
+    ),
+    'mantenimiento' => array(
+        'Supervisor de Mantenimiento',
+        'Planificador de Mantenimiento'
+    )
+));
+
+define('BPM_SESSION_FALLBACK', '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"');
+
+// Usuarios freemium para mostrar en página de bienvenida
+define('FREEMIUM_USERS', '
+<div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
+    <h4 style="color: #2c3e50; margin-top: 0;">Usuarios Generados Automáticamente</h4>
+    <p style="margin-bottom: 15px; color: #7f8c8d;">Se han creado los siguientes usuarios para que puedas utilizar Trazalog Tools:</p>
+    
+    <div style="background-color: white; padding: 15px; border-radius: 5px; border: 1px solid #ecf0f1;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ecf0f1;">
+            <div>
+                <strong style="color: #2c3e50;">admin@tudominio.com</strong>
+                <br><small style="color: #7f8c8d;">Administrador del sistema</small>
+            </div>
+            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">ACTIVO</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ecf0f1;">
+            <div>
+                <strong style="color: #2c3e50;">operador@tudominio.com</strong>
+                <br><small style="color: #7f8c8d;">Operador de planta</small>
+            </div>
+            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">ACTIVO</span>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+            <div>
+                <strong style="color: #2c3e50;">supervisor@tudominio.com</strong>
+                <br><small style="color: #7f8c8d;">Supervisor de producción</small>
+            </div>
+            <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">ACTIVO</span>
+        </div>
+    </div>
+    
+    <div style="margin-top: 15px; padding: 10px; background-color: #e8f4fd; border-radius: 5px;">
+        <p style="margin: 0; color: #2980b9; font-size: 14px;">
+            <strong>Nota:</strong> Todos los usuarios tienen la contraseña inicial "123456". 
+            Te recomendamos cambiar las contraseñas después del primer inicio de sesión.
+        </p>
+    </div>
+</div>
+');
+
+/*
+||--------------------------------------------------------------------------
+|| Formularios Dinámicos Configuration
+||--------------------------------------------------------------------------
+||
+|| Configuración para el módulo de formularios dinámicos
+||
+*/

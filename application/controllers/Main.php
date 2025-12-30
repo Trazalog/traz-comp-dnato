@@ -1150,6 +1150,13 @@ class Main extends CI_Controller {
 				$post = $this->input->post(NULL, TRUE);
 				$clean = $this->security->xss_clean($post);
 				
+				// Validar razón social contra core.empresa
+				if ($this->user_model->existeRazonSocial($clean['reg_razon_social'], $clean['reg_pais_id'])) {
+					log_message('WARNING', '#TRAZA|MAIN|register() >> Razón social duplicada: ' . $clean['reg_razon_social']);
+					$this->session->set_flashdata('flash_message', 'La Razón Social ingresada ya existe en el sistema para el país solicitado');
+					redirect(base_url() . 'main/register');
+				}
+				
 				// Validar teléfono según país
 				if (!$this->user_model->validarTelefonoPorPais($clean['telefono'], $clean['reg_pais_id'])) {
 					log_message('WARNING', '#TRAZA|MAIN|register() >> Teléfono inválido para el país seleccionado');
@@ -1242,8 +1249,7 @@ class Main extends CI_Controller {
 
 			if ($this->form_validation->run() == FALSE) {
 					$this->load->view('header', $data);
-					$this->load->view('container');
-					$this->load->view('complete', $data);
+					$this->load->view('complete_password', $data);
 					$this->load->view('footer');
 			}else{
 					$this->load->library('password');
@@ -1266,8 +1272,9 @@ class Main extends CI_Controller {
                     foreach($userInfo as $key=>$val){
                             $this->session->set_userdata($key, $val);
                     }
-                    // Redirigir siempre al éxito de registro
-                    redirect(base_url().'register/register_success');
+                    
+            // Redirigir a página de éxito con formulario
+            redirect(base_url() . 'register/register_success');
 
 			}
 	}
@@ -1548,34 +1555,316 @@ class Main extends CI_Controller {
 	 */
 	public function procesarRegistro($clean)
 	{
-		log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Procesando registro de usuario');
-		
-		// insert to database
-		$id = $this->user_model->insertUser($clean);
-		$token = $this->user_model->insertToken($id);
+		try {
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> INICIANDO - Procesando registro de usuario');
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Datos del usuario: ' . json_encode($clean));
+			
+			// Validar que tenemos email
+			if (empty($clean['email'])) {
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Email vacío o no proporcionado');
+				throw new Exception('Email no proporcionado');
+			}
+			
+			// insert to database
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Insertando usuario en BD...');
+			$id = $this->user_model->insertUser($clean);
+			if (!$id) {
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al insertar usuario en BD');
+				throw new Exception('Error al insertar usuario en la base de datos');
+			}
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Usuario insertado con ID: ' . $id);
+			
+			// Generar token
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Generando token...');
+			$token = $this->user_model->insertToken($id);
+			if (!$token) {
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al generar token');
+				throw new Exception('Error al generar token de activación');
+			}
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Token generado: ' . substr($token, 0, 10) . '...');
 
-		// generate token
-		$qstring = $this->base64url_encode($token);
-		$url = base_url() . 'main/complete/token/' . $qstring;
-		$link = '<a href="' . $url . '">' . $url . '</a>';
+			// generate token
+			$qstring = $this->base64url_encode($token);
+			$url = base_url() . 'main/complete/token/' . $qstring;
+			$link = '<a href="' . $url . '">' . $url . '</a>';
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> URL de activación generada: ' . $url);
 
-        $this->load->library('email');
-        // Usar configuración global (protocol sendmail) definida en application/config/email.php
-        $this->email->set_mailtype('html');
-        $this->email->from('register@trazalog.com', 'Trazalog Tools');
-		$this->email->to($clean['email']);
-		$this->email->subject('Set Password Login');
-		$this->email->message('Hi, ' . $clean['firstname'] . '<br><br>Welcome! you have signed up with our website with the following information:<br><br><strong>Username : ' . $clean['email'] . '</strong><br><strong>Password : (Not Set) </strong><br><br>Before you can login, you need to activate and set your Password<br>account by clicking on this link:<br><br>' . $link . '<br><br>Sincerely yours,<br>Tools');
+			// Cargar biblioteca de email
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Cargando biblioteca email...');
+			$this->load->library('email');
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Biblioteca email cargada');
+			
+			// Usar configuración global (protocol sendmail) definida en application/config/email.php
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Configurando email...');
+			$this->email->set_mailtype('html');
+			$this->email->from('register@trazalog.com', 'Trazalog Tools');
+			$this->email->to($clean['email']);
+			$this->email->subject('Activar cuenta en Trazalog.com');
+			
+			// Crear mensaje HTML con logo y traducción
+			$logo_url = base_url() . 'public/img/logotzl.png';
+			$message = '
+			<html>
+			<head>
+				<meta charset="UTF-8">
+				<title>Activar cuenta en Trazalog.com</title>
+			</head>
+			<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+				<div style="text-align: center; margin-bottom: 30px;">
+					<img src="' . $logo_url . '" alt="Trazalog Tools" style="max-width: 200px; height: auto;">
+				</div>
+				
+				<h2 style="color: #2c3e50;">¡Hola, ' . $clean['firstname'] . '!</h2>
+				
+				<p>¡Bienvenido! Te has registrado en nuestro sitio web con la siguiente información:</p>
+				
+				<div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+					<p><strong>Usuario:</strong> ' . $clean['email'] . '</p>
+					<p><strong>Contraseña:</strong> (No configurada)</p>
+				</div>
+				
+				<p>Antes de poder iniciar sesión, necesitas activar y configurar tu contraseña haciendo clic en el siguiente enlace:</p>
+				
+				<div style="text-align: center; margin: 30px 0;">
+					<a href="' . $url . '" style="background-color: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Activar mi cuenta</a>
+				</div>
+				
+				<p>O copia y pega esta URL en tu navegador:</p>
+				<p style="word-break: break-all; color: #7f8c8d;">' . $url . '</p>
+				
+				<hr style="border: none; border-top: 1px solid #ecf0f1; margin: 30px 0;">
+				
+				<p style="color: #7f8c8d; font-size: 14px;">Atentamente,<br>El equipo de Trazalog Tools</p>
+			</body>
+			</html>';
+			
+			$this->email->message($message);
+			
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Configuración de email completada');
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Intentando enviar email a: ' . $clean['email']);
+			log_message('DEBUG', '#TRAZA|MAIN|procesarRegistro() >> Configuración email - Protocol: sendmail, Mailpath: /usr/sbin/sendmail');
 
-		if ($this->email->send()) {
-			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Email de activación enviado correctamente');
-			$this->session->set_flashdata('success_message', 'Registro exitoso! Revise su email para activar su cuenta.');
-		} else {
-			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al enviar email: ' . $this->email->print_debugger());
-			$this->session->set_flashdata('flash_message', 'Error al enviar email de activación. Contacte al administrador.');
+			// Intentar enviar email con manejo de errores
+			$email_sent = false;
+			$email_error = '';
+			$email_debug = '';
+			
+			try {
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ========== EJECUTANDO email->send() ==========');
+				$email_sent = $this->email->send();
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ========== email->send() retornó: ' . ($email_sent ? 'TRUE' : 'FALSE') . ' ==========');
+				
+				// Obtener información de debug para verificar errores
+				$email_debug = $this->email->print_debugger();
+				log_message('DEBUG', '#TRAZA|MAIN|procesarRegistro() >> Debug email completo: ' . $email_debug);
+				
+				if (!$email_sent) {
+					// Si send() retornó FALSE, hay un error claro
+					$email_error = $email_debug ?: 'Error desconocido al enviar email';
+					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> email->send() retornó FALSE - Email NO enviado');
+					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error detallado: ' . $email_error);
+				} else {
+					// Si send() retornó TRUE, verificar logs del sistema para detectar errores de entrega
+					// sendmail puede aceptar el email localmente pero fallar después al entregarlo
+					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Verificando logs del sistema para detectar errores de entrega...');
+					
+					// Esperar 5 segundos para que el MTA intente entregar (el timeout suele ser ~2 minutos, pero verificamos errores recientes)
+					sleep(5);
+					
+					// Verificar logs del sistema para errores de entrega
+					// Usar comando shell para leer el log ya que PHP puede no tener permisos directos
+					$to_email = $clean['email'];
+					$delivery_error = false;
+					$error_message = '';
+					
+					// Intentar leer el log usando tail (que puede tener permisos diferentes)
+					$mail_log_file = '/var/log/mail.log';
+					$log_content = '';
+					
+					// Método 1: Intentar leer directamente
+					if (file_exists($mail_log_file) && is_readable($mail_log_file)) {
+						$log_lines = array_slice(file($mail_log_file), -100);
+						$log_content = implode('', $log_lines);
+						log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Log leído directamente desde archivo');
+					} else {
+						// Método 2: Usar comando shell (tail puede tener permisos diferentes)
+						$command = "tail -100 " . escapeshellarg($mail_log_file) . " 2>&1";
+						$log_content = @shell_exec($command);
+						if ($log_content === null || $log_content === false) {
+							log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> No se puede leer el archivo de log: ' . $mail_log_file);
+							log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Intentando con sudo...');
+							// Método 3: Intentar con sudo (si está configurado sin contraseña)
+							$command = "sudo tail -100 " . escapeshellarg($mail_log_file) . " 2>&1";
+							$log_content = @shell_exec($command);
+							if ($log_content === null || $log_content === false) {
+								log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> No se puede leer el log ni con sudo. Verificando permisos...');
+								// Como último recurso, asumir que puede haber error y verificar después
+								$log_content = '';
+							}
+						} else {
+							log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Log leído usando comando shell');
+						}
+					}
+					
+					if (!empty($log_content)) {
+						// Buscar errores recientes relacionados con el destinatario
+						$current_time = time();
+						$error_patterns = array(
+							'/Deferred.*Connection timed out/',
+							'/Connection refused/',
+							'/Host unknown/',
+							'/Service unavailable/',
+							'/Temporary failure/',
+							'/dsn=4\./',
+							'/dsn=5\./'
+						);
+						
+						$log_lines = explode("\n", $log_content);
+						foreach ($log_lines as $line) {
+							// Verificar si la línea contiene el email del destinatario
+							if (strpos($line, $to_email) !== false) {
+								// Verificar si contiene algún patrón de error
+								foreach ($error_patterns as $pattern) {
+									if (preg_match($pattern, $line)) {
+										// Extraer timestamp de la línea (formato: 2025-12-16T04:03:06)
+										if (preg_match('/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/', $line, $time_match)) {
+											$error_time = strtotime($time_match[1]);
+											// Verificar si el error es muy reciente (últimos 3 minutos, ya que el timeout puede tardar ~2 minutos)
+											if (($current_time - $error_time) <= 180) {
+												$delivery_error = true;
+												$error_message = 'Error de entrega detectado en logs: ' . trim($line);
+												log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ' . $error_message);
+												break 2;
+											}
+										} else {
+											// Si no hay timestamp, asumir que es reciente si está en las últimas líneas
+											$delivery_error = true;
+											$error_message = 'Error de entrega detectado en logs (sin timestamp): ' . trim($line);
+											log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ' . $error_message);
+											break 2;
+										}
+									}
+								}
+							}
+						}
+					} else {
+						log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> No se pudo leer el contenido del log. Asumiendo que puede haber error de entrega.');
+						// Como no podemos verificar, asumir que puede haber error para ser conservador
+						// Pero no marcar como error automáticamente porque puede ser un problema de permisos
+					}
+					
+					if ($delivery_error) {
+						$email_error = $error_message;
+						$email_sent = false; // Considerar como fallido
+						log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ERROR DE ENTREGA DETECTADO - Email NO entregado');
+					} else {
+						log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> No se detectaron errores de entrega en logs del sistema');
+					}
+				}
+			} catch (Exception $e) {
+				$email_error = $e->getMessage();
+				$email_debug = $this->email->print_debugger();
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> EXCEPCIÓN al enviar email: ' . $email_error);
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Debug email: ' . $email_debug);
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Stack trace: ' . $e->getTraceAsString());
+				$email_sent = false;
+			}
+
+			if ($email_sent) {
+				log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Email de activación enviado correctamente');
+				$this->session->set_flashdata('success_message', 'Registro exitoso! Revise su email para activar su cuenta.');
+			} else {
+				// ERROR: Eliminar usuario y token creados porque el email falló
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ============================================');
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> FALLO AL ENVIAR EMAIL - ELIMINANDO USUARIO Y TOKEN');
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ============================================');
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error detallado: ' . ($email_error ?: ($email_debug ?: 'Error desconocido')));
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Email destino: ' . $clean['email']);
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> URL activación: ' . $url);
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Usuario ID a eliminar: ' . $id);
+				
+				// Eliminar token primero (puede tener foreign key)
+				$this->db->where('user_id', $id);
+				$token_deleted = $this->db->delete('seg.tokens');
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Token eliminado: ' . ($token_deleted ? 'Sí' : 'No'));
+				if (!$token_deleted) {
+					$db_error = $this->db->error();
+					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error BD al eliminar token: ' . json_encode($db_error));
+				}
+				
+				// Eliminar usuario
+				$this->db->where('id', $id);
+				$user_deleted = $this->db->delete('seg.users');
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Usuario eliminado: ' . ($user_deleted ? 'Sí' : 'No'));
+				if (!$user_deleted) {
+					$db_error = $this->db->error();
+					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error BD al eliminar usuario: ' . json_encode($db_error));
+				}
+				
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ============================================');
+				
+				// Lanzar excepción para que no se continúe y se muestre el error al usuario
+				$error_msg = 'Error al enviar email de activación. El registro ha sido cancelado. Por favor, intente nuevamente o contacte al administrador.';
+				throw new Exception($error_msg);
+			}
+
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Redirigiendo a página de registro');
+			redirect(base_url() . 'main/register');
+			
+		} catch (Exception $e) {
+			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> EXCEPCIÓN CAPTURADA: ' . $e->getMessage());
+			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
+			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Stack trace: ' . $e->getTraceAsString());
+			$this->session->set_flashdata('flash_message', 'Error al procesar el registro: ' . $e->getMessage());
+			redirect(base_url() . 'main/register');
 		}
+	}
 
-		redirect(base_url() . 'main/register');
+	/**
+	 * Crea una instancia del formulario de registro
+	 */
+
+	/**
+	 * Guarda el formulario de registro y actualiza el usuario
+	 */
+	public function guardarFormularioRegistro()
+	{
+		$user_id = $this->session->userdata('temp_user_id');
+		$info_id = $this->session->userdata('temp_info_id');
+		
+		if (!$user_id || !$info_id) {
+			echo json_encode(['success' => false, 'message' => 'Sesión inválida o info_id faltante']);
+			return;
+		}
+		
+		try {
+			// Cargar el helper y modelo del módulo
+			require_once(APPPATH . 'modules/traz-comp-formularios/application/helpers/form_helper.php');
+			$this->load->model('traz-comp-formularios/Forms');
+			
+			// Obtener los datos del formulario
+			$form_data = $this->input->post();
+			
+			// ACTUALIZAR la instancia existente
+			$this->Forms->actualizar($info_id, $form_data);
+			
+			// Actualizar el usuario con el info_id
+			$this->db->where('id', $user_id);
+			$this->db->set('reg_info_id', $info_id);
+			$this->db->update('seg.users');
+			
+			// Limpiar la sesión temporal
+			$this->session->unset_userdata('temp_user_id');
+			$this->session->unset_userdata('temp_info_id');
+			
+			log_message('INFO', '#TRAZA|MAIN|guardarFormularioRegistro() >> Formulario actualizado. user_id: ' . $user_id . ', info_id: ' . $info_id);
+			
+			echo json_encode(['success' => true, 'message' => 'Formulario guardado correctamente']);
+			
+		} catch (Exception $e) {
+			log_message('ERROR', '#TRAZA|MAIN|guardarFormularioRegistro() >> Excepción: ' . $e->getMessage());
+			echo json_encode(['success' => false, 'message' => 'Error al guardar formulario: ' . $e->getMessage()]);
+		}
 	}
 
 }

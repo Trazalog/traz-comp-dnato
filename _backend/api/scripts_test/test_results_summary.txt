@@ -1,0 +1,31 @@
+RESULTADOS DE PRUEBAS - API Crear Usuario
+==========================================
+Servidor: http://10.142.0.13:8280
+Fecha: $(date)
+
+TEST 1: Verificar Data Service (checkUsuarioDuplicado)
+-------------------------------------------------------
+URL: http://10.142.0.13:8280/services/COREDataService/usuario/duplicado/test@example.com
+Resultado: HTTP 200
+Response: {"respuesta":{"existe":"false"}}
+Estado: ✓ FUNCIONA CORRECTAMENTE
+
+TEST 2: Crear Usuario (API toolsCOREAPI)
+-------------------------------------------------------
+URL: http://10.142.0.13:8280/toolsCOREAPI/1.0.0/usuario
+Resultado: HTTP 404
+Estado: ✗ API NO ENCONTRADO - Verificar ruta o despliegue
+
+OBSERVACIONES:
+- El puerto 8280 usa HTTP, no HTTPS
+- Data Service funciona correctamente
+- API toolsCOREAPI retorna 404 - puede necesitar:
+  * Verificar ruta correcta del API
+  * Verificar que el API esté desplegado
+  * Verificar configuración de WSO2
+
+PRÓXIMOS PASOS:
+1. Verificar ruta correcta del API en WSO2
+2. Verificar que toolsCOREAPI.xml esté desplegado
+3. Obtener BPM_SESSION válido para pruebas completas
+

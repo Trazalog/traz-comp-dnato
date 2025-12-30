@@ -57,6 +57,38 @@ class User_model extends CI_Model {
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
     }
     
+    //check if razon social exists for the same country
+    public function existeRazonSocial($razon_social, $pais_id)
+    {
+        // Obtener la descripción del país desde core.tablas
+        $this->db->select('descripcion');
+        $this->db->from('core.tablas');
+        $this->db->where('tabla', 'pais');
+        $this->db->where('valor', $pais_id);
+        $pais_query = $this->db->get();
+        
+        if ($pais_query->num_rows() == 0) {
+            log_message('WARNING', '#TRAZA|USER_MODEL|existeRazonSocial() >> País no encontrado: ' . $pais_id);
+            return false;
+        }
+        
+        $pais_descripcion = $pais_query->row()->descripcion;
+        
+        // Buscar en core.empresas por razón social y país (ambos en mayúsculas)
+        $this->db->select('empr_id');
+        $this->db->from('core.empresas');
+        $this->db->where('UPPER(descripcion)', strtoupper($razon_social));
+        $this->db->where('UPPER(pais)', strtoupper($pais_descripcion));
+        $this->db->limit(1);
+        
+        $query = $this->db->get();
+        $existe = $query->num_rows() > 0;
+        
+        log_message('DEBUG', '#TRAZA|USER_MODEL|existeRazonSocial() >> Razón social: ' . $razon_social . ', País: ' . $pais_descripcion . ', Existe: ' . ($existe ? 'Sí' : 'No'));
+        
+        return $existe;
+    }
+    
     //insert the token
     public function insertToken($user_id)
     {   
