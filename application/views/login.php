@@ -7,7 +7,12 @@
     </style>
     <br>
     <br>
-    <img src="<?php echo base_url();?>public/img/logotzl.png" alt="Trazalog Tools" class="brand-image" style="width: 360px; height: auto !important;">
+    <img 
+    src="<?= base_url($logoEmpresa); ?>" 
+    alt="Trazalog Tools"
+    class="brand-image"
+    style="width: 360px; height: auto !important;"
+>
     <br>
 
     <h2>Bienvenido!</h2>

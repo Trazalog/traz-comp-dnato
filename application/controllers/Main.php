@@ -17,6 +17,8 @@ class Main extends CI_Controller {
 		$this->load->library('userlevel');
 		$this->load->config('email');
 		$this->load->model('Roles');
+		$this->load->model('Tablas');
+
 	}
 
 	public function setdir()
@@ -1308,6 +1310,14 @@ class Main extends CI_Controller {
 
 					$data['title'] = "Trazalog Tools!";
 
+					//logo de login configurable en core tablas
+					$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+					$data['logoEmpresa'] = $tabla[0]['valor'];
+
+					//copyright footer de login configurable en core tablas
+					$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
+					$data['copyright'] = $tabla[0]['valor'];
+
 					// si esan vacios los campos, carga pantalla login
 					if($this->form_validation->run() == FALSE) {
 
@@ -1319,7 +1329,7 @@ class Main extends CI_Controller {
 							
 							$this->load->view('header', $data);
 							$this->load->view('container');
-							$this->load->view('login');
+							$this->load->view('login', $data);
 							$this->load->view('footer');
 					}else{
 
