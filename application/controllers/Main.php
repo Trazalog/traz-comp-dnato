@@ -269,56 +269,45 @@ class Main extends CI_Controller {
 									$this->session->set_flashdata('flash_message', ' Ya existe un usuario asociado a ese Email');
 									redirect(base_url().'main/adduser');
 							}else{
-									$this->load->library('password');
 									$post = $this->input->post(NULL, TRUE);
 									$cleanPost = $this->security->xss_clean($post);
-									$hashed = $this->password->create_hash($cleanPost['password']);
+									// API espera contraseña en texto plano (la hashea el backend)
 									$cleanPost['email'] = $this->input->post('email');
 									$cleanPost['role'] = $this->input->post('role');
 									$cleanPost['firstname'] = $this->input->post('firstname');
 									$cleanPost['lastname'] = $this->input->post('lastname');
 									$cleanPost['telefono'] = $this->input->post('telefono');
 									$cleanPost['usernick'] = $this->input->post('usernick');
-									
-									//Codificamos imagen
-									$cleanPost['image_name'] = $_FILES['image']['name'];
-									$cleanPost['ext'] = $_FILES['image']['type'];	
-									$cleanPost['image'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
-									
 									$cleanPost['dni'] = $this->input->post('dni');
 									$cleanPost['business'] = $this->input->post('business');
 									$cleanPost['banned_users'] = 'unban';
-									$cleanPost['password'] = $hashed;
-									$cleanPost['depo_id'] = $this->input->post('depo_id');
+									$cleanPost['password'] = $this->input->post('password');
 									unset($cleanPost['passconf']);
 
-
-									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $cleanPost '.json_encode($cleanPost));
-									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $extension '.$cleanPost['ext']);
-									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $images '.$cleanPost['images']);
-									//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> $FILES '.json_encode($_FILES['image']));
-
-									
-									//insert to database
-									$usr_id = $this->user_model->addUser($cleanPost);
-									//Insert to MariaDB Asset
-									$this->user_model->addUserAsset($cleanPost);
-									//
-
-									//crea usr en BPM
-									if($usr_id){
-											$status = $this->user_model->crearUsrBPM($cleanPost);
-											if ($status) {
-												$this->session->set_flashdata('flash_message', 'Usuario creado exitosamente...');
-												redirect(base_url().'main/users/'.$usr_id);
-											} else {
-												//log_message('ERROR','#TRAZA|MAIN|ADDUSER >> ERROR: NO SE PUDO CREAR USUARIO EN BPM');
-												$this->session->set_flashdata('danger_message', 'Error al crear usuario en BPM');
-											}
+									// Imagen opcional
+									if (!empty($_FILES['image']['tmp_name']) && is_uploaded_file($_FILES['image']['tmp_name'])) {
+										$cleanPost['image_name'] = $_FILES['image']['name'];
+										$cleanPost['image'] = base64_encode(file_get_contents($_FILES['image']['tmp_name']));
+									} else {
+										$cleanPost['image_name'] = '';
+										$cleanPost['image'] = '';
 									}
 
-									//redirect(base_url().'main/users/'.$usr_id);
-									redirect(base_url().'main/users/');
+									$result = $this->user_model->crearUsuarioAPI($cleanPost);
+									if (!empty($result['usr_id'])) {
+										$this->session->set_flashdata('flash_message', 'Usuario creado exitosamente...');
+										redirect(base_url().'main/users/'.$result['usr_id']);
+									} else {
+										$errMsg = isset($result['error']) ? $result['error'] : 'Error al crear usuario. Intente de nuevo.';
+										$errDetail = isset($result['detail']) ? $result['detail'] : '';
+										log_message('ERROR', '#TRAZA | MAIN | adduser() >> crearUsuarioAPI falló: ' . $errMsg . ($errDetail ? ' | ' . (is_string($errDetail) ? $errDetail : json_encode($errDetail)) : ''));
+										if (ENVIRONMENT === 'development' && $errDetail !== '') {
+											$this->session->set_flashdata('danger_message', $errMsg . ' Detalle: ' . (is_string($errDetail) ? $errDetail : json_encode($errDetail)));
+										} else {
+											$this->session->set_flashdata('danger_message', $errMsg);
+										}
+										redirect(base_url().'main/adduser');
+									}
 							};
 					}
 		}else{

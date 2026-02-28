@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact name="COREToolsDataSources" version="1.0.0" type="carbon/application">
+        <dependency artifact="ToolsDataSource" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="AssetPlannerDataSource" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+    </artifact>
+</artifacts>
+

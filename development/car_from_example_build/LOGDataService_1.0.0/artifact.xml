@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?><artifact name="LOGDataService" version="1.0.0" type="service/dataservice" serverRole="EnterpriseServiceBus">
+    <file>LOGDataService-1.0.0.dbs</file>
+</artifact>

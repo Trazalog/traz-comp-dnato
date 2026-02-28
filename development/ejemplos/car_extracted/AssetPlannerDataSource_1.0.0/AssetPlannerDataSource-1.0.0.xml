@@ -1,0 +1,16 @@
+<datasource>
+  <name>AssetPlannerDataSource</name>
+  <description>AssetPlanner MySQL Data Source</description>
+  <jndiConfig useDataSourceFactory="false">
+    <name>AssetPlannerDatasourceJNDI</name>
+  </jndiConfig>
+  <definition type="RDBMS">
+    <configuration>
+      <driverClassName>com.mysql.cj.jdbc.Driver</driverClassName>
+      <url>jdbc:mysql://10.142.0.13:3306/assetv2</url>
+      <username>rootremote</username>
+      <password>!Password00</password>
+    </configuration>
+  </definition>
+</datasource>
+

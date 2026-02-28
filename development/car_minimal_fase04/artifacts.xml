@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?><artifacts>
+    <artifact name="COREToolsFase04" version="1.0.0" type="carbon/application">
+        <dependency artifact="toolsCOREAPI" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsFault" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="COREDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+    </artifact>
+</artifacts>

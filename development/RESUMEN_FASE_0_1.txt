@@ -1,0 +1,38 @@
+FASE 0.1: RESUMEN Y ESTADO ACTUAL
+==================================
+
+PROBLEMA IDENTIFICADO:
+- El password NO se está hasheando en MD5 antes de insertarse en MySQL AssetPlanner
+- Los usuarios creados tienen el password en texto plano
+
+CAMBIOS REALIZADOS:
+1. ✓ Modificado toolsCOREApi.xml: Agregado script JavaScript para hashear password en MD5
+   - Ubicación: Antes del payloadFactory de AssetPlanner (línea ~392)
+   - Script usa: Packages.org.apache.commons.codec.digest.DigestUtils.md5Hex()
+   - Cambia usr_password por usr_password_md5 en el payload
+
+2. ✓ Modificado COREDataService.xml: Removido MD5() del SQL (ya no necesario)
+   - El password ahora viene hasheado desde el API
+
+PROBLEMA ACTUAL:
+- El archivo toolsCOREApi.xml no se encuentra desplegado en WSO2 MI
+- Probablemente está en un archivo CAR (Carbon Application Archive)
+- Los cambios en el código fuente no se están aplicando porque el archivo no está desplegado
+
+PRÓXIMOS PASOS:
+1. Encontrar dónde está desplegado toolsCOREApi.xml en WSO2 MI
+2. Desplegar el archivo modificado correctamente
+3. Reiniciar WSO2 MI o recargar la API
+4. Probar que el password se hashea correctamente
+5. Completar todas las pruebas de la Fase 0.1
+
+ARCHIVOS MODIFICADOS:
+- development/toolsCOREApi.xml (líneas ~392-401)
+- development/COREDataService.xml (línea 366)
+
+ARCHIVOS DE PRUEBA CREADOS:
+- development/test_fase_0_1.sh
+- development/test_fase_0_1_final.sh
+- development/test_fase_0_1_completo.py
+- development/verificar_md5_simple.py
+- development/verificar_md5_assetplanner.sql
