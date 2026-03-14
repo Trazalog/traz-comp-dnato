@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+    <name>COREToolsApplication</name>
+    <version>1.0.0</version>
+    <artifacts>
+        <artifact name="toolsCOREApi" version="1.0.0" type="api" serverRole="EnterpriseServiceBus"/>
+        <artifact name="COREDataService" version="1.0.0" type="service/dataservice" serverRole="EnterpriseServiceBus"/>
+    </artifacts>
+</application>
+

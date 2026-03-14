@@ -85,20 +85,46 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
-define('REST_BPM', 'http://10.142.0.13:8280/tools/bpm');
-define('API_CORE', 'http://10.142.0.13:8280/tools/core');
+
+/*
+|--------------------------------------------------------------------------
+| WSO2 Micro Integrator - URL base
+|--------------------------------------------------------------------------
+| Cada ambiente tiene su propio constants.php: en este (desa) usamos nuestro
+| WSO2 local. En otros ambientes, en su constants ponen su URL (ej. 10.142.0.13:8280).
+*/
+$wso2_base = 'http://localhost:8290';
+define('REST_BPM', $wso2_base.'/tools/bpm');
+define('API_CORE', $wso2_base . '/tools/core');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('FRM', 'traz-comp-formularios/');
 define('FORMULARIO_REGISTRO_ID', 72);
 define('TOOLS_ADMIN_USER','admin@gmail.com');
+define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');
+
+/*
+|--------------------------------------------------------------------------
+| Sesión BPM para asignación de roles (tools/bpm)
+|--------------------------------------------------------------------------
+| Usado por Roles->getInfoBPM, guardarMembershipBPM, deleteMembershipBPM.
+| Obtener sesión: login a Bonita, extraer X-Bonita-API-Token y JSESSIONID.
+| Formato base: X-Bonita-API-Token=xxx;JSESSIONID=xxx;bonita.tenant=1;
+| Actualizar cuando expire la sesión.
+*/
+$bpm_roles_session_base = 'X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;';
+define('BPM_ROLES_SESSION', '"' . $bpm_roles_session_base . '"');
+define('BPM_ROLES_SESSION_URL', rawurlencode($bpm_roles_session_base));
 
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
 define('DE', 'http://traz-comp.local/');
 define('DS', 'http://traz-comp.local/main/login');
 define('DNATO', 'http://traz-comp.local/traz-comp-dnato/');
+define('DE', 'http://traz-comp.local/traz-tools/');
+define('DS', 'http://traz-comp.local/main/login');
+define('DNATO', 'http://traz-comp.local/');
 define('SIS_NAME', 'TOOLS');
 
 /*
@@ -106,11 +132,13 @@ define('SIS_NAME', 'TOOLS');
 | Variables HOST y REST
 |--------------------------------------------------------------------------
 |
-| Variables Locales
+| Variables Locales (HOST usa mismo puerto WSO2 que API_CORE)
 |
 */
-define('HOST', 'http://10.142.0.13:8280');
+define('HOST', $wso2_base);
 define('REST_CORE', HOST.'/services/COREDataService');
+define('API_URL', HOST.'/tools/log');
+define('REST_RESI', HOST.'/services/semaresiduosDS');
 
 #ERRORES DE BONITA
 define('ASP_100', 'Fallo Conexión BPM');
@@ -138,7 +166,7 @@ define('ASP_115', 'Error al Leer Variable');
 | URLs para los servicios de datos de WSO2
 |
 */
-define('COREDataService_URL', 'http://10.142.0.13:8280/services/COREDataService');
+define('COREDataService_URL', $wso2_base . '/services/COREDataService');
 
 /*
 |--------------------------------------------------------------------------
@@ -243,3 +271,4 @@ define('FREEMIUM_USERS', '
 || Configuración para el módulo de formularios dinámicos
 ||
 */
+

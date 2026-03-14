@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<artifacts>
+    <artifact name="toolsCOREApi" version="1.0.0" type="synapse/api" serverRole="EnterpriseServiceBus">
+        <file>toolsCOREApi_1.0.0/toolsCOREApi-1.0.0.xml</file>
+    </artifact>
+</artifacts>
+

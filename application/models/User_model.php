@@ -332,7 +332,10 @@ class User_model extends CI_Model {
         return true;
     } 
     
-    //add user login
+    /**
+     * @deprecated Usar crearUsuarioAPI() en su lugar. Mantenido para rollback (Fase 4).
+     * add user login
+     */
     public function addUser($d)
     {
 				if ($d['depo_id']) {
@@ -396,6 +399,7 @@ class User_model extends CI_Model {
 		}
 
 		/**
+		* @deprecated Usar crearUsuarioAPI() en su lugar. Mantenido para rollback (Fase 4).
 		* Crear usuarios en BPM
 		* @param array info de usr nuevos
 		* @return string status de servicio
@@ -730,10 +734,11 @@ class User_model extends CI_Model {
         return $list;*/
     }
     /**
-	* Agrega un usuario a MariaDB de Asset
-	* @param array datos ingresados en formulario
-	* @return 
-	*/
+     * @deprecated Usar crearUsuarioAPI() en su lugar. Mantenido para rollback (Fase 4).
+     * Agrega un usuario a MariaDB de Asset
+     * @param array datos ingresados en formulario
+     * @return 
+     */
     public function addUserAsset($data){
         $post['_post_assetuser_add']= array(
             'nick' => $data['usernick'],
@@ -824,5 +829,93 @@ class User_model extends CI_Model {
         log_message('DEBUG', '#TRAZA|USER_MODEL|validarTelefonoPorPais() >> Teléfono válido: ' . ($valido ? 'Sí' : 'No'));
         
         return $valido;
+    }
+
+    /**
+     * Crea un usuario usando la nueva API WSO2 (PostgreSQL + AssetPlanner + BPM si hay sesión).
+     * Reemplaza el flujo addUser() + addUserAsset() + crearUsrBPM().
+     *
+     * @param array $data Datos del usuario. Debe incluir password en texto plano (la API lo hashea).
+     * @return array|false Array con 'usr_id', 'resultado', 'bpmSession' o false si falla
+     */
+    public function crearUsuarioAPI($data)
+    {
+        $this->load->library('REST');
+
+        $payload = array(
+            'usuario' => array(
+                'usernick'   => isset($data['usernick']) ? $data['usernick'] : '',
+                'email'      => isset($data['email']) ? $data['email'] : '',
+                'firstname'  => isset($data['firstname']) ? $data['firstname'] : '',
+                'lastname'   => isset($data['lastname']) ? $data['lastname'] : '',
+                'password'   => isset($data['password']) ? $data['password'] : '',
+                'role'       => isset($data['role']) ? $data['role'] : '2',
+                'status'     => isset($data['status']) ? $data['status'] : 'approved',
+                'banned_users' => isset($data['banned_users']) ? $data['banned_users'] : 'unban',
+                'telefono'   => isset($data['telefono']) ? $data['telefono'] : '',
+                'dni'        => isset($data['dni']) ? $data['dni'] : '',
+                'business'   => isset($data['business']) ? $data['business'] : '',
+                'image_name' => isset($data['image_name']) ? $data['image_name'] : '',
+                'image'      => isset($data['image']) ? $data['image'] : ''
+            ),
+            'bpmSession' => $this->getBpmSession()
+        );
+
+        $url = API_CORE . '/usuario';
+        log_message('INFO', '#TRAZA | User_model | crearUsuarioAPI() >> URL: ' . $url);
+        log_message('DEBUG', '#TRAZA | User_model | crearUsuarioAPI() >> Payload: ' . json_encode($payload));
+
+        $result = $this->rest->callAPI('POST', $url, $payload, array('Accept: application/json'));
+
+        if (!$result || !isset($result['status'])) {
+            $errMsg = isset($result['data']) ? $result['data'] : json_encode($result);
+            log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> Error conexión/respuesta: ' . $errMsg);
+            return array('error' => 'No se pudo conectar con el servicio de usuarios.', 'detail' => $errMsg);
+        }
+
+        $response_body = json_decode($result['data'], true);
+        $httpCode = isset($result['code']) ? $result['code'] : 0;
+
+        if (!$result['status'] || $httpCode >= 300) {
+            $apiError = 'Error del servicio (HTTP ' . $httpCode . ')';
+            $apiDetail = $result['data'];
+            if (is_array($response_body) && isset($response_body['respuesta'])) {
+                $r = $response_body['respuesta'];
+                $apiError = isset($r['error']) ? $r['error'] : $apiError;
+                $apiDetail = isset($r['detalle']) ? $r['detalle'] : $result['data'];
+            }
+            log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> ' . $apiError . ' | detalle: ' . (is_string($apiDetail) ? $apiDetail : json_encode($apiDetail)));
+            log_message('ERROR', 'adduser API HTTP ' . $httpCode . ' | URL=' . $url . ' | body=' . substr(is_string($result['data']) ? $result['data'] : json_encode($result['data']), 0, 800));
+            return array('error' => $apiError, 'detail' => $apiDetail);
+        }
+
+        if (!is_array($response_body) || !isset($response_body['respuesta'])) {
+            log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> Respuesta inválida: ' . json_encode($response_body));
+            return array('error' => 'Respuesta inválida del servicio.', 'detail' => $result['data']);
+        }
+
+        $resp = $response_body['respuesta'];
+        if (isset($resp['resultado']) && $resp['resultado'] === 'ok' && isset($resp['usr_id'])) {
+            log_message('INFO', '#TRAZA | User_model | crearUsuarioAPI() >> Usuario creado. ID: ' . $resp['usr_id']);
+            return array(
+                'usr_id'     => $resp['usr_id'],
+                'resultado'  => 'ok',
+                'bpmSession' => isset($resp['bpmSession']) ? $resp['bpmSession'] : null
+            );
+        }
+
+        $apiError = isset($resp['error']) ? $resp['error'] : 'Respuesta sin éxito';
+        $apiDetail = isset($resp['detalle']) ? $resp['detalle'] : json_encode($resp);
+        log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> Respuesta sin éxito: ' . json_encode($resp));
+        return array('error' => $apiError, 'detail' => $apiDetail);
+    }
+
+    /**
+     * Obtiene la sesión de BPM para la API (si se implementa).
+     * Por ahora retorna null (la API no llama a BPM en ese caso).
+     */
+    private function getBpmSession()
+    {
+        return null;
     }
 }

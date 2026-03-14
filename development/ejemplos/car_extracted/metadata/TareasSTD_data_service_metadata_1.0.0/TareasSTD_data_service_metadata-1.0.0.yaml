@@ -1,0 +1,9 @@
+---
+key: "TareasSTD_proxy-1.0.0"
+name: "TareasSTD"
+displayName: "TareasSTD"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/TareasSTD"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false
