@@ -94,18 +94,31 @@ define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
 | WSO2 local. En otros ambientes, en su constants ponen su URL (ej. 10.142.0.13:8280).
 */
 $wso2_base = 'http://localhost:8290';
-define('REST_BPM', $wso2_base . '/tools/bpm');
+define('REST_BPM', $wso2_base.'/tools/bpm');
 define('API_CORE', $wso2_base . '/tools/core');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');
 
+/*
+|--------------------------------------------------------------------------
+| Sesión BPM para asignación de roles (tools/bpm)
+|--------------------------------------------------------------------------
+| Usado por Roles->getInfoBPM, guardarMembershipBPM, deleteMembershipBPM.
+| Obtener sesión: login a Bonita, extraer X-Bonita-API-Token y JSESSIONID.
+| Formato base: X-Bonita-API-Token=xxx;JSESSIONID=xxx;bonita.tenant=1;
+| Actualizar cuando expire la sesión.
+*/
+$bpm_roles_session_base = 'X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;';
+define('BPM_ROLES_SESSION', '"' . $bpm_roles_session_base . '"');
+define('BPM_ROLES_SESSION_URL', rawurlencode($bpm_roles_session_base));
+
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
-define('DE', 'http://localhost/traz-tools/');
-define('DS', 'http://localhost/traz-comp-dnato/main/login');
-define('DNATO', 'http://localhost/traz-comp-dnato/');
+define('DE', 'http://traz-comp.local/traz-tools/');
+define('DS', 'http://traz-comp.local/main/login');
+define('DNATO', 'http://traz-comp.local/');
 define('SIS_NAME', 'TOOLS');
 
 /*

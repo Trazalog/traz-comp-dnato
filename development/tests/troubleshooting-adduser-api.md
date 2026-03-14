@@ -8,8 +8,8 @@ Cuando el formulario **Alta de usuario** muestra "Error al crear usuario" o "Err
 
 **Ruta del archivo de log**: dentro del proyecto, en **`application/logs/log-YYYY-MM-DD.php`** (por ejemplo `application/logs/log-2026-02-28.php` para el 28/02/2026).
 
-- Abre ese archivo (mismo día en que ocurrió el error) y busca líneas que contengan: `crearUsuarioAPI`, `adduser`, `TRAZA`, `User_model`, `MAIN`.
-- Si no ves nada: comprueba que el usuario con el que corre Apache (p. ej. `daemon`) pueda escribir en `application/logs/` y que en `application/config/config.php` tengas `$config['log_threshold'] = 2` (o 1 como mínimo para que se registren ERROR).
+- Abre ese archivo (mismo día en que ocurrió el error) y busca líneas que contengan: `crearUsuarioAPI`, `adduser`, `TRAZA`, `User_model`, `MAIN`, o **`adduser API HTTP`** (línea explícita con URL y cuerpo de respuesta cuando hay 404).
+- **Si no ves ninguna línea**: (1) Estás mirando el log de CodeIgniter y no el de Apache (`error.log`). (2) Comprueba en `application/config/config.php` que `$config['log_threshold']` sea **1** (solo errores) o **2** (errores y debug). Con 0 no se escribe nada. (3) El usuario con el que corre el servidor web (p. ej. `www-data`, `daemon`) debe poder **escribir** en la carpeta `application/logs/` (permisos y propietario).
 
 ---
 

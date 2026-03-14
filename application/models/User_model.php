@@ -758,6 +758,7 @@ class User_model extends CI_Model {
                 $apiDetail = isset($r['detalle']) ? $r['detalle'] : $result['data'];
             }
             log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> ' . $apiError . ' | detalle: ' . (is_string($apiDetail) ? $apiDetail : json_encode($apiDetail)));
+            log_message('ERROR', 'adduser API HTTP ' . $httpCode . ' | URL=' . $url . ' | body=' . substr(is_string($result['data']) ? $result['data'] : json_encode($result['data']), 0, 800));
             return array('error' => $apiError, 'detail' => $apiDetail);
         }
 

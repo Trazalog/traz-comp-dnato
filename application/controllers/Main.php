@@ -233,6 +233,7 @@ class Main extends CI_Controller {
 					$this->form_validation->set_rules('firstname', 'First Name', 'required');
 					$this->form_validation->set_rules('lastname', 'Last Name', 'required');
 					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+					$this->form_validation->set_rules('business', 'Empresa', 'required');
 					$this->form_validation->set_rules('role', 'role', 'required');
 					$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
 					$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
@@ -277,7 +278,7 @@ class Main extends CI_Controller {
 									$cleanPost['firstname'] = $this->input->post('firstname');
 									$cleanPost['lastname'] = $this->input->post('lastname');
 									$cleanPost['telefono'] = $this->input->post('telefono');
-									$cleanPost['usernick'] = $this->input->post('usernick');
+									$cleanPost['usernick'] = $this->input->post('email'); // mismo valor que email (campo usernick no se muestra en el form)
 									$cleanPost['dni'] = $this->input->post('dni');
 									$cleanPost['business'] = $this->input->post('business');
 									$cleanPost['banned_users'] = 'unban';
@@ -922,70 +923,92 @@ class Main extends CI_Controller {
 		}
 		
 	}
-	//Recibe el objeto de json
+	//Recibe el objeto de json (array de roles)
 	public function changeLevelRolUserObject(){
-		# code...
 		$data = $this->session->userdata;
 
 		$dataPost['email'] = $this->input->post('email');
 		$dataPost['level'] = $this->input->post('level');
-		
+
 		$dataRole = $this->input->post('dataRole');
-		foreach($dataRole as $roleData){
-			$roleData['usuario_app'] = userNick();
-		}		
-		$user = userNick();
+		if (!is_array($dataRole)) {
+			$dataRole = array();
+		}
+		foreach ($dataRole as $i => $roleData) {
+			$dataRole[$i]['usuario_app'] = userNick();
+		}
 
 		$dataRoleBpm = $this->input->post('dataRoleBpm');
-
-
-		//message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[email]: >> '.$dataPost['email'] ); 
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[level]: >> '.$dataPost['level'] ); 
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRole]: >> '.json_encode( $dataRole) );
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $data[dataRoleBpm]: >> '. json_encode($dataRoleBpm));
-		//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $user: >> '. $user);
+		if (!is_array($dataRoleBpm)) {
+			$dataRoleBpm = array();
+		}
 
 		$userLevel = $this->user_model->updateUserLevel($dataPost);
 
-		if(!$userLevel){
-			$this->session->set_flashdata('flash_message', 'Fallo cambio de nivel'); 
+		if (!$userLevel) {
+			$this->session->set_flashdata('flash_message', 'Fallo cambio de nivel');
+			$this->_changeLevelRolUserObjectResponse(false, 'Fallo cambio de nivel');
 			return false;
-		}else{
-			/*$this->session->set_flashdata('success_message', 'nivelCambiado con exito.'); 
-			$rsp["message"] = true;
-			return true;*/
-			//guarda membership en BD (para menues y manejo local de usr)
-			$cantRoles = count($dataRole);
-			for($i=0; $i< $cantRoles; $i++){
-				$dataRole = $this->user_model->guardarMembership($dataRole[$i]);
+		}
 
-				if(!$dataRole){
-					$this->session->set_flashdata('flash_message', 'Fallo asignacion de roles'); 
-					return false;
-				}else{
-					/*$this->session->set_flashdata('success_message', 'Rol asignado con exito.'); 
-					return true;*/
-					//obtiene el nick de un usuario por email
-					$this->load->model('Roles');
-					$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
+		$this->load->model('Roles');
+		$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
+		if (!$infoUser || !isset($infoUser->usernick)) {
+			$this->session->set_flashdata('flash_message', 'Usuario no encontrado.');
+			$this->_changeLevelRolUserObjectResponse(false, 'Usuario no encontrado.');
+			return false;
+		}
 
-					$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpm, $infoUser->usernick);
-					//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($membShipBpm));
-					//log_message('DEBUG','#TRAZA|MAIN|changeLevelRolUser()  $membShipBpm: >> '. json_encode($data));
-					if(!$membShipBpm){
-						$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm.');
-						return false;
-					}else{
-						$this->session->set_flashdata('success_message', 'Rol Bpm asignado con exito.');
-						return true;
-					}
+		$cantRoles = count($dataRole);
+		if ($cantRoles === 0) {
+			$this->session->set_flashdata('success_message', 'Nivel actualizado.');
+			$this->_changeLevelRolUserObjectResponse(true, 'Nivel actualizado.');
+			return true;
+		}
 
+		$guardadosLocal = array();
+		for ($i = 0; $i < $cantRoles; $i++) {
+			$guardado = $this->user_model->guardarMembership($dataRole[$i]);
+
+			if (!$guardado) {
+				$this->session->set_flashdata('flash_message', 'Fallo asignacion de roles');
+				foreach ($guardadosLocal as $memb) {
+					$this->user_model->borrarMembership($memb);
 				}
-				
+				$this->_changeLevelRolUserObjectResponse(false, 'Fallo asignacion de roles');
+				return false;
 			}
 
+			$guardadosLocal[] = $dataRole[$i];
+
+			$dataRoleBpmItem = isset($dataRoleBpm[$i]) ? $dataRoleBpm[$i] : $dataRoleBpm;
+			$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpmItem, $infoUser->usernick);
+
+			if ($membShipBpm === null || !isset($membShipBpm->payload->user_id)) {
+				$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm.');
+				foreach ($guardadosLocal as $memb) {
+					$this->user_model->borrarMembership($memb);
+				}
+				$this->_changeLevelRolUserObjectResponse(false, 'Fallo asignación de roles Bpm.');
+				return false;
+			}
 		}
-		
+
+		$this->session->set_flashdata('success_message', 'Roles Bpm asignados con exito.');
+		$this->_changeLevelRolUserObjectResponse(true, 'Roles Bpm asignados con exito.');
+		return true;
+	}
+
+	/**
+	 * Envía respuesta HTTP para changeLevelRolUserObject (AJAX)
+	 */
+	private function _changeLevelRolUserObjectResponse($success, $message = '') {
+		if ($this->input->is_ajax_request()) {
+			$msg = $message ? $message : ($success ? 'Roles guardados correctamente.' : 'Error al guardar.');
+			$this->output->set_status_header($success ? 200 : 400)
+				->set_content_type('application/json')
+				->set_output(json_encode(array('success' => $success, 'message' => $msg)));
+		}
 	}
 
 	/**
@@ -1051,21 +1074,55 @@ class Main extends CI_Controller {
 		//guarda membership en BD (para menues y manejo local de usr)
 		$resp = $this->user_model->guardarMembership($membership);
 
+		if (!$resp) {
+			$this->_guardarMembershipError('Fallo al guardar membership en base de datos.');
+			return false;
+		}
+
 		// guarda membership en BPM
 		$membershipBPM = $this->input->post('membershipBPM');
-		
+
 		//obtiene el nick de un usuario por email
 		$infoUser = $this->user_model->getUserInfoByEmail($membership['email']);
+		if (!$infoUser || !isset($infoUser->usernick)) {
+			$this->_guardarMembershipError('Usuario no encontrado: ' . (isset($membership['email']) ? $membership['email'] : 'sin email'));
+			return false;
+		}
+
 		$this->load->model('Roles');
-		
-		
-		//log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membership: >> '. json_encode($membership) );
-		//log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membershipBPM: >> '. json_encode($membershipBPM) );
-		//log_message('DEBUG','#TRAZA|MAIN|guardarMembership()  membershipBPM: >> '.$infoUser );
+		$respBpm = $this->Roles->guardarMembershipBPM($membershipBPM, $infoUser->usernick);
 
-		$resp = $this->Roles->guardarMembershipBPM($membershipBPM, $infoUser->usernick);
+		if ($respBpm === null || !isset($respBpm->payload->user_id)) {
+			$this->user_model->borrarMembership($membership);
+			$this->_guardarMembershipError('Fallo al asignar rol en BPM. Se revirtió el guardado en base de datos.');
+			return false;
+		}
 
+		$this->_guardarMembershipSuccess();
 		return true;
+	}
+
+	/**
+	 * Envía respuesta de error para guardarMembership (AJAX o flash)
+	 */
+	private function _guardarMembershipError($msg) {
+		log_message('ERROR', '#TRAZA | MAIN | guardarMembership >> ' . $msg);
+		$this->session->set_flashdata('flash_message', $msg);
+		if ($this->input->is_ajax_request()) {
+			$this->output->set_status_header(400)->set_content_type('application/json')->set_output(json_encode(array('success' => false, 'message' => $msg)));
+			return;
+		}
+	}
+
+	/**
+	 * Envía respuesta de éxito para guardarMembership (AJAX o flash)
+	 */
+	private function _guardarMembershipSuccess() {
+		$this->session->set_flashdata('success_message', 'Rol asignado correctamente.');
+		if ($this->input->is_ajax_request()) {
+			$this->output->set_status_header(200)->set_content_type('application/json')->set_output(json_encode(array('success' => true, 'message' => 'Rol asignado correctamente.')));
+			return;
+		}
 	}
 
 	/**
