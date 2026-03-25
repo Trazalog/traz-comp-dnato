@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<api>
-	<api_url>http://localhost:8290/tools</api_url>
-	<dataservices_url>http://localhost:8290/services</dataservices_url>
-</api>

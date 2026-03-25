@@ -91,7 +91,7 @@ body {
 <div class="form-container">
     <div class="form-left">
         <div class="logo-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsgrey.png" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
         
         <h1 class="form-title">Información Adicional de Registro</h1>
@@ -260,7 +260,7 @@ body {
     
     <div class="form-right">
         <div class="image-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsform.png" alt="Formulario de Registro">
+            <img src="<?php echo base_url() . REGISTER_IMG_FORMULARIO; ?>" alt="Formulario de Registro">
         </div>
     </div>
 </div>

@@ -2,7 +2,9 @@
 
 ## Descripción general
 
-Este documento describe el flujo de asignación y desasignación de roles a usuarios en Trazalog Tools. Los roles se gestionan en dos niveles:
+Este documento describe el flujo de asignación y desasignación de roles a usuarios en Trazalog Tools. La asignación y desasignación se realizan mediante los recursos **`POST /tools/core/rol/asignar`** y **`POST /tools/core/rol/desasignar`** de la API toolsCOREAPI, que concentran la lógica en BD (PostgreSQL) y BPM (Bonita).
+
+Los roles se gestionan en dos niveles:
 
 1. **Local (PostgreSQL)**: tabla `seg.memberships_users` para menús y lógica de la aplicación.
 2. **BPM (Bonita)**: grupos y roles de Bonita, sincronizados vía API WSO2 (tools/bpm).
@@ -21,14 +23,13 @@ flowchart TD
     D --> E[POST changeLevelRolUserObject]
     E --> F[updateUserLevel: actualiza seg.users.role]
     F --> G{Por cada rol}
-    G --> H[guardarMembership: inserta en seg.memberships_users]
-    H --> I[guardarMembershipBPM: POST REST_BPM/memberships]
-    I --> J[getInfoBPM: GET REST_BPM/users/usernick/session]
-    J --> K{API exitosa?}
-    K -->|No| L[Rollback: borrarMembership de los guardados]
-    K -->|Sí| M[Siguiente rol o fin]
-    L --> N[Retornar error HTTP 400]
-    M --> O[Retornar éxito HTTP 200]
+    G --> H[POST API_CORE/rol/asignar]
+    H --> I[API: getUsernick, insert BD, POST BPM memberships]
+    I --> J{API exitosa?}
+    J -->|No| K[Rollback: POST /rol/desasignar de los guardados]
+    J -->|Sí| L[Siguiente rol o fin]
+    K --> M[Retornar error HTTP 400]
+    L --> N[Retornar éxito HTTP 200]
 ```
 
 ### Desasignación de roles
@@ -36,24 +37,31 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Clic en icono eliminar en fila] --> B[borrarMembership: POST]
-    B --> C[deleteLevelRolUser]
-    C --> D[deleteMembershipBPM: DELETE REST_BPM/membership]
-    D --> E[getInfoBPM: obtener user_id en BPM]
-    E --> F[borrarMembership: DELETE en seg.memberships_users]
-    F --> G[Retornar resultado]
+    B --> C[POST API_CORE/rol/desasignar]
+    C --> D[API: getUsernick, DELETE BPM membership, DELETE BD]
+    D --> E[Retornar resultado]
 ```
 
 ---
 
 ## APIs utilizadas
 
-### REST_BPM (WSO2 tools/bpm)
+### API_CORE (toolsCOREAPI - tools/core)
+
+| Recurso | Método | Uso |
+|---------|--------|-----|
+| `/rol/asignar` | POST | Asignar rol a usuario (BD + BPM, con rollback si falla BPM) |
+| `/rol/desasignar` | POST | Desasignar rol de usuario (BPM + BD) |
+
+**Payload:** `email`, `group`, `role`, `group_id`, `role_id`, `bpmSession`
+
+### REST_BPM (WSO2 tools/bpm) – consumido por toolsCOREAPI
 
 | Endpoint | Método | Uso |
 |----------|--------|-----|
-| `/users/{usernick}/session/{session}` | GET | Obtener `user_id` del usuario en BPM (`getInfoBPM`) |
-| `/memberships` | POST | Asignar rol/grupo a usuario (`guardarMembershipBPM`) |
-| `/membership` | DELETE | Quitar rol/grupo de usuario (`deleteMembershipBPM`) |
+| `/users/{usernick}/session/{session}` | GET | Obtener `user_id` del usuario en BPM |
+| `/memberships` | POST | Asignar rol/grupo a usuario |
+| `/membership` | DELETE | Quitar rol/grupo de usuario |
 | `/groups/{token}` | GET | Listar grupos BPM |
 | `/roles/{token}` | GET | Listar roles BPM |
 

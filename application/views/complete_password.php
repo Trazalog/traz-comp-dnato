@@ -136,7 +136,7 @@ body {
 <div class="password-container">
     <div class="password-left">
         <div class="logo-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsgrey.png" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
         
         <h1 class="password-title">Establecer Contraseña</h1>
@@ -176,7 +176,7 @@ body {
     
     <div class="password-right">
         <div class="image-container">
-            <img src="<?php echo base_url(); ?>public/img/toolschangepass.png" alt="Configurar Contraseña">
+            <img src="<?php echo base_url() . REGISTER_IMG_COMPLETE_PASSWORD; ?>" alt="Configurar Contraseña">
         </div>
     </div>
 </div>

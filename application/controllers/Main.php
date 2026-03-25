@@ -297,6 +297,10 @@ class Main extends CI_Controller {
 									$result = $this->user_model->crearUsuarioAPI($cleanPost);
 									if (!empty($result['usr_id'])) {
 										$this->session->set_flashdata('flash_message', 'Usuario creado exitosamente...');
+										$this->session->set_flashdata(
+											'flash_message_hint',
+											'Recuerde que para que el usuario pueda acceder al sistema, debe primero asignarle roles. Puede hacerlo en esta pantalla usando el ícono «Asignar Rol» en la columna Acciones.'
+										);
 										redirect(base_url().'main/users/'.$result['usr_id']);
 									} else {
 										$errMsg = isset($result['error']) ? $result['error'] : 'Error al crear usuario. Intente de nuevo.';
@@ -840,32 +844,21 @@ class Main extends CI_Controller {
 
 		//redirect(base_url().'main/changeleveluser/'.$id);
 
-		//Eliminar en Bonita
-		$this->load->model('Roles');
-		$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
-
-		$deleteRolBpm = $this->Roles->deleteMembershipBPM($dataRoleBpm, $infoUser->usernick);
-		$rspDeleteBPM = json_encode($deleteRolBpm);
-		//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolBpm: >> '.($rspDeleteBPM) );
-
-		if(is_null($rspDeleteBPM) ){
-			//$this->session->set_flashdata('flash_message', 'Fallo eliminación de roles Bpm.');
+		$bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
+		$payload = array(
+			'email' => $dataPost['email'],
+			'group' => $dataRole['group'],
+			'role' => $dataRole['role'],
+			'group_id' => (string) ($dataRoleBpm['group_id'] ?? ''),
+			'role_id' => (string) ($dataRoleBpm['role_id'] ?? ''),
+			'bpmSession' => $bpmSession
+		);
+		try {
+			$response = $this->rest->callAPI('POST', API_CORE . '/rol/desasignar', $payload);
+			return $response['status'] && (!isset($response['code']) || $response['code'] < 300);
+		} catch (Exception $e) {
+			log_message('ERROR', '#TRAZA|MAIN|deleteLevelRolUser >> ' . $e->getMessage());
 			return false;
-		}else{
-			//$this->session->set_flashdata('success_message', 'Rol Bpm eliminado con exito.');
-			//return true;
-			$deleteRolUser = $this->user_model->borrarMembership($dataRole);
-			//log_message('DEBUG','#TRAZA|MAIN|deleteLevelRolUser()  $deleteRolUser: >> '.json_encode( $deleteRolUser) );	
-
-			if(!$deleteRolUser){
-				//$this->session->set_flashdata('flash_message', 'Error Eliminación ' .$dataPost['email']); 
-				return false;
-			}else{
-				//$this->session->set_flashdata('success_message', 'Eliminado Correctamente '.$dataPost['email']);
-				return true;
-			}
-			
-
 		}
 		
 	}
@@ -889,38 +882,11 @@ class Main extends CI_Controller {
 		$userLevel = $this->user_model->updateUserLevel($dataPost);
 
 		if(!$userLevel){
-			//$this->session->set_flashdata('flash_message', 'Fallo cambio de nivel'); 
 			return false;
-		}else{
-			/*$this->session->set_flashdata('success_message', 'nivelCambiado con exito.'); 
-			$rsp["message"] = true;
-			return true;*/
-			//guarda asociacion de membership con usuario(email) en la tabla seg.memberships_users
-			$dataRoleResponse = $this->user_model->guardarMembership($dataRole);
-			if(!$dataRoleResponse){
-				//$this->session->set_flashdata('flash_message', 'Fallo asignacion de roles de '.$dataPost['email']); 
-				return false;
-			}else{
-				/*$this->session->set_flashdata('success_message', 'Rol asignado con exito.'); 
-				return true;*/
-				//obtiene el nick de un usuario por email
-				$this->load->model('Roles');
-				$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
-				$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpm, $infoUser->usernick);
-				
-				//Verifico si guardo bien el usuario devuelve un user_id
-				if(isset($membShipBpm->payload->user_id)){
-					//$this->session->set_flashdata('success_message', 'Rol Bpm asignado con exito de '.$dataPost['email']);
-					return true;
-				}else{
-					//Sino Guardó el usuario, elimine lo que guardo del mismo. 
-					$deleteMemShip = $this->user_model->borrarMembership($dataRole);
-					$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm de '.$dataPost['email']);
-					return false;
-				}
-			}
-
 		}
+		$_POST['membership'] = array('email' => $dataPost['email'], 'group' => $dataRole['group'], 'role' => $dataRole['role']);
+		$_POST['membershipBPM'] = array('group_id' => $dataRoleBpm['group_id'], 'role_id' => $dataRoleBpm['role_id']);
+		return $this->guardarMembership();
 		
 	}
 	//Recibe el objeto de json (array de roles)
@@ -951,14 +917,6 @@ class Main extends CI_Controller {
 			return false;
 		}
 
-		$this->load->model('Roles');
-		$infoUser = $this->user_model->getUserInfoByEmail($dataPost['email']);
-		if (!$infoUser || !isset($infoUser->usernick)) {
-			$this->session->set_flashdata('flash_message', 'Usuario no encontrado.');
-			$this->_changeLevelRolUserObjectResponse(false, 'Usuario no encontrado.');
-			return false;
-		}
-
 		$cantRoles = count($dataRole);
 		if ($cantRoles === 0) {
 			$this->session->set_flashdata('success_message', 'Nivel actualizado.');
@@ -966,30 +924,35 @@ class Main extends CI_Controller {
 			return true;
 		}
 
-		$guardadosLocal = array();
+		$bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
+		$asignados = array();
 		for ($i = 0; $i < $cantRoles; $i++) {
-			$guardado = $this->user_model->guardarMembership($dataRole[$i]);
-
-			if (!$guardado) {
-				$this->session->set_flashdata('flash_message', 'Fallo asignacion de roles');
-				foreach ($guardadosLocal as $memb) {
-					$this->user_model->borrarMembership($memb);
+			$dataRoleBpmItem = isset($dataRoleBpm[$i]) ? $dataRoleBpm[$i] : (is_array($dataRoleBpm) && isset($dataRoleBpm[0]) ? $dataRoleBpm[0] : $dataRoleBpm);
+			$payload = array(
+				'email' => $dataPost['email'],
+				'group' => $dataRole[$i]['group'],
+				'role' => $dataRole[$i]['role'],
+				'group_id' => (string) ($dataRoleBpmItem['group_id'] ?? ''),
+				'role_id' => (string) ($dataRoleBpmItem['role_id'] ?? ''),
+				'bpmSession' => $bpmSession
+			);
+			try {
+				$response = $this->rest->callAPI('POST', API_CORE . '/rol/asignar', $payload);
+				if (!$response['status'] || (isset($response['code']) && $response['code'] >= 300)) {
+					foreach ($asignados as $a) {
+						$this->rest->callAPI('POST', API_CORE . '/rol/desasignar', $a);
+					}
+					$this->session->set_flashdata('flash_message', 'Fallo asignación de roles.');
+					$this->_changeLevelRolUserObjectResponse(false, 'Fallo asignación de roles.');
+					return false;
 				}
-				$this->_changeLevelRolUserObjectResponse(false, 'Fallo asignacion de roles');
-				return false;
-			}
-
-			$guardadosLocal[] = $dataRole[$i];
-
-			$dataRoleBpmItem = isset($dataRoleBpm[$i]) ? $dataRoleBpm[$i] : $dataRoleBpm;
-			$membShipBpm = $this->Roles->guardarMembershipBPM($dataRoleBpmItem, $infoUser->usernick);
-
-			if ($membShipBpm === null || !isset($membShipBpm->payload->user_id)) {
-				$this->session->set_flashdata('flash_message', 'Fallo asignación de roles Bpm.');
-				foreach ($guardadosLocal as $memb) {
-					$this->user_model->borrarMembership($memb);
+				$asignados[] = $payload;
+			} catch (Exception $e) {
+				foreach ($asignados as $a) {
+					$this->rest->callAPI('POST', API_CORE . '/rol/desasignar', $a);
 				}
-				$this->_changeLevelRolUserObjectResponse(false, 'Fallo asignación de roles Bpm.');
+				$this->session->set_flashdata('flash_message', 'Error: ' . $e->getMessage());
+				$this->_changeLevelRolUserObjectResponse(false, 'Error al asignar roles.');
 				return false;
 			}
 		}
@@ -1068,38 +1031,36 @@ class Main extends CI_Controller {
 	function guardarMembership(){
 
 		$membership = $this->input->post('membership');
-		$membership['usuario_app'] = userNick();
-		$user = userNick();
-
-		//guarda membership en BD (para menues y manejo local de usr)
-		$resp = $this->user_model->guardarMembership($membership);
-
-		if (!$resp) {
-			$this->_guardarMembershipError('Fallo al guardar membership en base de datos.');
-			return false;
-		}
-
-		// guarda membership en BPM
 		$membershipBPM = $this->input->post('membershipBPM');
-
-		//obtiene el nick de un usuario por email
-		$infoUser = $this->user_model->getUserInfoByEmail($membership['email']);
-		if (!$infoUser || !isset($infoUser->usernick)) {
-			$this->_guardarMembershipError('Usuario no encontrado: ' . (isset($membership['email']) ? $membership['email'] : 'sin email'));
+		if (!$membership || !$membershipBPM || empty($membership['email']) || empty($membership['group']) || empty($membership['role'])) {
+			$this->_guardarMembershipError('Datos de membership incompletos.');
 			return false;
 		}
 
-		$this->load->model('Roles');
-		$respBpm = $this->Roles->guardarMembershipBPM($membershipBPM, $infoUser->usernick);
+		$bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
+		$payload = array(
+			'email' => $membership['email'],
+			'group' => $membership['group'],
+			'role' => $membership['role'],
+			'group_id' => (string) ($membershipBPM['group_id'] ?? ''),
+			'role_id' => (string) ($membershipBPM['role_id'] ?? ''),
+			'bpmSession' => $bpmSession
+		);
 
-		if ($respBpm === null || !isset($respBpm->payload->user_id)) {
-			$this->user_model->borrarMembership($membership);
-			$this->_guardarMembershipError('Fallo al asignar rol en BPM. Se revirtió el guardado en base de datos.');
+		try {
+			$response = $this->rest->callAPI('POST', API_CORE . '/rol/asignar', $payload);
+			if (!$response['status'] || (isset($response['code']) && $response['code'] >= 300)) {
+				$msg = isset($response['data']) ? json_decode($response['data']) : null;
+				$errMsg = ($msg && isset($msg->mensaje)) ? $msg->mensaje : 'Fallo al asignar rol en la API.';
+				$this->_guardarMembershipError($errMsg);
+				return false;
+			}
+			$this->_guardarMembershipSuccess();
+			return true;
+		} catch (Exception $e) {
+			$this->_guardarMembershipError('Error al asignar rol: ' . $e->getMessage());
 			return false;
 		}
-
-		$this->_guardarMembershipSuccess();
-		return true;
 	}
 
 	/**
@@ -1126,14 +1087,41 @@ class Main extends CI_Controller {
 	}
 
 	/**
-	* Borra membresia en DB
-	* @param array con datos de usuario
-	* @return strig true o false respuesta de borrado
+	* Borra membresia vía API /rol/desasignar
+	* @param array con datos de usuario (membership)
+	* @return void (echo 'true' o 'false')
 	*/	
 	function borrarMembership(){
 		$membership = $this->input->post('membership');
-		$resp = $this->user_model->borrarMembership($membership[0]);
-		echo $resp;
+		if (!$membership || !isset($membership[0])) {
+			echo false;
+			return;
+		}
+		$m = $membership[0];
+		$group_id = isset($m['group_id']) ? $m['group_id'] : $this->input->post('group_id');
+		$role_id = isset($m['role_id']) ? $m['role_id'] : $this->input->post('role_id');
+		$group_id = $group_id !== null && $group_id !== false ? $group_id : '';
+		$role_id = $role_id !== null && $role_id !== false ? $role_id : '';
+		if (empty($group_id) || empty($role_id)) {
+			log_message('WARNING', '#TRAZA|MAIN|borrarMembership >> group_id o role_id faltantes, intentando con API');
+		}
+		$bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
+		$payload = array(
+			'email' => $m['email'],
+			'group' => $m['group'],
+			'role' => $m['role'],
+			'group_id' => (string) $group_id,
+			'role_id' => (string) $role_id,
+			'bpmSession' => $bpmSession
+		);
+		try {
+			$response = $this->rest->callAPI('POST', API_CORE . '/rol/desasignar', $payload);
+			$ok = $response['status'] && (!isset($response['code']) || $response['code'] < 300);
+			echo $ok ? 'true' : 'false';
+		} catch (Exception $e) {
+			log_message('ERROR', '#TRAZA|MAIN|borrarMembership >> ' . $e->getMessage());
+			echo 'false';
+		}
 	}
 
 	//register new user from frontend
@@ -1302,6 +1290,7 @@ class Main extends CI_Controller {
 					$post = $this->input->post(NULL, TRUE);
 
 					$cleanPost = $this->security->xss_clean($post);
+					$plainPassword = $cleanPost['password'];
 
 					$hashed = $this->password->create_hash($cleanPost['password']);
 					$cleanPost['password'] = $hashed;
@@ -1312,6 +1301,30 @@ class Main extends CI_Controller {
                             $this->session->set_flashdata('flash_message', 'Hubo un problema actualizando su Usuario...');
                             redirect(base_url().'main/login');
                     }
+
+					/* BPM + AssetPlanner: usuario ya existe en PostgreSQL con password */
+					try {
+						$this->load->library('rest');
+						$bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
+						$usernick = isset($userInfo->usernick) && $userInfo->usernick !== '' ? $userInfo->usernick : strtolower($userInfo->email);
+						$payloadBpm = array(
+							'bpmSession' => $bpmSession,
+							'usuario' => array(
+								'email' => $userInfo->email,
+								'password' => $plainPassword,
+								'password_md5' => md5($plainPassword),
+								'firstname' => $userInfo->first_name,
+								'lastname' => $userInfo->last_name,
+								'usernick' => $usernick
+							)
+						);
+						$respBpm = $this->rest->callAPI('POST', API_CORE . '/usuario/bpm-asset', $payloadBpm);
+						if (!$respBpm['status']) {
+							log_message('ERROR', '#TRAZA|MAIN|complete() >> POST usuario/bpm-asset falló | code: ' . ($respBpm['code'] ?? 'n/a') . ' | ' . ($respBpm['data'] ?? ''));
+						}
+					} catch (Exception $ex) {
+						log_message('ERROR', '#TRAZA|MAIN|complete() >> Excepción usuario/bpm-asset: ' . $ex->getMessage());
+					}
 
 					unset($userInfo->password);
 
@@ -1400,7 +1413,6 @@ class Main extends CI_Controller {
 									$usernick = $userInfo->usernick;
 									// Trae id de usr en BPM a partir de Nick
 									$infoUser = $this->bpm->getUser($usernick);
-									var_dump($infoUser);
 									$userbpm = $infoUser['data']['id'];
 									$groupbpm = $empresa;
 
@@ -1611,23 +1623,38 @@ class Main extends CI_Controller {
 				throw new Exception('Email no proporcionado');
 			}
 			
-			// insert to database
-			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Insertando usuario en BD...');
-			$id = $this->user_model->insertUser($clean);
-			if (!$id) {
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al insertar usuario en BD');
-				throw new Exception('Error al insertar usuario en la base de datos');
+			// insert usuario + token vía API (POST /usuario/registro + token enviado por PHP)
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Creando usuario y token vía API_CORE...');
+			$this->load->library('rest');
+			$token_30 = substr(sha1(rand()), 0, 30);
+			$payloadReg = array(
+				'usuario' => array(
+					'firstname' => $clean['firstname'],
+					'lastname' => $clean['lastname'],
+					'email' => $clean['email'],
+					'telefono' => isset($clean['telefono']) ? $clean['telefono'] : '',
+					'reg_pais_id' => isset($clean['reg_pais_id']) ? $clean['reg_pais_id'] : '',
+					'reg_razon_social' => isset($clean['reg_razon_social']) ? $clean['reg_razon_social'] : '',
+					'role' => isset($this->roles[0]) ? $this->roles[0] : '',
+					'status' => isset($this->status[0]) ? $this->status[0] : '',
+					'banned_users' => (isset($this->user_model->banned_users[0]) ? $this->user_model->banned_users[0] : 'unban'),
+					'usernick' => ''
+				),
+				'token' => $token_30
+			);
+			$respReg = $this->rest->callAPI('POST', API_CORE . '/usuario/registro', $payloadReg);
+			if (!$respReg['status'] || empty($respReg['data'])) {
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> API usuario/registro falló | code: ' . ($respReg['code'] ?? 'n/a') . ' | body: ' . ($respReg['data'] ?? ''));
+				throw new Exception('Error al insertar usuario en la base de datos (API)');
 			}
-			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Usuario insertado con ID: ' . $id);
-			
-			// Generar token
-			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Generando token...');
-			$token = $this->user_model->insertToken($id);
-			if (!$token) {
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al generar token');
-				throw new Exception('Error al generar token de activación');
+			$bodyReg = json_decode($respReg['data']);
+			if (!$bodyReg || !isset($bodyReg->respuesta->usr_id)) {
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Respuesta inesperada API | ' . $respReg['data']);
+				throw new Exception('Error al insertar usuario en la base de datos (respuesta API)');
 			}
-			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Token generado: ' . substr($token, 0, 10) . '...');
+			$id = (int) $bodyReg->respuesta->usr_id;
+			$token = $token_30 . $id;
+			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Usuario insertado con ID: ' . $id . ' (token 30 chars + id)');
 
 			// generate token
 			$qstring = $this->base64url_encode($token);
@@ -1648,7 +1675,7 @@ class Main extends CI_Controller {
 			$this->email->subject('Activar cuenta en Trazalog.com');
 			
 			// Crear mensaje HTML con logo y traducción
-			$logo_url = base_url() . 'public/img/logotzl.png';
+			$logo_url = base_url() . (defined('REGISTER_IMG_EMAIL_LOGO') ? REGISTER_IMG_EMAIL_LOGO : 'public/img/logotzl.png');
 			$message = '
 			<html>
 			<head>

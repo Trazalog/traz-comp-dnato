@@ -144,7 +144,7 @@ body {
 <div class="welcome-container">
     <div class="welcome-left">
         <div class="logo-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsgrey.png" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
         
         <h1 class="welcome-title">¡Registro Completado Exitosamente!</h1>
@@ -173,7 +173,7 @@ body {
     
     <div class="welcome-right">
         <div class="image-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsbienvenida.png" alt="Bienvenida a Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_BIENVENIDA; ?>" alt="Bienvenida a Trazalog Tools">
         </div>
     </div>
 </div>

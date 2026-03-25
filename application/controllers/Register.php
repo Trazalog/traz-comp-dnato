@@ -423,11 +423,7 @@ class Register extends CI_Controller {
             return;
         }
 
-        $userInfo = $this->user_model->getUserInfoByEmail($email);
-        if (!$userInfo) {
-            log_message('ERROR', '#TRAZA|REGISTER|asignarRolesAUsuario() >> Usuario no encontrado: ' . $email);
-            return;
-        }
+        $bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
 
         foreach ($roleBaseNames as $baseName) {
             $roleFullName = trim($baseName . ' ' . $companyName);
@@ -444,18 +440,23 @@ class Register extends CI_Controller {
                 continue;
             }
 
-            $membershipData = array(
+            $payload = array(
                 'email' => $email,
                 'group' => $companyName,
-                'role' => $roleFullName
+                'role' => $roleFullName,
+                'group_id' => (string) $groupInfo->id,
+                'role_id' => (string) $roleInfo->id,
+                'bpmSession' => $bpmSession
             );
-            $this->user_model->guardarMembership($membershipData);
 
-            $membershipBpm = array(
-                'group_id' => $groupInfo->id,
-                'role_id' => $roleInfo->id
-            );
-            $this->Roles->guardarMembershipBPM($membershipBpm, $userInfo->usernick);
+            try {
+                $response = $this->rest->callAPI('POST', API_CORE . '/rol/asignar', $payload);
+                if (!$response['status'] || (isset($response['code']) && $response['code'] >= 300)) {
+                    log_message('ERROR', '#TRAZA|REGISTER|asignarRolesAUsuario() >> Error API asignar rol ' . $roleFullName . ' | code: ' . ($response['code'] ?? 'N/A'));
+                }
+            } catch (Exception $e) {
+                log_message('ERROR', '#TRAZA|REGISTER|asignarRolesAUsuario() >> Excepción asignando rol ' . $roleFullName . ' | ' . $e->getMessage());
+            }
         }
     }
 

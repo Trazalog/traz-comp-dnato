@@ -200,6 +200,20 @@ define('CAMPOS_USUARIO_ADICIONALES', array(
 
 define('REGISTRACION_PASSWORD_DEFAULT', '12345');
 
+/*
+|--------------------------------------------------------------------------
+| Imágenes del flujo de registro y login (configurables)
+|--------------------------------------------------------------------------
+*/
+define('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png');
+define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.png');
+define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.png');
+define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.png');
+define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.png');
+define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.png');
+define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
+define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
+
 define('REGISTRACION_USUARIOS_DEFAULT', array(
     'usuario' => array(
         'Solicitante de Almacén',

@@ -1,9 +1,0 @@
----
-key: "TARDataService_proxy-1.0.0"
-name: "TARDataService"
-displayName: "TARDataService"
-version: "1.0.0"
-serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/TARDataService"
-definitionType: "OAS3"
-securityType: "BASIC"
-mutualSSLEnabled: false

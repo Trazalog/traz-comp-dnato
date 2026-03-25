@@ -11,7 +11,12 @@
             $html = '<div class="container" style="margin-top: 10px;">';
             $html .= '<div class="alert alert-warning alert-dismissible" role="alert">';
             $html .= '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-            $html .= $arr['flash_message'];
+            $html .= '<span class="alert-main-text">' . $arr['flash_message'] . '</span>';
+            if (!empty($arr['flash_message_hint'])) {
+                $html .= '<div class="flash-message-hint" style="margin-top:12px; padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.12); border-radius:4px; color:#212529; font-size:0.88em; line-height:1.45;">';
+                $html .= $arr['flash_message_hint'];
+                $html .= '</div>';
+            }
             $html .= '</div>';
             $html .= '</div>';
             echo $html;
@@ -19,7 +24,12 @@
             $html = '<div class="container" style="margin-top: 10px;">';
             $html .= '<div class="alert alert-info alert-dismissible" role="alert">';
             $html .= '<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>';
-            $html .= $arr['success_message'];
+            $html .= '<span class="alert-main-text">' . $arr['success_message'] . '</span>';
+            if (!empty($arr['flash_message_hint'])) {
+                $html .= '<div class="flash-message-hint" style="margin-top:12px; padding:10px 12px; background:#fff; border:1px solid rgba(0,0,0,0.12); border-radius:4px; color:#212529; font-size:0.88em; line-height:1.45;">';
+                $html .= $arr['flash_message_hint'];
+                $html .= '</div>';
+            }
             $html .= '</div>';
             $html .= '</div>';
             echo $html;

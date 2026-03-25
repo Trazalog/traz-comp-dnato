@@ -163,7 +163,7 @@ select.form-control {
 <div class="empresa-container">
     <div class="empresa-left">
         <div class="logo-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsgrey.png" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
         
         <h1 class="empresa-title">Completar Datos de Empresa</h1>
@@ -283,7 +283,7 @@ select.form-control {
     
     <div class="empresa-right">
         <div class="image-container">
-            <img src="<?php echo base_url(); ?>public/img/toolscreaempr.png" alt="Crear Empresa">
+            <img src="<?php echo base_url() . REGISTER_IMG_CREAR_EMPRESA; ?>" alt="Crear Empresa">
         </div>
     </div>
 </div>

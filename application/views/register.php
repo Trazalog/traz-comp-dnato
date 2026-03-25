@@ -55,7 +55,7 @@
     
     .register-right {
         width: 60%;
-        background: #2F2F2F url('<?php echo base_url(); ?>public/img/toolsregister.png') !important;
+        background: #2F2F2F url('<?php echo base_url() . REGISTER_IMG_BACKGROUND; ?>') !important;
         background-color: #2F2F2F !important;
         background-size: cover !important;
         background-position: center !important;
@@ -235,7 +235,7 @@ if(!empty($arr['flash_message'])){
 <div class="register-container">
     <div class="register-left">
         <div class="logo-container">
-            <img src="<?php echo base_url(); ?>public/img/toolsgrey.png" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
         
         <h1 class="register-title">Regístrese Gratis</h1>

@@ -217,6 +217,7 @@ A continuación se describe el mismo flujo del diagrama 3.1, paso a paso, con le
 
 #### reCAPTCHA (configuración y comportamiento)
 
+- **Cómo activar reCAPTCHA:** Ir a la pantalla **Settings** (menú de administración), localizar el campo **Recaptcha** y seleccionar **Yes**. Asegurarse de que las credenciales de Google reCAPTCHA (site key y secret) estén configuradas en la librería Recaptcha. Una vez activado, el widget "No soy un robot" aparecerá en registro, login y recuperación de contraseña.
 - **Dónde se configura:** el uso de reCAPTCHA no es fijo en código: depende del valor guardado en la tabla **`seg.settings`**, campo **`recaptcha`** (`"yes"` o `"no"`). Ese valor se obtiene con `User_model->getAllSettings()` y se puede cambiar desde la **pantalla de Settings** del sistema (menú de administración), donde hay un desplegable “Recaptcha” con opciones Yes/No.
 - **Si está en "yes":**  
   - En la vista de registro se muestra el widget de Google reCAPTCHA (checkbox “No soy un robot” o desafío similar).  

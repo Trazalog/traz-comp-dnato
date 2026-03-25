@@ -86,13 +86,19 @@
                       
                       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                         <?php
+                          $first_name = isset($first_name) ? $first_name : '';
+                          $last_name = isset($last_name) ? $last_name : '';
                           foreach($usersList as $user){
-                            if(($email == $user->email) && ($usernick == $user->usernick)){                             
+                            if(strcasecmp((string) $email, (string) $user->email) === 0){
                               echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="user-image" alt="User Image"/>';
                               $first_name = $user->first_name;
                               $last_name = $user->last_name;
                               break;
                             }
+                          }
+                          if ($first_name === '' && $this->session->userdata('first_name')) {
+                            $first_name = $this->session->userdata('first_name');
+                            $last_name = (string) $this->session->userdata('last_name');
                           }
                         ?>
                         
