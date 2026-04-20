@@ -9,11 +9,11 @@ class Test_formularios extends CI_Controller {
         
         try {
             // Cargar el modelo directamente
-            require_once(APPPATH . 'modules/traz-comp-formularios/application/models/Forms.php');
+            require_once(APPPATH . 'modules/traz-comp-formularios/models/Forms.php');
             $this->Forms = new Forms();
             
             // Cargar el helper directamente
-            require_once(APPPATH . 'modules/traz-comp-formularios/application/helpers/form_helper.php');
+            require_once(APPPATH . 'modules/traz-comp-formularios/helpers/form_helper.php');
             
             echo "<p>✅ Modelo Forms cargado correctamente</p>";
             echo "<p>✅ Helper form_helper cargado correctamente</p>";

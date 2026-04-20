@@ -289,92 +289,121 @@ select.form-control {
 </div>
 
 <script>
-    // Cargar estados al cargar la página si hay un país seleccionado
-    $(document).ready(function() {
-        var pais_id = '<?php echo $pais_id; ?>';
-        if (pais_id) {
-            // Obtener el nombre del país para enviarlo al API
-            var pais_nombre = '<?php echo addslashes($pais_nombre); ?>';
-            if (pais_nombre) {
-                seleccionPais(pais_nombre);
-            }
-        }
+    var URL_ESTADOS = <?php echo json_encode(site_url('register/getEstados')); ?>;
+    var URL_LOCALIDADES = <?php echo json_encode(site_url('register/getLocalidades')); ?>;
+    var PAIS_NOMBRE_REG = <?php echo json_encode($pais_nombre); ?>;
+    var PAIS_ID_REG = <?php echo json_encode($pais_id); ?>;
+
+    console.log('[crearEmpresa][v3-kickoff] script loaded', {
+        URL_ESTADOS: URL_ESTADOS,
+        URL_LOCALIDADES: URL_LOCALIDADES,
+        PAIS_NOMBRE_REG: PAIS_NOMBRE_REG,
+        PAIS_ID_REG: PAIS_ID_REG,
+        jQuery: typeof jQuery,
+        $: typeof $
     });
-    
-    /* Carga Estados dependiendo del pais seleccionado */
+
+    function coerceListaTablas(rsp) {
+        if (rsp == null) {
+            return [];
+        }
+        if (Array.isArray(rsp)) {
+            return rsp;
+        }
+        return [rsp];
+    }
+
     function seleccionPais(paisNombre) {
         if (!paisNombre) {
-            paisNombre = $("#pais_display").val();
+            paisNombre = '';
         }
-        
+        console.log('[crearEmpresa] seleccionPais() → GET', URL_ESTADOS);
+
         $.ajax({
             type: 'GET',
-            dataType: "json",
-            data: {id_pais: paisNombre},
-            url:'<?php echo base_url() ?>Register/getEstados',
+            dataType: 'json',
+            data: { id_pais: paisNombre },
+            url: URL_ESTADOS,
             success: function(rsp) {
+                console.log('[crearEmpresa] getEstados success. raw rsp:', rsp);
+                var lista = coerceListaTablas(rsp);
+                console.log('[crearEmpresa] getEstados lista normalizada length=' + lista.length, lista);
                 $('#prov_id').empty();
                 $('#loca_id').empty();
-                if (rsp != null && rsp.length > 0) {
+                if (lista.length > 0) {
                     var datos = "<option value='' disabled selected>-Seleccione Provincia/Estado-</option>";
-                    for (let i = 0; i < rsp.length; i++) {
-                        var datito = encodeURIComponent(rsp[i].tabl_id);
-                        datos += "<option value=" + datito + ">" + rsp[i].valor + "</option>";
+                    for (var i = 0; i < lista.length; i++) {
+                        var datito = encodeURIComponent(lista[i].tabl_id);
+                        datos += "<option value=" + datito + ">" + lista[i].valor + "</option>";
                     }
                     $('#prov_id').html(datos);
-                    var datos = "<option value='' disabled selected>-Seleccione Localidad-</option>";
-                    $('#loca_id').html(datos);
+                    $('#loca_id').html("<option value='' disabled selected>-Seleccione Localidad-</option>");
                 } else {
-                    var provincia = "<option value='' disabled selected>-Seleccione Provincia/Estado-</option>";
-                    $('#prov_id').html(provincia);
-                    var localidad = "<option value='' disabled selected>-Seleccione Localidad-</option>";
-                    $('#loca_id').html(localidad);
-                    alert('El País no contiene estados');
+                    $('#prov_id').html("<option value='' disabled selected>-Seleccione Provincia/Estado-</option>");
+                    $('#loca_id').html("<option value='' disabled selected>-Seleccione Localidad-</option>");
+                    console.warn('[crearEmpresa] getEstados devolvió lista vacía');
                 }
             },
-            error: function(data) {
-                console.error('Error al cargar estados:', data);
-                alert('Error al cargar las provincias/estados');
+            error: function(xhr) {
+                console.error('[crearEmpresa] Error al cargar estados:', xhr.status, xhr.responseText);
             }
         });
     }
 
-    /* Carga Localidades dependiendo del estado seleccionado */
     function seleccionEstado() {
-        var pais_nombre = '<?php echo addslashes($pais_nombre); ?>';
-        var id_estado = $("#prov_id option:selected").text();
-        
+        var id_estado = $('#prov_id option:selected').text();
+        console.log('[crearEmpresa] seleccionEstado() → id_estado=', id_estado);
+
         if (!id_estado || id_estado === '-Seleccione Provincia/Estado-') {
             $('#loca_id').empty();
             $('#loca_id').html("<option value='' disabled selected>-Seleccione Localidad-</option>");
             return;
         }
-        
+
         $.ajax({
             type: 'GET',
-            dataType: "json",
-            data: {id_pais: pais_nombre, id_estado: id_estado},
-            url:'<?php echo base_url() ?>Register/getLocalidades',
+            dataType: 'json',
+            data: { id_estado: id_estado },
+            url: URL_LOCALIDADES,
             success: function(rsp) {
+                console.log('[crearEmpresa] getLocalidades success. raw rsp:', rsp);
+                var lista = coerceListaTablas(rsp);
                 $('#loca_id').empty();
-                if (rsp != null && rsp.length > 0) {
+                if (lista.length > 0) {
                     var datos = "<option value='' disabled selected>-Seleccione Localidad-</option>";
-                    for (let i = 0; i < rsp.length; i++) {
-                        var valor = encodeURIComponent(rsp[i].tabl_id);
-                        datos += "<option value=" + valor + ">" + rsp[i].valor + "</option>";
+                    for (var i = 0; i < lista.length; i++) {
+                        var valor = encodeURIComponent(lista[i].tabl_id);
+                        datos += "<option value=" + valor + ">" + lista[i].valor + "</option>";
                     }
                     $('#loca_id').html(datos);
                 } else {
-                    var datos = "<option value='' disabled selected>-Seleccione Localidad-</option>";
-                    $('#loca_id').html(datos); 
-                    alert('El Estado no contiene localidades');
+                    $('#loca_id').html("<option value='' disabled selected>-Seleccione Localidad-</option>");
+                    console.warn('[crearEmpresa] getLocalidades devolvió lista vacía');
                 }
             },
-            error: function(data) {
-                console.error('Error al cargar localidades:', data);
-                alert('Error al cargar las localidades');
+            error: function(xhr) {
+                console.error('[crearEmpresa] Error al cargar localidades:', xhr.status, xhr.responseText);
             }
         });
     }
+
+    /*
+     * Los elementos del combo ya existen en el DOM al ejecutarse este script (está al final del view),
+     * por lo que disparamos la carga de estados sin depender de $(document).ready.
+     * Nota: NO usar comentarios de linea (//) en <script> inline en este proyecto; el hook 'compress'
+     * colapsa los saltos de linea del HTML y dejaria comentado todo lo que viene despues.
+     */
+    (function kickoffSeleccionPais() {
+        if (typeof jQuery === 'undefined') {
+            console.error('[crearEmpresa] kickoff: jQuery NO está definido, no se puede cargar estados');
+            return;
+        }
+        console.log('[crearEmpresa] kickoff → llamando seleccionPais() (sin ready)');
+        try {
+            seleccionPais();
+        } catch (e) {
+            console.error('[crearEmpresa] kickoff: error al llamar seleccionPais()', e);
+        }
+    })();
 </script>
 

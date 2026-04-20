@@ -1,9 +1,0 @@
----
-key: "PANDataService_proxy-1.0.0"
-name: "PANDataService"
-displayName: "PANDataService"
-version: "1.0.0"
-serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/PANDataService"
-definitionType: "OAS3"
-securityType: "BASIC"
-mutualSSLEnabled: false

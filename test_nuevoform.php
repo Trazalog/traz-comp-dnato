@@ -16,7 +16,7 @@ echo "FRM: " . FRM . "\n";
 echo "FORMULARIO_REGISTRO_ID: " . FORMULARIO_REGISTRO_ID . "\n";
 
 // Cargar el helper
-$helper_path = APPPATH . 'modules/traz-comp-formularios/application/helpers/form_helper.php';
+$helper_path = APPPATH . 'modules/traz-comp-formularios/helpers/form_helper.php';
 echo "Cargando helper: " . $helper_path . "\n";
 require_once($helper_path);
 

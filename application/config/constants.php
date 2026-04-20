@@ -100,6 +100,7 @@ define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('FRM', 'traz-comp-formularios/');
 define('FORMULARIO_REGISTRO_ID', 72);
+define('REGISTER_TEMP_EMPR_ID', 9000);
 define('TOOLS_ADMIN_USER','admin@gmail.com');
 define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');

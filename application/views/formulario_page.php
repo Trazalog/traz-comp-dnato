@@ -80,7 +80,7 @@ body {
     .form-container {
         flex-direction: column;
     }
-    
+
     .form-left, .form-right {
         margin-right: 0;
         margin-bottom: 20px;
@@ -91,290 +91,90 @@ body {
 <div class="form-container">
     <div class="form-left">
         <div class="logo-container">
-            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . (defined('REGISTER_IMG_LOGO') ? REGISTER_IMG_LOGO : 'public/img/toolsgrey.png'); ?>" alt="Trazalog Tools">
         </div>
-        
+
         <h1 class="form-title">Información Adicional de Registro</h1>
         <p class="form-subtitle">Por favor completa la siguiente información para finalizar tu registro:</p>
-        
-        <!-- Script debe estar ANTES del formulario para que frmGuardar esté disponible -->
-        <script type="text/javascript">
-        console.log('=== DEBUG INICIO: Definiendo frmGuardar ===');
-        console.log('DEBUG: typeof jQuery:', typeof jQuery);
-        console.log('DEBUG: typeof $:', typeof $);
-        console.log('DEBUG: typeof frmGuardar ANTES:', typeof frmGuardar);
-        console.log('DEBUG: typeof window.frmGuardar ANTES:', typeof window.frmGuardar);
-        
-        // Guardar referencia a función existente si existe
-        var frmGuardarOriginal = window.frmGuardar;
-        if (frmGuardarOriginal) {
-            console.log('DEBUG: frmGuardar ya existía, guardando referencia');
-        }
-        
-        // Definir frmGuardar globalmente de forma simple (sin IIFE para que esté disponible inmediatamente)
-        function frmGuardar(button) {
-            console.log('=== DEBUG: frmGuardar EJECUTADO ===');
-            console.log('DEBUG: button recibido:', button);
-            console.log('DEBUG: typeof jQuery:', typeof jQuery);
-            console.log('DEBUG: typeof $:', typeof $);
-            
-            if (typeof jQuery === 'undefined' && typeof $ === 'undefined') {
-                alert('ERROR: jQuery no está disponible');
-                console.error('ERROR: jQuery no disponible');
-                return false;
-            }
-            
-            var $ = jQuery || window.$;
-            var form = $(button).closest('form');
-            console.log('DEBUG: form encontrado:', form.length > 0);
-            console.log('DEBUG: form ID:', form.attr('id'));
-            console.log('DEBUG: form data-info:', form.attr('data-info'));
-            console.log('DEBUG: form data-ninfoid:', form.attr('data-ninfoid'));
-            
-            if (form.length === 0) {
-                alert('ERROR: No se pudo encontrar el formulario');
-                console.error('ERROR: Form no encontrado');
-                return false;
-            }
-            
-            var formData = new FormData(form[0]);
-            var info_id = form.attr('data-info') || form.attr('data-ninfoid') || form.find('input[name="info_id"]').val();
-            console.log('DEBUG: info_id obtenido:', info_id);
-            
-            if (!info_id || info_id === 'null' || info_id === '' || info_id === null) {
-                alert('Error: No se pudo obtener el ID del formulario. info_id=' + info_id);
-                console.error('ERROR: info_id inválido:', info_id);
-                return false;
-            }
-            
-            formData.append('info_id', info_id);
-            var url = '<?php echo base_url(); ?>register/guardarFormularioRegistro';
-            console.log('DEBUG: URL AJAX:', url);
-            console.log('DEBUG: Enviando AJAX...');
-            
-            $.ajax({
-                type: 'POST',
-                url: url,
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    console.log('DEBUG: Respuesta AJAX exitosa:', response);
-                    if (response && response.success) {
-                        // Redirigir a crearEmpresa si está en la respuesta, sino usar la URL por defecto
-                        if (response.redirect) {
-                            window.location.href = response.redirect;
-                        } else {
-                            window.location.href = '<?php echo base_url(); ?>register/crearEmpresa';
-                        }
-                    } else {
-                        var errorMsg = response && response.message ? response.message : 'Error desconocido';
-                        alert('Error: ' + errorMsg);
-                        console.error('ERROR en respuesta:', response);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('ERROR AJAX completo:', {
-                        status: status,
-                        error: error,
-                        responseText: xhr.responseText,
-                        statusCode: xhr.status
-                    });
-                    alert('Error al guardar el formulario. Ver consola para detalles.');
-                }
-            });
-            
-            return false;
-        }
-        
-        // Asegurar que también esté en window
-        window.frmGuardar = frmGuardar;
-        
-        console.log('DEBUG: typeof frmGuardar DESPUÉS:', typeof frmGuardar);
-        console.log('DEBUG: typeof window.frmGuardar DESPUÉS:', typeof window.frmGuardar);
-        console.log('DEBUG: frmGuardar === window.frmGuardar:', frmGuardar === window.frmGuardar);
-        console.log('=== DEBUG FIN: frmGuardar definida ===');
-        </script>
-        
-        <!-- Formulario dinámico usando el módulo traz-comp-formularios -->
+
         <div class="panel panel-default">
             <div class="panel-body">
-                <?php echo nuevoForm($form_id); ?>
+                <?php echo getForm($info_id); ?>
             </div>
         </div>
-        
-        <!-- Script INLINE inmediatamente después del formulario para interceptar onclick -->
-        <script type="text/javascript">
-        console.log('=== DEBUG INLINE: Script inmediatamente después del formulario ===');
-        console.log('DEBUG INLINE: typeof frmGuardar:', typeof frmGuardar);
-        console.log('DEBUG INLINE: typeof window.frmGuardar:', typeof window.frmGuardar);
-        
-        // Ejecutar inmediatamente (sin esperar a document.ready)
-        (function() {
-            console.log('DEBUG INLINE: Ejecutando inmediatamente...');
-            var botones = document.querySelectorAll('.frm-save');
-            console.log('DEBUG INLINE: Botones encontrados (querySelectorAll):', botones.length);
-            
-            for (var i = 0; i < botones.length; i++) {
-                var btn = botones[i];
-                console.log('DEBUG INLINE: Botón ' + i + ':', {
-                    onclick: btn.getAttribute('onclick'),
-                    class: btn.className
-                });
-                
-                // Guardar onclick original
-                var onclickOriginal = btn.getAttribute('onclick');
-                console.log('DEBUG INLINE: onclick original:', onclickOriginal);
-                
-                // Remover onclick y agregar event listener
-                btn.removeAttribute('onclick');
-                btn.addEventListener('click', function(e) {
-                    console.log('=== DEBUG INLINE: Click capturado (addEventListener) ===');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    console.log('DEBUG INLINE: typeof frmGuardar en click:', typeof frmGuardar);
-                    console.log('DEBUG INLINE: typeof window.frmGuardar en click:', typeof window.frmGuardar);
-                    
-                    if (typeof window.frmGuardar === 'function') {
-                        console.log('DEBUG INLINE: Llamando window.frmGuardar');
-                        window.frmGuardar(this);
-                    } else if (typeof frmGuardar === 'function') {
-                        console.log('DEBUG INLINE: Llamando frmGuardar');
-                        frmGuardar(this);
-                    } else {
-                        console.error('ERROR INLINE: frmGuardar no está disponible!');
-                        alert('Error: frmGuardar no está disponible. Ver consola para detalles.');
-                    }
-                    return false;
-                }, false);
-                
-                console.log('DEBUG INLINE: Event listener agregado al botón ' + i);
-            }
-            
-            console.log('=== DEBUG INLINE: Procesamiento completado ===');
-        })();
-        </script>
     </div>
-    
+
     <div class="form-right">
         <div class="image-container">
-            <img src="<?php echo base_url() . REGISTER_IMG_FORMULARIO; ?>" alt="Formulario de Registro">
+            <img src="<?php echo base_url() . (defined('REGISTER_IMG_FORMULARIO') ? REGISTER_IMG_FORMULARIO : 'public/img/toolsform.png'); ?>" alt="Formulario de Registro">
         </div>
     </div>
 </div>
 
-<!-- Script adicional DESPUÉS del formulario para reemplazar onclick con event listeners -->
 <script type="text/javascript">
-console.log('=== DEBUG POST-FORM: Script después del formulario ===');
-console.log('DEBUG POST-FORM: typeof jQuery:', typeof jQuery);
-console.log('DEBUG POST-FORM: typeof $:', typeof $);
-console.log('DEBUG POST-FORM: typeof frmGuardar:', typeof frmGuardar);
-console.log('DEBUG POST-FORM: typeof window.frmGuardar:', typeof window.frmGuardar);
+(function () {
+    var GUARDAR_URL = <?php echo json_encode(base_url('register/guardarFormularioRegistro')); ?>;
+    var CREAR_EMPRESA_URL = <?php echo json_encode(base_url('register/crearEmpresa')); ?>;
 
-// Verificar si hay scripts que sobrescriban frmGuardar
-if (typeof frmGuardar !== 'function' || typeof window.frmGuardar !== 'function') {
-    console.error('ERROR POST-FORM: frmGuardar no está definida después del formulario!');
-    console.error('ERROR POST-FORM: Re-definiendo frmGuardar...');
-    
-    window.frmGuardar = function(button) {
-        console.log('=== DEBUG POST-FORM: frmGuardar EJECUTADO (re-definición) ===');
-        var $ = jQuery || window.$;
-        var form = $(button).closest('form');
-        var formData = new FormData(form[0]);
-        var info_id = form.attr('data-info') || form.attr('data-ninfoid') || form.find('input[name="info_id"]').val();
-        
-        if (!info_id) {
-            alert('Error: No se pudo obtener el ID del formulario');
+    function frmGuardar(button) {
+        var $btn = jQuery(button);
+        var $form = $btn.closest('form');
+
+        if ($form.length === 0) {
+            alert('No se pudo encontrar el formulario.');
             return false;
         }
-        
+
+        var info_id = $form.attr('data-info')
+            || $form.attr('data-ninfoid')
+            || $form.find('input[name="info_id"]').val();
+
+        if (!info_id || info_id === 'null') {
+            alert('No se pudo obtener el identificador del formulario.');
+            return false;
+        }
+
+        var formData = new FormData($form[0]);
         formData.append('info_id', info_id);
-        
-        $.ajax({
+
+        $btn.prop('disabled', true);
+
+        jQuery.ajax({
             type: 'POST',
-            url: '<?php echo base_url(); ?>register/guardarFormularioRegistro',
+            url: GUARDAR_URL,
             data: formData,
             processData: false,
             contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                if (response && response.success) {
-                    if (response.redirect) {
-                        window.location.href = response.redirect;
-                    } else {
-                        window.location.href = '<?php echo base_url(); ?>register/crearEmpresa';
-                    }
-                } else {
-                    alert('Error: ' + (response && response.message ? response.message : 'Error desconocido'));
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error AJAX:', status, error);
-                alert('Error al guardar el formulario');
-            }
-        });
-        
-        return false;
-    };
-    frmGuardar = window.frmGuardar;
-    console.log('DEBUG POST-FORM: frmGuardar re-definida');
-}
-
-$(document).ready(function() {
-    console.log('=== DEBUG POST-FORM: jQuery ready ===');
-    console.log('DEBUG POST-FORM: Buscando botones .frm-save...');
-    
-    var botones = $('.frm-save');
-    console.log('DEBUG POST-FORM: Botones encontrados:', botones.length);
-    
-    botones.each(function(index) {
-        var $btn = $(this);
-        console.log('DEBUG POST-FORM: Botón ' + index + ':', {
-            onclick: $btn.attr('onclick'),
-            class: $btn.attr('class'),
-            id: $btn.attr('id')
-        });
-        
-        // Guardar onclick original para debug
-        var onclickOriginal = $btn.attr('onclick');
-        console.log('DEBUG POST-FORM: onclick original:', onclickOriginal);
-        
-        // Remover el atributo onclick y agregar event listener
-        $btn.removeAttr('onclick').on('click', function(e) {
-            console.log('=== DEBUG POST-FORM: Click capturado por event listener ===');
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('DEBUG POST-FORM: typeof frmGuardar en click:', typeof frmGuardar);
-            console.log('DEBUG POST-FORM: typeof window.frmGuardar en click:', typeof window.frmGuardar);
-            
-            if (typeof frmGuardar === 'function') {
-                console.log('DEBUG POST-FORM: Llamando frmGuardar (sin window)');
-                frmGuardar(this);
-            } else if (typeof window.frmGuardar === 'function') {
-                console.log('DEBUG POST-FORM: Llamando window.frmGuardar');
-                window.frmGuardar(this);
+            dataType: 'json'
+        }).done(function (response) {
+            if (response && response.success) {
+                window.location.href = response.redirect || CREAR_EMPRESA_URL;
             } else {
-                console.error('ERROR POST-FORM: frmGuardar no está disponible en el click!');
-                alert('Error: frmGuardar no está disponible. Ver consola para detalles.');
+                var msg = response && response.message ? response.message : 'Error desconocido';
+                alert('Error al guardar: ' + msg);
+                $btn.prop('disabled', false);
             }
-            return false;
+        }).fail(function (xhr) {
+            console.error('Error AJAX al guardar formulario:', xhr.status, xhr.responseText);
+            alert('Error al guardar el formulario. Revisá la consola para más detalles.');
+            $btn.prop('disabled', false);
         });
-        
-        console.log('DEBUG POST-FORM: Event listener agregado al botón ' + index);
+
+        return false;
+    }
+
+    window.frmGuardar = frmGuardar;
+
+    jQuery(function ($) {
+        $('.frm-save').each(function () {
+            var $btn = $(this);
+            $btn.removeAttr('onclick');
+            $btn.off('click.frmGuardar').on('click.frmGuardar', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return window.frmGuardar(this);
+            });
+        });
     });
-    
-    console.log('=== DEBUG POST-FORM: jQuery ready completado ===');
-});
-
-// Verificación final después de un pequeño delay
-setTimeout(function() {
-    console.log('=== DEBUG POST-FORM: Verificación final (después de 500ms) ===');
-    console.log('DEBUG POST-FORM: typeof frmGuardar:', typeof frmGuardar);
-    console.log('DEBUG POST-FORM: typeof window.frmGuardar:', typeof window.frmGuardar);
-    console.log('DEBUG POST-FORM: Botones .frm-save:', $('.frm-save').length);
-}, 500);
+})();
 </script>
-

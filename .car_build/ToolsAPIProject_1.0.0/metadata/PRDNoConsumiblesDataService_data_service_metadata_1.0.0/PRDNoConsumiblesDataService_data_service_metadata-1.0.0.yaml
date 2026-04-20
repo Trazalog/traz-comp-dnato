@@ -1,9 +1,0 @@
----
-key: "PRDNoConsumiblesDataService_proxy-1.0.0"
-name: "PRDNoConsumiblesDataService"
-displayName: "PRDNoConsumiblesDataService"
-version: "1.0.0"
-serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/PRDNoConsumiblesDataService"
-definitionType: "OAS3"
-securityType: "BASIC"
-mutualSSLEnabled: false

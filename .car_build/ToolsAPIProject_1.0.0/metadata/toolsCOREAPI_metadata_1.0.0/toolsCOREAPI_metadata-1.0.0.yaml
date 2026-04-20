@@ -1,9 +1,0 @@
----
-key: "toolsCOREAPI-1.0.0"
-name: "toolsCOREAPI"
-displayName: "toolsCOREAPI"
-version: "1.0.0"
-serviceUrl: "https://{MI_HOST}:{MI_PORT}/tools/core"
-definitionType: "OAS3"
-securityType: "BASIC"
-mutualSSLEnabled: false

@@ -220,15 +220,16 @@
 $arr = $this->session->flashdata();
 $server_message_type = '';
 $server_message_text = '';
-if(!empty($arr['flash_message'])){
-    $server_message_type = 'warning';
-    $server_message_text = $arr['flash_message'];
-}else if (!empty($arr['success_message'])){
-    $server_message_type = 'success';
-    $server_message_text = $arr['success_message'];
-}else if (!empty($arr['danger_message'])){
+// Prioridad: error grave > avisos > éxito (evita mostrar verde si hubo danger)
+if (!empty($arr['danger_message'])) {
     $server_message_type = 'danger';
     $server_message_text = $arr['danger_message'];
+} elseif (!empty($arr['flash_message'])) {
+    $server_message_type = 'warning';
+    $server_message_text = $arr['flash_message'];
+} elseif (!empty($arr['success_message'])) {
+    $server_message_type = 'success';
+    $server_message_text = $arr['success_message'];
 }
 ?>
 

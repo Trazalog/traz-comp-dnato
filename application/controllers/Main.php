@@ -1306,7 +1306,9 @@ class Main extends CI_Controller {
 					try {
 						$this->load->library('rest');
 						$bpmSession = defined('BPM_ROLES_SESSION_URL') ? BPM_ROLES_SESSION_URL : rawurlencode('X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;');
-						$usernick = isset($userInfo->usernick) && $userInfo->usernick !== '' ? $userInfo->usernick : strtolower($userInfo->email);
+						$usernick = isset($userInfo->usernick) && trim((string) $userInfo->usernick) !== ''
+							? $userInfo->usernick
+							: strtolower(trim($userInfo->email));
 						$payloadBpm = array(
 							'bpmSession' => $bpmSession,
 							'usuario' => array(
@@ -1321,9 +1323,17 @@ class Main extends CI_Controller {
 						$respBpm = $this->rest->callAPI('POST', API_CORE . '/usuario/bpm-asset', $payloadBpm);
 						if (!$respBpm['status']) {
 							log_message('ERROR', '#TRAZA|MAIN|complete() >> POST usuario/bpm-asset falló | code: ' . ($respBpm['code'] ?? 'n/a') . ' | ' . ($respBpm['data'] ?? ''));
+							$this->session->set_flashdata(
+								'flash_message',
+								'Tu cuenta quedó activada, pero no se pudo sincronizar con BPM en este momento. Podés continuar; si algo falla en procesos, contactá soporte.'
+							);
 						}
 					} catch (Exception $ex) {
 						log_message('ERROR', '#TRAZA|MAIN|complete() >> Excepción usuario/bpm-asset: ' . $ex->getMessage());
+						$this->session->set_flashdata(
+							'flash_message',
+							'Tu cuenta quedó activada, pero hubo un error al contactar BPM. Podés continuar; si algo falla, volvé a intentar más tarde.'
+						);
 					}
 
 					unset($userInfo->password);
@@ -1614,6 +1624,11 @@ class Main extends CI_Controller {
 	public function procesarRegistro($clean)
 	{
 		try {
+			// Evita mostrar “Registro exitoso” de un intento anterior si este POST falla después
+			foreach (array('success_message', 'flash_message', 'danger_message') as $k) {
+				$this->session->unset_userdata($k);
+			}
+
 			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> INICIANDO - Procesando registro de usuario');
 			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Datos del usuario: ' . json_encode($clean));
 			
@@ -1644,11 +1659,15 @@ class Main extends CI_Controller {
 			);
 			$respReg = $this->rest->callAPI('POST', API_CORE . '/usuario/registro', $payloadReg);
 			if (!$respReg['status'] || empty($respReg['data'])) {
+				$snippet = is_string($respReg['data'] ?? null) ? substr($respReg['data'], 0, 800) : json_encode($respReg['data']);
+				log_message('ERROR', '#TRAZA|MAIN|REGISTRO_FALLO|API| email=' . $clean['email'] . ' | HTTP=' . ($respReg['code'] ?? 'n/a') . ' | body=' . $snippet);
 				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> API usuario/registro falló | code: ' . ($respReg['code'] ?? 'n/a') . ' | body: ' . ($respReg['data'] ?? ''));
 				throw new Exception('Error al insertar usuario en la base de datos (API)');
 			}
 			$bodyReg = json_decode($respReg['data']);
 			if (!$bodyReg || !isset($bodyReg->respuesta->usr_id)) {
+				$snippet = is_string($respReg['data'] ?? null) ? substr($respReg['data'], 0, 800) : '';
+				log_message('ERROR', '#TRAZA|MAIN|REGISTRO_FALLO|RESPUESTA| email=' . $clean['email'] . ' | json=' . $snippet);
 				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Respuesta inesperada API | ' . $respReg['data']);
 				throw new Exception('Error al insertar usuario en la base de datos (respuesta API)');
 			}
@@ -1712,183 +1731,34 @@ class Main extends CI_Controller {
 			</html>';
 			
 			$this->email->message($message);
-			
-			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Configuración de email completada');
+
 			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Intentando enviar email a: ' . $clean['email']);
-			log_message('DEBUG', '#TRAZA|MAIN|procesarRegistro() >> Configuración email - Protocol: sendmail, Mailpath: /usr/sbin/sendmail');
+			log_message('INFO', '#TRAZA|MAIN|REGISTRO_ACTIVACION_URL| ' . $url);
 
-			// Intentar enviar email con manejo de errores
-			$email_sent = false;
-			$email_error = '';
-			$email_debug = '';
-			
-			try {
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ========== EJECUTANDO email->send() ==========');
-				$email_sent = $this->email->send();
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ========== email->send() retornó: ' . ($email_sent ? 'TRUE' : 'FALSE') . ' ==========');
-				
-				// Obtener información de debug para verificar errores
-				$email_debug = $this->email->print_debugger();
-				log_message('DEBUG', '#TRAZA|MAIN|procesarRegistro() >> Debug email completo: ' . $email_debug);
-				
-				if (!$email_sent) {
-					// Si send() retornó FALSE, hay un error claro
-					$email_error = $email_debug ?: 'Error desconocido al enviar email';
-					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> email->send() retornó FALSE - Email NO enviado');
-					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error detallado: ' . $email_error);
-				} else {
-					// Si send() retornó TRUE, verificar logs del sistema para detectar errores de entrega
-					// sendmail puede aceptar el email localmente pero fallar después al entregarlo
-					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Verificando logs del sistema para detectar errores de entrega...');
-					
-					// Esperar 5 segundos para que el MTA intente entregar (el timeout suele ser ~2 minutos, pero verificamos errores recientes)
-					sleep(5);
-					
-					// Verificar logs del sistema para errores de entrega
-					// Usar comando shell para leer el log ya que PHP puede no tener permisos directos
-					$to_email = $clean['email'];
-					$delivery_error = false;
-					$error_message = '';
-					
-					// Intentar leer el log usando tail (que puede tener permisos diferentes)
-					$mail_log_file = '/var/log/mail.log';
-					$log_content = '';
-					
-					// Método 1: Intentar leer directamente
-					if (file_exists($mail_log_file) && is_readable($mail_log_file)) {
-						$log_lines = array_slice(file($mail_log_file), -100);
-						$log_content = implode('', $log_lines);
-						log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Log leído directamente desde archivo');
-					} else {
-						// Método 2: Usar comando shell (tail puede tener permisos diferentes)
-						$command = "tail -100 " . escapeshellarg($mail_log_file) . " 2>&1";
-						$log_content = @shell_exec($command);
-						if ($log_content === null || $log_content === false) {
-							log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> No se puede leer el archivo de log: ' . $mail_log_file);
-							log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Intentando con sudo...');
-							// Método 3: Intentar con sudo (si está configurado sin contraseña)
-							$command = "sudo tail -100 " . escapeshellarg($mail_log_file) . " 2>&1";
-							$log_content = @shell_exec($command);
-							if ($log_content === null || $log_content === false) {
-								log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> No se puede leer el log ni con sudo. Verificando permisos...');
-								// Como último recurso, asumir que puede haber error y verificar después
-								$log_content = '';
-							}
-						} else {
-							log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Log leído usando comando shell');
-						}
-					}
-					
-					if (!empty($log_content)) {
-						// Buscar errores recientes relacionados con el destinatario
-						$current_time = time();
-						$error_patterns = array(
-							'/Deferred.*Connection timed out/',
-							'/Connection refused/',
-							'/Host unknown/',
-							'/Service unavailable/',
-							'/Temporary failure/',
-							'/dsn=4\./',
-							'/dsn=5\./'
-						);
-						
-						$log_lines = explode("\n", $log_content);
-						foreach ($log_lines as $line) {
-							// Verificar si la línea contiene el email del destinatario
-							if (strpos($line, $to_email) !== false) {
-								// Verificar si contiene algún patrón de error
-								foreach ($error_patterns as $pattern) {
-									if (preg_match($pattern, $line)) {
-										// Extraer timestamp de la línea (formato: 2025-12-16T04:03:06)
-										if (preg_match('/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/', $line, $time_match)) {
-											$error_time = strtotime($time_match[1]);
-											// Verificar si el error es muy reciente (últimos 3 minutos, ya que el timeout puede tardar ~2 minutos)
-											if (($current_time - $error_time) <= 180) {
-												$delivery_error = true;
-												$error_message = 'Error de entrega detectado en logs: ' . trim($line);
-												log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ' . $error_message);
-												break 2;
-											}
-										} else {
-											// Si no hay timestamp, asumir que es reciente si está en las últimas líneas
-											$delivery_error = true;
-											$error_message = 'Error de entrega detectado en logs (sin timestamp): ' . trim($line);
-											log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ' . $error_message);
-											break 2;
-										}
-									}
-								}
-							}
-						}
-					} else {
-						log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> No se pudo leer el contenido del log. Asumiendo que puede haber error de entrega.');
-						// Como no podemos verificar, asumir que puede haber error para ser conservador
-						// Pero no marcar como error automáticamente porque puede ser un problema de permisos
-					}
-					
-					if ($delivery_error) {
-						$email_error = $error_message;
-						$email_sent = false; // Considerar como fallido
-						log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ERROR DE ENTREGA DETECTADO - Email NO entregado');
-					} else {
-						log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> No se detectaron errores de entrega en logs del sistema');
-					}
-				}
-			} catch (Exception $e) {
-				$email_error = $e->getMessage();
-				$email_debug = $this->email->print_debugger();
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> EXCEPCIÓN al enviar email: ' . $email_error);
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Debug email: ' . $email_debug);
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Stack trace: ' . $e->getTraceAsString());
-				$email_sent = false;
-			}
-
-			if ($email_sent) {
+			// Mismo criterio que commit 033d460 (registro freemium): send() y print_debugger() solo si falla.
+			// No borrar usuario/token si falla el mail (el usuario puede activar por URL desde log o reintento).
+			if ($this->email->send()) {
 				log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Email de activación enviado correctamente');
+				log_message('INFO', '#TRAZA|MAIN|REGISTRO_OK| email=' . $clean['email'] . ' | usr_id=' . $id);
+				$this->session->unset_userdata('flash_message');
+				$this->session->unset_userdata('danger_message');
 				$this->session->set_flashdata('success_message', 'Registro exitoso! Revise su email para activar su cuenta.');
 			} else {
-				// ERROR: Eliminar usuario y token creados porque el email falló
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ============================================');
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> FALLO AL ENVIAR EMAIL - ELIMINANDO USUARIO Y TOKEN');
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ============================================');
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error detallado: ' . ($email_error ?: ($email_debug ?: 'Error desconocido')));
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Email destino: ' . $clean['email']);
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> URL activación: ' . $url);
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Usuario ID a eliminar: ' . $id);
-				
-				// Eliminar token primero (puede tener foreign key)
-				$this->db->where('user_id', $id);
-				$token_deleted = $this->db->delete('seg.tokens');
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Token eliminado: ' . ($token_deleted ? 'Sí' : 'No'));
-				if (!$token_deleted) {
-					$db_error = $this->db->error();
-					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error BD al eliminar token: ' . json_encode($db_error));
-				}
-				
-				// Eliminar usuario
-				$this->db->where('id', $id);
-				$user_deleted = $this->db->delete('seg.users');
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Usuario eliminado: ' . ($user_deleted ? 'Sí' : 'No'));
-				if (!$user_deleted) {
-					$db_error = $this->db->error();
-					log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error BD al eliminar usuario: ' . json_encode($db_error));
-				}
-				
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> ============================================');
-				
-				// Lanzar excepción para que no se continúe y se muestre el error al usuario
-				$error_msg = 'Error al enviar email de activación. El registro ha sido cancelado. Por favor, intente nuevamente o contacte al administrador.';
-				throw new Exception($error_msg);
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Error al enviar email: ' . $this->email->print_debugger());
+				$this->session->set_flashdata('flash_message', 'Error al enviar email de activación. Contacte al administrador.');
 			}
 
 			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Redirigiendo a página de registro');
 			redirect(base_url() . 'main/register');
 			
 		} catch (Exception $e) {
+			$emailLog = isset($clean['email']) ? $clean['email'] : '(sin email en $clean)';
+			log_message('ERROR', '#TRAZA|MAIN|REGISTRO_FALLO|EXCEPCION| email=' . $emailLog . ' | msg=' . $e->getMessage());
 			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> EXCEPCIÓN CAPTURADA: ' . $e->getMessage());
 			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Archivo: ' . $e->getFile() . ' Línea: ' . $e->getLine());
 			log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Stack trace: ' . $e->getTraceAsString());
-			$this->session->set_flashdata('flash_message', 'Error al procesar el registro: ' . $e->getMessage());
+			$this->session->unset_userdata('success_message');
+			$this->session->set_flashdata('danger_message', 'No se pudo completar el registro. ' . $e->getMessage());
 			redirect(base_url() . 'main/register');
 		}
 	}
@@ -1912,7 +1782,7 @@ class Main extends CI_Controller {
 		
 		try {
 			// Cargar el helper y modelo del módulo
-			require_once(APPPATH . 'modules/traz-comp-formularios/application/helpers/form_helper.php');
+			require_once(APPPATH . 'modules/traz-comp-formularios/helpers/form_helper.php');
 			$this->load->model('traz-comp-formularios/Forms');
 			
 			// Obtener los datos del formulario

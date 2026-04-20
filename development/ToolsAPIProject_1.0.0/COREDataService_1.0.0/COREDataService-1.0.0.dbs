@@ -549,7 +549,7 @@ VALUES&#xd;
     :status,&#xd;
     :banned_users,&#xd;
     :telefono,&#xd;
-    CASE WHEN :reg_pais_id IS NULL OR :reg_pais_id = '' THEN NULL ELSE CAST(:reg_pais_id AS INTEGER) END,&#xd;
+    CASE WHEN :reg_pais_id IS NULL OR trim(:reg_pais_id) = '' THEN NULL ELSE trim(:reg_pais_id) END,&#xd;
     :reg_razon_social,&#xd;
     COALESCE(:usernick, LOWER(:email))&#xd;
 )&#xd;
@@ -1133,6 +1133,11 @@ returning id</sql>
          <with-param name="email" query-param="email"/>
       </call-query>
    </resource>
+   <resource method="POST" path="/usuario/duplicado">
+      <call-query href="checkUsuarioDuplicado">
+         <with-param name="email" query-param="email"/>
+      </call-query>
+   </resource>
    <resource method="GET" path="/usuario/duplicado/{email}">
       <call-query href="checkUsuarioDuplicado">
          <with-param name="email" query-param="email"/>
@@ -1166,6 +1171,11 @@ returning id</sql>
       </call-query>
    </resource>
    <resource method="GET" path="/usuario/usernick">
+      <call-query href="getUsernickByEmail">
+         <with-param name="email" query-param="email"/>
+      </call-query>
+   </resource>
+   <resource method="POST" path="/usuario/usernick">
       <call-query href="getUsernickByEmail">
          <with-param name="email" query-param="email"/>
       </call-query>

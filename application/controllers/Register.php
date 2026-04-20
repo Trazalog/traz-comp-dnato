@@ -18,27 +18,153 @@ class Register extends CI_Controller {
 
 	public function register_success()
 	{
-		// Cargar el helper del módulo de formularios
-		require_once(APPPATH . 'modules/traz-comp-formularios/application/helpers/form_helper.php');
-		
-		// Cargar el modelo directamente usando require_once
-		require_once(APPPATH . 'modules/traz-comp-formularios/application/models/Forms.php');
-		$Forms = new Forms();
-		
-		// Crear nueva instancia del formulario de registro
-		$instancia = $Forms->generarInstancia(FORMULARIO_REGISTRO_ID);
-		$info_id = $instancia['info_id'];
-		
-		// Guardar info_id en la sesión para el formulario
-		$this->session->set_userdata('temp_info_id', $info_id);
-		
-		$data['title'] = "Registro Exitoso";
-		$data['form_id'] = FORMULARIO_REGISTRO_ID;
-		$data['info_id'] = $info_id;
-		
-		$this->load->view('header', $data);
-		$this->load->view('formulario_page', $data);
-		$this->load->view('footer');
+		try {
+			require_once(APPPATH . 'modules/traz-comp-formularios/helpers/form_helper.php');
+			require_once(APPPATH . 'modules/traz-comp-formularios/models/Forms.php');
+			$Forms = new Forms();
+
+			$this->aplicarEmprIdTemporalRegistro();
+
+			$instancia = $Forms->generarInstancia(FORMULARIO_REGISTRO_ID);
+			$info_id = isset($instancia['info_id']) ? $instancia['info_id'] : null;
+
+			if ( ! $info_id) {
+				log_message('error', '#TRAZA|REGISTER|register_success() >> generarInstancia no devolvió info_id');
+				$this->limpiarEmprIdTemporalRegistro();
+				$this->session->set_flashdata(
+					'flash_message',
+					'No se pudo preparar el formulario de registro. Volvé a iniciar sesión o contactá soporte.'
+				);
+				redirect(base_url() . 'main/');
+				return;
+			}
+
+			$this->session->set_userdata('temp_info_id', $info_id);
+
+			$data['title'] = "Registro Exitoso";
+			$data['form_id'] = FORMULARIO_REGISTRO_ID;
+			$data['info_id'] = $info_id;
+
+			$this->load->view('header', $data);
+			$this->load->view('formulario_page', $data);
+			$this->load->view('footer');
+
+			$this->limpiarEmprIdTemporalRegistro();
+		} catch (Throwable $e) {
+			$this->limpiarEmprIdTemporalRegistro();
+			log_message('error', '#TRAZA|REGISTER|register_success() >> ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
+			$this->session->set_flashdata(
+				'flash_message',
+				'Ocurrió un error al cargar el siguiente paso del registro. Intentá de nuevo o contactá soporte.'
+			);
+			redirect(base_url() . 'main/');
+		}
+	}
+
+	/**
+	 * Setea un empr_id temporal en sesión durante el flujo de registro freemium,
+	 * cuando el usuario aún no tiene una empresa real creada. Es requerido porque
+	 * Forms::obtenerValores() usa empresa() para resolver las opciones en core.tablas.
+	 * Solo se aplica si no hay una empresa real ya asociada a la sesión.
+	 */
+	private function aplicarEmprIdTemporalRegistro()
+	{
+		$emprIdActual = $this->session->userdata('empr_id');
+		if (empty($emprIdActual) || (int) $emprIdActual === (int) REGISTER_TEMP_EMPR_ID) {
+			$this->session->set_userdata('empr_id', REGISTER_TEMP_EMPR_ID);
+			$this->session->set_userdata('empr_id_temporal_registro', true);
+		}
+	}
+
+	/**
+	 * Elimina el empr_id temporal únicamente si fue aplicado por el flujo de registro,
+	 * para evitar contaminar la sesión del usuario más allá del formulario de registro.
+	 */
+	private function limpiarEmprIdTemporalRegistro()
+	{
+		if ($this->session->userdata('empr_id_temporal_registro')) {
+			$this->session->unset_userdata('empr_id');
+			$this->session->unset_userdata('empr_id_temporal_registro');
+		}
+	}
+
+	/**
+	 * Devuelve la descripción del país a partir del tabl_id guardado en seg.users.reg_pais_id.
+	 *
+	 * El CORE resuelve estados con `tabla = concat('estados_paises', :pais)` y localidades con
+	 * `tabla = concat('localidades_estados_paises', :pais, :estado)`, donde `:pais` es el nombre
+	 * legible del país (ej. 'Argentina'), que en core.tablas corresponde a la columna `descripcion`
+	 * (NO a `valor`, que trae el código tipo 'AR'). Por eso acá devolvemos `descripcion`.
+	 *
+	 * @param string|null $reg_pais_id tabl_id en core.tablas (p. ej. 'paises_registracionAR')
+	 * @return string descripción del país o cadena vacía si no se encuentra
+	 */
+	private function obtenerNombrePaisRegistroUsuario($reg_pais_id)
+	{
+		if ($reg_pais_id === null || $reg_pais_id === '') {
+			return '';
+		}
+		$this->db->select('descripcion');
+		$this->db->from('core.tablas');
+		$this->db->where('tabl_id', $reg_pais_id);
+		$this->db->where('tabla', 'paises_registracion');
+		$q = $this->db->get();
+		if ($q->num_rows() > 0) {
+			return (string) $q->row()->descripcion;
+		}
+		$this->db->reset_query();
+		$this->db->select('descripcion');
+		$this->db->from('core.tablas');
+		$this->db->where('tabl_id', $reg_pais_id);
+		$this->db->where('tabla', 'paises');
+		$q2 = $this->db->get();
+		if ($q2->num_rows() > 0) {
+			return (string) $q2->row()->descripcion;
+		}
+		log_message('ERROR', '#TRAZA|REGISTER|obtenerNombrePaisRegistroUsuario() >> No se encontró país para reg_pais_id=' . $reg_pais_id);
+		return '';
+	}
+
+	/**
+	 * El JSON del CORE a veces devuelve un solo objeto en lugar de array; el JS del ABM espera array.
+	 *
+	 * @param mixed $items
+	 * @return array
+	 */
+	private function normalizarListaTablasCore($items)
+	{
+		if ($items === null) {
+			return array();
+		}
+		if (is_array($items)) {
+			return $items;
+		}
+		return array($items);
+	}
+
+	/**
+	 * Obtiene el nombre del país del usuario en registro desde el valor persistido
+	 * en seg.users.reg_pais_id (sin confiar en parámetros del frontend).
+	 *
+	 * @return string
+	 */
+	private function obtenerPaisNombreRegistracionActual()
+	{
+		$user_id = $this->session->userdata('id');
+		if (!$user_id) {
+			return '';
+		}
+
+		$this->db->select('reg_pais_id');
+		$this->db->from('seg.users');
+		$this->db->where('id', $user_id);
+		$query = $this->db->get();
+		$user = $query ? $query->row() : null;
+		if (!$user || empty($user->reg_pais_id)) {
+			return '';
+		}
+
+		return $this->obtenerNombrePaisRegistroUsuario($user->reg_pais_id);
 	}
 	
     public function guardarFormularioRegistro()
@@ -69,10 +195,12 @@ class Register extends CI_Controller {
         
         try {
             // Cargar el helper del módulo
-            require_once(APPPATH . 'modules/traz-comp-formularios/application/helpers/form_helper.php');
-            require_once(APPPATH . 'modules/traz-comp-formularios/application/models/Forms.php');
+            require_once(APPPATH . 'modules/traz-comp-formularios/helpers/form_helper.php');
+            require_once(APPPATH . 'modules/traz-comp-formularios/models/Forms.php');
             $Forms = new Forms();
-            
+
+            $this->aplicarEmprIdTemporalRegistro();
+
             // Obtener los datos del formulario
             $form_data = $this->input->post();
             log_message('debug', 'guardarFormularioRegistro: Datos recibidos: ' . json_encode($form_data));
@@ -89,11 +217,13 @@ class Register extends CI_Controller {
             
             // Limpiar la sesión temporal
             $this->session->unset_userdata('temp_info_id');
-            
+            $this->limpiarEmprIdTemporalRegistro();
+
             log_message('debug', 'guardarFormularioRegistro: Formulario guardado exitosamente');
             echo json_encode(['success' => true, 'message' => 'Formulario guardado correctamente', 'redirect' => base_url() . 'register/crearEmpresa']);
             
         } catch (Exception $e) {
+            $this->limpiarEmprIdTemporalRegistro();
             log_message('error', 'guardarFormularioRegistro: Error - ' . $e->getMessage());
             echo json_encode(['success' => false, 'message' => 'Error al guardar formulario: ' . $e->getMessage()]);
         }
@@ -125,22 +255,12 @@ class Register extends CI_Controller {
             return;
         }
         
-        // Obtener nombre del país
-        $pais_nombre = '';
-        if ($user_data->reg_pais_id) {
-            $this->db->select('valor');
-            $this->db->from('core.tablas');
-            $this->db->where('tabl_id', $user_data->reg_pais_id);
-            $this->db->where('tabla', 'paises');
-            $pais_query = $this->db->get();
-            if ($pais_query->num_rows() > 0) {
-                $pais_nombre = $pais_query->row()->valor;
-            }
-        }
-        
-        // Cargar países para los selects
-        $data['listarPaises'] = $this->Empresas->listarPaises();
-        
+        $pais_nombre = $this->obtenerNombrePaisRegistroUsuario($user_data->reg_pais_id);
+
+        log_message('INFO', '#TRAZA|REGISTER|crearEmpresa() >> user_id=' . $user_id
+            . ' | reg_pais_id=' . ($user_data->reg_pais_id !== null ? $user_data->reg_pais_id : 'NULL')
+            . ' | pais_nombre=' . ($pais_nombre !== '' ? $pais_nombre : 'VACIO'));
+
         // Preparar datos para la vista
         $data['title'] = "Completar Datos de Empresa";
         $data['user_data'] = $user_data;
@@ -154,56 +274,49 @@ class Register extends CI_Controller {
     
     public function guardarEmpresa()
     {
-        log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Iniciando');
-        
-        // Validaciones
+        log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Iniciando | method=' . $this->input->method(true)
+            . ' | post_keys=' . implode(',', array_keys($this->input->post() ?: array())));
+
+        /* Validaciones */
         $this->form_validation->set_rules('cuit', 'Identificador Tributario', 'required');
         $this->form_validation->set_rules('prov_id', 'Provincia', 'required');
         $this->form_validation->set_rules('loca_id', 'Localidad', 'required');
-        
-        // Obtener datos del usuario desde la sesión
+
+        /* Obtener datos del usuario desde la sesión */
         $user_id = $this->session->userdata('id');
-        
+        log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> user_id=' . ($user_id ?: 'null'));
+
         if (!$user_id) {
             log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> No hay sesión de usuario');
             redirect(base_url() . 'main/login/');
             return;
         }
-        
-        // Obtener datos del usuario desde la BD
+
+        /* Obtener datos del usuario desde la BD */
         $this->db->select('email, telefono, reg_pais_id, reg_razon_social');
         $this->db->from('seg.users');
         $this->db->where('id', $user_id);
         $query = $this->db->get();
         $user_data = $query->row();
-        
+
         if (!$user_data) {
             log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> Usuario no encontrado');
             redirect(base_url() . 'main/login/');
             return;
         }
-        
+
+        log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> user_data OK | email=' . $user_data->email
+            . ' | reg_pais_id=' . $user_data->reg_pais_id
+            . ' | reg_razon_social=' . $user_data->reg_razon_social);
+
         if ($this->form_validation->run() == FALSE) {
-            log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Validación fallida');
+            log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Validación fallida: ' . validation_errors());
             // Recargar la vista con errores
-            $data['listarPaises'] = $this->Empresas->listarPaises();
             $data['title'] = "Completar Datos de Empresa";
             $data['user_data'] = $user_data;
             $data['pais_id'] = $user_data->reg_pais_id;
             
-            // Obtener nombre del país
-            $pais_nombre = '';
-            if ($user_data->reg_pais_id) {
-                $this->db->select('valor');
-                $this->db->from('core.tablas');
-                $this->db->where('tabl_id', $user_data->reg_pais_id);
-                $this->db->where('tabla', 'paises');
-                $pais_query = $this->db->get();
-                if ($pais_query->num_rows() > 0) {
-                    $pais_nombre = $pais_query->row()->valor;
-                }
-            }
-            $data['pais_nombre'] = $pais_nombre;
+            $data['pais_nombre'] = $this->obtenerNombrePaisRegistroUsuario($user_data->reg_pais_id);
             
             $this->load->view('header', $data);
             $this->load->view('crear_empresa_page', $data);
@@ -235,45 +348,37 @@ class Register extends CI_Controller {
                 $cleanPost['image'] = '';
             }
             
-            // Llamar al API para crear empresa
+            log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> cleanPost listo | pais_id=' . $cleanPost['pais_id']
+                . ' | prov_id=' . $cleanPost['prov_id'] . ' | loca_id=' . $cleanPost['loca_id']
+                . ' | cuit=' . $cleanPost['cuit'] . ' | email=' . $cleanPost['email']);
+
+            /* Llamar al API para crear empresa */
             try {
+                log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Invocando Empresas->agregarEmpresa()');
                 $result = $this->Empresas->agregarEmpresa($cleanPost);
                 log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Resultado API: ' . json_encode($result));
-                
-                // Verificar si hubo error
+
                 if (isset($result['status']) && !$result['status']) {
-                    throw new Exception('Error al crear empresa');
+                    throw new Exception('Error al crear empresa (status=false). code=' . (isset($result['code']) ? $result['code'] : 'N/A') . ' | data=' . (isset($result['data']) ? substr((string) $result['data'], 0, 500) : 'N/A'));
                 }
 
                 $this->postProcesarEmpresa($result, $user_data);
-                
-                // Si llegamos aquí, la empresa se creó correctamente
+
                 log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Empresa creada exitosamente');
                 redirect(base_url() . 'register/registro_completo');
-                
-            } catch (Exception $e) {
-                log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> Error: ' . $e->getMessage());
+
+            } catch (Throwable $e) {
+                log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> Error: ' . $e->getMessage()
+                    . ' | file=' . $e->getFile() . ':' . $e->getLine()
+                    . ' | trace=' . str_replace("\n", ' | ', $e->getTraceAsString()));
                 $this->session->set_flashdata('flash_message', 'Un error interno ha ocurrido, te pedimos disculpas. Por favor contacta a freemium@trazalog.com para recibir asistencia');
                 
                 // Recargar la vista con el error
-                $data['listarPaises'] = $this->Empresas->listarPaises();
                 $data['title'] = "Completar Datos de Empresa";
                 $data['user_data'] = $user_data;
                 $data['pais_id'] = $user_data->reg_pais_id;
                 
-                // Obtener nombre del país
-                $pais_nombre = '';
-                if ($user_data->reg_pais_id) {
-                    $this->db->select('valor');
-                    $this->db->from('core.tablas');
-                    $this->db->where('tabl_id', $user_data->reg_pais_id);
-                    $this->db->where('tabla', 'paises');
-                    $pais_query = $this->db->get();
-                    if ($pais_query->num_rows() > 0) {
-                        $pais_nombre = $pais_query->row()->valor;
-                    }
-                }
-                $data['pais_nombre'] = $pais_nombre;
+                $data['pais_nombre'] = $this->obtenerNombrePaisRegistroUsuario($user_data->reg_pais_id);
                 
                 $this->load->view('header', $data);
                 $this->load->view('crear_empresa_page', $data);
@@ -285,26 +390,34 @@ class Register extends CI_Controller {
     public function getEstados()
     {
         log_message('INFO', '#TRAZA|REGISTER|getEstados() >> ');
-        $pais = $this->input->get('id_pais');
-        $resp = $this->Empresas->getEstados($pais);
-        if ($resp != null) {
-            echo json_encode($resp);
-        } else {
-            echo json_encode($resp);
+        $pais = $this->obtenerPaisNombreRegistracionActual();
+        log_message('INFO', '#TRAZA|REGISTER|getEstados() >> user_id=' . ($this->session->userdata('id') ?: 'null') . ' | pais=' . ($pais !== '' ? $pais : 'VACIO'));
+        if ($pais === '') {
+            log_message('ERROR', '#TRAZA|REGISTER|getEstados() >> País de registración vacío para usuario actual');
+            $this->output->set_content_type('application/json');
+            echo json_encode(array());
+            return;
         }
+        $resp = $this->Empresas->getEstados($pais);
+        $this->output->set_content_type('application/json');
+        echo json_encode($this->normalizarListaTablasCore($resp));
     }
     
     public function getLocalidades()
     {
         log_message('INFO', '#TRAZA|REGISTER|getLocalidades() >> ');
-        $pais = $this->input->get('id_pais');
+        $pais = $this->obtenerPaisNombreRegistracionActual();
         $estado = $this->input->get('id_estado');
-        $resp = $this->Empresas->getLocalidades($pais, $estado);
-        if ($resp != null) {
-            echo json_encode($resp);
-        } else {
-            echo json_encode($resp);
+        log_message('INFO', '#TRAZA|REGISTER|getLocalidades() >> user_id=' . ($this->session->userdata('id') ?: 'null') . ' | pais=' . ($pais !== '' ? $pais : 'VACIO') . ' | estado=' . ($estado !== null ? $estado : 'null'));
+        if ($pais === '') {
+            log_message('ERROR', '#TRAZA|REGISTER|getLocalidades() >> País de registración vacío para usuario actual');
+            $this->output->set_content_type('application/json');
+            echo json_encode(array());
+            return;
         }
+        $resp = $this->Empresas->getLocalidades($pais, $estado);
+        $this->output->set_content_type('application/json');
+        echo json_encode($this->normalizarListaTablasCore($resp));
     }
     
     public function registro_completo()

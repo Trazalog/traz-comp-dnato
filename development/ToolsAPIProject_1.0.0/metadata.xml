@@ -6,6 +6,8 @@
         <dependency artifact="toolsMANAPI" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
         <dependency artifact="uri.var.usernick_by_email_url" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
         <dependency artifact="toolsCreateRole" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsBpmActorMembership" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsBpmActorGrupo" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
         <dependency artifact="toolsFault" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
         <dependency artifact="bpmAPICallTemplate" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
         <dependency artifact="AssetPlannerDataSource" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>

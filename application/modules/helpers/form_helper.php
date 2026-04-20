@@ -306,10 +306,11 @@ function getFormXEmpresa($nombre, $emprId){
         return form($res);
 }
 
-//Funcion para obtener la extension del archivo codificado
-function obtenerExtension($archivo){
-    $ext = explode('.',$archivo);
-        switch(strtolower(array_pop($ext))){
+if (!function_exists('obtenerExtension')) {
+    function obtenerExtension($archivo)
+    {
+        $ext = explode('.', $archivo);
+        switch (strtolower(array_pop($ext))) {
             case 'jpg': $ext = 'data:image/jpg;base64,';break;
             case 'png': $ext = 'data:image/png;base64,';break;
             case 'jpeg': $ext = 'data:image/jpeg;base64,';break;
@@ -325,5 +326,6 @@ function obtenerExtension($archivo){
             case 'csv': $ext = 'data:text/csv;base64,';break;
             default: $ext = "";
         }
-    return $ext;
+        return $ext;
+    }
 }

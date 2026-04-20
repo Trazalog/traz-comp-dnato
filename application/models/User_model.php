@@ -222,11 +222,19 @@ class User_model extends CI_Model {
     //update data user
     public function updateUserInfo($post)
     {
+        $this->db->where('id', $post['user_id']);
+        $current = $this->db->get('seg.users', 1)->row();
+
         $data = array(
                'password' => $post['password'],
                'last_login' => date('Y-m-d h:i:s A'),
                'status' => $this->status[1]
             );
+        // BPM / WSO2 bpm-asset: el DataService usuario/usernick debe devolver nick; si quedó vacío al alta, usar email.
+        if ($current && ( ! isset($current->usernick) || trim((string) $current->usernick) === '')) {
+            $data['usernick'] = strtolower(trim($current->email));
+        }
+
         $this->db->where('id', $post['user_id']);
         $this->db->update('seg.users', $data);
         $success = $this->db->affected_rows(); 
