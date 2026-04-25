@@ -36,7 +36,7 @@ class Establecimientos extends CI_Model
                 'pais'       => isset($data['pais']) ? (string) $data['pais'] : '',
                 'estado'     => isset($data['estado']) ? (string) $data['estado'] : '',
                 'localidad'  => isset($data['localidad']) ? (string) $data['localidad'] : '',
-                'empr_id'    => (string) ($data['empr_id'] ?? ''),
+                'empr_id'    => isset($data['empr_id']) ? (string) $data['empr_id'] : '',
             )
         );
 
@@ -58,8 +58,8 @@ class Establecimientos extends CI_Model
             '_post_deposito_establecimiento' => array(
                 'descripcion' => isset($data['descripcion']) ? (string) $data['descripcion'] : '',
                 'nombre'      => isset($data['nombre']) ? (string) $data['nombre'] : '',
-                'empr_id'     => (string) ($data['empr_id'] ?? ''),
-                'esta_id'     => (string) ($data['esta_id'] ?? ''),
+                'empr_id'     => isset($data['empr_id']) ? (string) $data['empr_id'] : '',
+                'esta_id'     => isset($data['esta_id']) ? (string) $data['esta_id'] : '',
             )
         );
 
@@ -128,7 +128,7 @@ class Establecimientos extends CI_Model
         $url = COREDataService_URL . '/establecimiento';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|eliminarEstablecimiento() >> DELETE ' . $url . ' esta_id=' . $estaId);
         $res = $this->rest->callAPI('DELETE', $url, $payload);
-        return !empty($res['status']) && ($res['code'] ?? 0) >= 200 && ($res['code'] ?? 0) < 300;
+        return !empty($res['status']) && (isset($res['code']) ? $res['code'] : 0) >= 200 && (isset($res['code']) ? $res['code'] : 0) < 300;
     }
 
     /**
@@ -155,7 +155,7 @@ class Establecimientos extends CI_Model
         $res = $this->rest->callAPI('DELETE', $url, array(
             '_delete_deposito' => array('depo_id' => $depoId)
         ));
-        return !empty($res['status']) && ($res['code'] ?? 0) >= 200 && ($res['code'] ?? 0) < 300;
+        return !empty($res['status']) && (isset($res['code']) ? $res['code'] : 0) >= 200 && (isset($res['code']) ? $res['code'] : 0) < 300;
     }
 
     /**
