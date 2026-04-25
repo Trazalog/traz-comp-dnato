@@ -540,6 +540,28 @@
       <param name="dni" sqlType="STRING"/>
       <param name="usernick" sqlType="STRING"/>
    </query>
+   <query id="setUsuarioRegistro" useConfig="ToolsDataSource">
+      <sql>INSERT INTO seg.users&#xd;(first_name, last_name, email, role, status, banned_users, telefono, reg_pais_id, reg_razon_social, usernick)&#xd;VALUES&#xd;(:first_name, :last_name, :email, :role, :status, :banned_users, :telefono, :reg_pais_id, :reg_razon_social, :usernick)&#xd;returning id</sql>
+      <result outputType="json">{"GeneratedKeys":{"Entry":[{"ID":"$id"}]}}</result>
+      <param name="first_name" sqlType="STRING"/>
+      <param name="last_name" sqlType="STRING"/>
+      <param name="email" sqlType="STRING"/>
+      <param name="role" sqlType="STRING"/>
+      <param name="status" sqlType="STRING"/>
+      <param name="banned_users" sqlType="STRING"/>
+      <param name="telefono" sqlType="STRING"/>
+      <param name="reg_pais_id" sqlType="STRING"/>
+      <param name="reg_razon_social" sqlType="STRING"/>
+      <param name="usernick" sqlType="STRING"/>
+   </query>
+   <query id="insertTokenRegistro" useConfig="ToolsDataSource">
+      <sql>INSERT INTO seg.tokens&#xd;
+(token, user_id, created)&#xd;
+VALUES&#xd;
+(:token, CAST(:user_id AS INTEGER), CURRENT_DATE)</sql>
+      <param name="token" sqlType="STRING"/>
+      <param name="user_id" sqlType="STRING"/>
+   </query>
    <query id="checkUsuarioDuplicado" useConfig="ToolsDataSource">
       <sql>SELECT CASE WHEN COUNT(*) &gt; 0 THEN 'true' ELSE 'false' END as existe&#xd;FROM seg.users&#xd;WHERE email = :email</sql>
       <result outputType="json">{"respuesta":{"existe":"$existe"}}</result>
@@ -554,6 +576,21 @@
       <sql>SELECT usernick FROM seg.users WHERE email = :email LIMIT 1</sql>
       <result outputType="json">{"respuesta":{"usernick":"$usernick"}}</result>
       <param name="email" sqlType="STRING"/>
+   </query>
+   <query id="insertMembership" useConfig="ToolsDataSource">
+      <sql>INSERT INTO seg.memberships_users&#xd;
+(email, "group", "role", usuario_app)&#xd;
+VALUES(:email, :group, :role, 'toolsCOREAPI')</sql>
+      <param name="email" sqlType="STRING"/>
+      <param name="group" sqlType="STRING"/>
+      <param name="role" sqlType="STRING"/>
+   </query>
+   <query id="deleteMembership" useConfig="ToolsDataSource">
+      <sql>DELETE FROM seg.memberships_users&#xd;
+WHERE email = :email AND "group" = :group AND "role" = :role</sql>
+      <param name="email" sqlType="STRING"/>
+      <param name="group" sqlType="STRING"/>
+      <param name="role" sqlType="STRING"/>
    </query>
    <query id="getTablaValorXEmp" useConfig="ToolsDataSource">
       <sql>select&#xd;t.descripcion valor&#xd;from&#xd;core.tablas t ,&#xd;(select :empr_id empr_id,:tabla tabla, :valor valor) param&#xd;where&#xd;t.tabl_id = case&#xd;when param.empr_id is null or param.empr_id = ''&#xd;then param.tabla||param.valor&#xd;else param.empr_id ||'-'||param.tabla ||param.valor&#xd;end&#xd;and t.eliminado = false</sql>
@@ -1098,6 +1135,26 @@
          <with-param name="usernick" query-param="usernick"/>
       </call-query>
    </resource>
+   <resource method="POST" path="/usuario/registro">
+      <call-query href="setUsuarioRegistro">
+         <with-param name="first_name" query-param="first_name"/>
+         <with-param name="last_name" query-param="last_name"/>
+         <with-param name="email" query-param="email"/>
+         <with-param name="role" query-param="role"/>
+         <with-param name="status" query-param="status"/>
+         <with-param name="banned_users" query-param="banned_users"/>
+         <with-param name="telefono" query-param="telefono"/>
+         <with-param name="reg_pais_id" query-param="reg_pais_id"/>
+         <with-param name="reg_razon_social" query-param="reg_razon_social"/>
+         <with-param name="usernick" query-param="usernick"/>
+      </call-query>
+   </resource>
+   <resource method="POST" path="/token">
+      <call-query href="insertTokenRegistro">
+         <with-param name="token" query-param="token"/>
+         <with-param name="user_id" query-param="user_id"/>
+      </call-query>
+   </resource>
    <resource method="GET" path="/usuario/duplicado/{email}">
       <call-query href="checkUsuarioDuplicado">
          <with-param name="email" query-param="email"/>
@@ -1124,6 +1181,42 @@
          <with-param name="empr_id" query-param="empr_id"/>
          <with-param name="tabla" query-param="tabla"/>
          <with-param name="valor" query-param="valor"/>
+      </call-query>
+   </resource>
+   <resource method="POST" path="/membership">
+      <call-query href="insertMembership">
+         <with-param name="email" query-param="email"/>
+         <with-param name="group" query-param="group"/>
+         <with-param name="role" query-param="role"/>
+      </call-query>
+   </resource>
+   <resource method="DELETE" path="/membership">
+      <call-query href="deleteMembership">
+         <with-param name="email" query-param="email"/>
+         <with-param name="group" query-param="group"/>
+         <with-param name="role" query-param="role"/>
+      </call-query>
+   </resource>
+   <resource method="POST" path="/membership/delete">
+      <call-query href="deleteMembership">
+         <with-param name="email" query-param="email"/>
+         <with-param name="group" query-param="group"/>
+         <with-param name="role" query-param="role"/>
+      </call-query>
+   </resource>
+   <resource method="GET" path="/usuario/duplicado">
+      <call-query href="checkUsuarioDuplicado">
+         <with-param name="email" query-param="email"/>
+      </call-query>
+   </resource>
+   <resource method="GET" path="/usuario/usernick">
+      <call-query href="getUsernickByEmail">
+         <with-param name="email" query-param="email"/>
+      </call-query>
+   </resource>
+   <resource method="GET" path="/usuario/usernick/{email}">
+      <call-query href="getUsernickByEmail">
+         <with-param name="email" query-param="email"/>
       </call-query>
    </resource>
 </data>
