@@ -859,8 +859,8 @@ class Main extends CI_Controller {
 			'email' => $dataPost['email'],
 			'group' => $dataRole['group'],
 			'role' => $dataRole['role'],
-			'group_id' => (string) ($dataRoleBpm['group_id'] ?? ''),
-			'role_id' => (string) ($dataRoleBpm['role_id'] ?? ''),
+			'group_id' => (string) (isset($dataRoleBpm['group_id']) ? $dataRoleBpm['group_id'] : ''),
+			'role_id' => (string) (isset($dataRoleBpm['role_id']) ? $dataRoleBpm['role_id'] : ''),
 			'bpmSession' => $bpmSession
 		);
 		try {
@@ -942,8 +942,8 @@ class Main extends CI_Controller {
 				'email' => $dataPost['email'],
 				'group' => $dataRole[$i]['group'],
 				'role' => $dataRole[$i]['role'],
-				'group_id' => (string) ($dataRoleBpmItem['group_id'] ?? ''),
-				'role_id' => (string) ($dataRoleBpmItem['role_id'] ?? ''),
+				'group_id' => (string) (isset($dataRoleBpmItem['group_id']) ? $dataRoleBpmItem['group_id'] : ''),
+				'role_id' => (string) (isset($dataRoleBpmItem['role_id']) ? $dataRoleBpmItem['role_id'] : ''),
 				'bpmSession' => $bpmSession
 			);
 			try {
@@ -1052,8 +1052,8 @@ class Main extends CI_Controller {
 			'email' => $membership['email'],
 			'group' => $membership['group'],
 			'role' => $membership['role'],
-			'group_id' => (string) ($membershipBPM['group_id'] ?? ''),
-			'role_id' => (string) ($membershipBPM['role_id'] ?? ''),
+			'group_id' => (string) (isset($membershipBPM['group_id']) ? $membershipBPM['group_id'] : ''),
+			'role_id' => (string) (isset($membershipBPM['role_id']) ? $membershipBPM['role_id'] : ''),
 			'bpmSession' => $bpmSession
 		);
 
@@ -1332,7 +1332,7 @@ class Main extends CI_Controller {
 						);
 						$respBpm = $this->rest->callAPI('POST', API_CORE . '/usuario/bpm-asset', $payloadBpm);
 						if (!$respBpm['status']) {
-							log_message('ERROR', '#TRAZA|MAIN|complete() >> POST usuario/bpm-asset falló | code: ' . ($respBpm['code'] ?? 'n/a') . ' | ' . ($respBpm['data'] ?? ''));
+							log_message('ERROR', '#TRAZA|MAIN|complete() >> POST usuario/bpm-asset falló | code: ' . (isset($respBpm['code']) ? $respBpm['code'] : 'n/a') . ' | ' . (isset($respBpm['data']) ? $respBpm['data'] : ''));
 							$this->session->set_flashdata(
 								'flash_message',
 								'Tu cuenta quedó activada, pero no se pudo sincronizar con BPM en este momento. Podés continuar; si algo falla en procesos, contactá soporte.'
@@ -1680,14 +1680,14 @@ class Main extends CI_Controller {
 			);
 			$respReg = $this->rest->callAPI('POST', API_CORE . '/usuario/registro', $payloadReg);
 			if (!$respReg['status'] || empty($respReg['data'])) {
-				$snippet = is_string($respReg['data'] ?? null) ? substr($respReg['data'], 0, 800) : json_encode($respReg['data']);
-				log_message('ERROR', '#TRAZA|MAIN|REGISTRO_FALLO|API| email=' . $clean['email'] . ' | HTTP=' . ($respReg['code'] ?? 'n/a') . ' | body=' . $snippet);
-				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> API usuario/registro falló | code: ' . ($respReg['code'] ?? 'n/a') . ' | body: ' . ($respReg['data'] ?? ''));
+				$snippet = (isset($respReg['data']) && is_string($respReg['data'])) ? substr($respReg['data'], 0, 800) : json_encode(isset($respReg['data']) ? $respReg['data'] : null);
+				log_message('ERROR', '#TRAZA|MAIN|REGISTRO_FALLO|API| email=' . $clean['email'] . ' | HTTP=' . (isset($respReg['code']) ? $respReg['code'] : 'n/a') . ' | body=' . $snippet);
+				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> API usuario/registro falló | code: ' . (isset($respReg['code']) ? $respReg['code'] : 'n/a') . ' | body: ' . (isset($respReg['data']) ? $respReg['data'] : ''));
 				throw new Exception('Error al insertar usuario en la base de datos (API)');
 			}
 			$bodyReg = json_decode($respReg['data']);
 			if (!$bodyReg || !isset($bodyReg->respuesta->usr_id)) {
-				$snippet = is_string($respReg['data'] ?? null) ? substr($respReg['data'], 0, 800) : '';
+				$snippet = (isset($respReg['data']) && is_string($respReg['data'])) ? substr($respReg['data'], 0, 800) : '';
 				log_message('ERROR', '#TRAZA|MAIN|REGISTRO_FALLO|RESPUESTA| email=' . $clean['email'] . ' | json=' . $snippet);
 				log_message('ERROR', '#TRAZA|MAIN|procesarRegistro() >> Respuesta inesperada API | ' . $respReg['data']);
 				throw new Exception('Error al insertar usuario en la base de datos (respuesta API)');
