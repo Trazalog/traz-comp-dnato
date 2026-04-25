@@ -97,9 +97,9 @@ class Main extends CI_Controller {
 					$bUrl = base_url();
 					$message = $this->sendmail->secureMail($data['first_name'],$data['last_name'],$data['email'],$dTod,$dTim,$stLe,$browser,$os,$getip,$bUrl);
 					$to_email = $data['email'];
-					$this->email->from($this->config->item('register'), 'New sign-in! from '.$browser.'');
+					$this->email->from($this->config->item('register'), 'Nuevo inicio de sesión desde '.$browser);
 					$this->email->to($to_email);
-					$this->email->subject('New sign-in! from '.$browser.'');
+					$this->email->subject('Nuevo inicio de sesión desde '.$browser);
 					$this->email->message($message);
 					$this->email->set_mailtype("html");
 					$this->email->send();
@@ -120,14 +120,14 @@ class Main extends CI_Controller {
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 		//check user level
 
-			$data['title'] = "Settings";
+			$data['title'] = "Configuración";
 			$data['usersList'] = $this->user_model->getListUserData();
 			$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
-			$this->form_validation->set_rules('site_title', 'Site Title', 'required');
-			$this->form_validation->set_rules('timezone', 'Timezone', 'required');
+			$this->form_validation->set_rules('site_title', 'Título del sitio', 'required');
+			$this->form_validation->set_rules('timezone', 'Zona horaria', 'required');
 			$this->form_validation->set_rules('recaptcha', 'Recaptcha', 'required');
-			$this->form_validation->set_rules('theme', 'Theme', 'required');
+			$this->form_validation->set_rules('theme', 'Tema', 'required');
 
 			$result = $this->user_model->getAllSettings();
 			$data['id'] = $result->id;
@@ -142,7 +142,7 @@ class Main extends CI_Controller {
 		else
 		{
 				$data['timezonevalue'] = "";
-					$data['timezone'] = "Select a time zone";
+					$data['timezone'] = "Seleccioná una zona horaria";
 		}
 
 		if($dataLevel == "is_admin"){
@@ -162,9 +162,9 @@ class Main extends CI_Controller {
 							$cleanPost['theme'] = $this->input->post('theme');
 
 							if(!$this->user_model->settings($cleanPost)){
-									$this->session->set_flashdata('flash_message', 'There was a problem updating your data!');
+									$this->session->set_flashdata('flash_message', 'Hubo un problema al actualizar los datos.');
 							}else{
-									$this->session->set_flashdata('success_message', 'Your data has been updated.');
+									$this->session->set_flashdata('success_message', 'Los datos se actualizaron correctamente.');
 							}
 							redirect(base_url().'main/settings/');
 					}
@@ -176,9 +176,17 @@ class Main extends CI_Controller {
 	public function users()	{
 		$data = $this->session->userdata;
 		$data['title'] = "Lista de Usuarios";
-		$data['usersList'] = $this->user_model->getListUserData();
 		$data['groupsBpm'] = $this->Roles->getBpmGroups();
 		$data['emp_connect'] =  $this->user_model->gestMembershipsUserInfo($data['email'],1);    //Empresas del conectado
+		$groupNames = array();
+		if (!empty($data['emp_connect']) && is_array($data['emp_connect'])) {
+			foreach ($data['emp_connect'] as $ec) {
+				if (isset($ec->group) && (string) $ec->group !== '') {
+					$groupNames[] = $ec->group;
+				}
+			}
+		}
+		$data['usersList'] = $this->user_model->getListUserDataForGroups($groupNames);
 
 
 		//log_message('DEBUG','#TRAZA|MAIN|users()  $data[title] >> '.json_encode($data));
@@ -230,13 +238,13 @@ class Main extends CI_Controller {
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
-					$this->form_validation->set_rules('firstname', 'First Name', 'required');
-					$this->form_validation->set_rules('lastname', 'Last Name', 'required');
-					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+					$this->form_validation->set_rules('firstname', 'Nombre', 'required');
+					$this->form_validation->set_rules('lastname', 'Apellido', 'required');
+					$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
 					$this->form_validation->set_rules('business', 'Empresa', 'required');
-					$this->form_validation->set_rules('role', 'role', 'required');
-					$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-					$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+					$this->form_validation->set_rules('role', 'Rol', 'required');
+					$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+					$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 					
 					//log_message('DEBUG','#TRAZA|MAIN|ADDUSER() >> form_validation ');
@@ -358,8 +366,8 @@ class Main extends CI_Controller {
 		//check is admin or not
 		if($dataLevel == "is_admin"){
 
-			$this->form_validation->set_rules('email', 'Your Email', 'required');
-			$this->form_validation->set_rules('level', 'User Level', 'required');
+			$this->form_validation->set_rules('email', 'Correo electrónico', 'required');
+			$this->form_validation->set_rules('level', 'Nivel de usuario', 'required');
 
 			if ($this->form_validation->run() == FALSE) {
 				//log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALSE ');
@@ -374,9 +382,9 @@ class Main extends CI_Controller {
 				$cleanPost['email'] = $this->input->post('email');
 				$cleanPost['level'] = $this->input->post('level');
 				if(!$this->user_model->updateUserLevel($cleanPost)){
-					$this->session->set_flashdata('flash_message', 'There was a problem updating the level user');
+					$this->session->set_flashdata('flash_message', 'Hubo un problema al actualizar el nivel de usuario.');
 				}else{
-					$this->session->set_flashdata('success_message', 'The level user has been updated.');
+					$this->session->set_flashdata('success_message', 'El nivel del usuario se actualizó correctamente.');
 				}
 				redirect(base_url().'main/changeleveluser/'.$id);
 			}
@@ -409,8 +417,8 @@ class Main extends CI_Controller {
 		//check is admin or not
 		if($dataLevel == "is_admin"){
 
-					$this->form_validation->set_rules('email', 'Your Email', 'required');
-					$this->form_validation->set_rules('level', 'User Level', 'required');
+					$this->form_validation->set_rules('email', 'Correo electrónico', 'required');
+					$this->form_validation->set_rules('level', 'Nivel de usuario', 'required');
 
 					if ($this->form_validation->run() == FALSE) {
 						//log_message('DEBUG','#TRAZA|MAIN|changelevel()-> $this->form_validation->run() >> FALSE ');
@@ -424,9 +432,9 @@ class Main extends CI_Controller {
 							$cleanPost['email'] = $this->input->post('email');
 							$cleanPost['level'] = $this->input->post('level');
 							if(!$this->user_model->updateUserLevel($cleanPost)){
-									$this->session->set_flashdata('flash_message', 'There was a problem updating the level user');
+									$this->session->set_flashdata('flash_message', 'Hubo un problema al actualizar el nivel de usuario.');
 							}else{
-									$this->session->set_flashdata('success_message', 'The level user has been updated.');
+									$this->session->set_flashdata('success_message', 'El nivel del usuario se actualizó correctamente.');
 							}
 							redirect(base_url().'main/changelevel');
 					}
@@ -460,8 +468,8 @@ class Main extends CI_Controller {
 		//check is admin or not
 		if($dataLevel == "is_admin"){
 
-					$this->form_validation->set_rules('email', 'Your Email', 'required');
-					$this->form_validation->set_rules('banuser', 'Ban or Unban', 'required');
+					$this->form_validation->set_rules('email', 'Correo electrónico', 'required');
+					$this->form_validation->set_rules('banuser', 'Habilitar o Deshabilitar', 'required');
 
 					if ($this->form_validation->run() == FALSE) {
 							$this->load->view('header', $data);
@@ -510,8 +518,8 @@ class Main extends CI_Controller {
 		//check is admin or not
 		if($dataLevel == "is_admin"){
 
-					$this->form_validation->set_rules('email', 'Your Email', 'required');
-					$this->form_validation->set_rules('banuser', 'Ban or Unban', 'required');
+					$this->form_validation->set_rules('email', 'Correo electrónico', 'required');
+					$this->form_validation->set_rules('banuser', 'Habilitar o Deshabilitar', 'required');
 
 					if ($this->form_validation->run() == FALSE) {
 							$this->load->view('header', $data);
@@ -559,8 +567,8 @@ class Main extends CI_Controller {
 			/*$this->form_validation->set_rules('firstname', 'First Name', 'required');
 			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
 			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');*/
-			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			$data['groups'] = $this->user_model->getUserInfo($dataInfo['id']);
 			log_message('DEBUG','#TRAZA|MAIN|changeuser()  $$data[groups]: >> '.json_encode($data['groups'])); 
@@ -612,9 +620,9 @@ class Main extends CI_Controller {
 			$data['title'] = "Editar perfil";
 			$data['usersList'] = $this->user_model->getListUserData();
 
-			$this->form_validation->set_rules('firstnameuser', 'First Name', 'required');
-			$this->form_validation->set_rules('lastnameuser', 'Last Name', 'required');
-			$this->form_validation->set_rules('emailuser', 'Email', 'required|valid_email');
+			$this->form_validation->set_rules('firstnameuser', 'Nombre', 'required');
+			$this->form_validation->set_rules('lastnameuser', 'Apellido', 'required');
+			$this->form_validation->set_rules('emailuser', 'Correo electrónico', 'required|valid_email');
 			/*$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
 			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');*/
 
@@ -667,7 +675,7 @@ class Main extends CI_Controller {
 				redirect(base_url().'main/login/');
 		}
 
-			$data['title'] = "Profile";
+			$data['title'] = "Perfil";
 			$data['usersList'] = $this->user_model->getListUserData();
 			$data['groupsBpm'] = $this->Roles->getBpmGroups();
 
@@ -744,12 +752,12 @@ class Main extends CI_Controller {
 
 		//check is admin or not
 		if($dataLevel == "is_admin"){
-			$this->form_validation->set_rules('firstname', 'First Name', 'required');
-			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
-			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-			$this->form_validation->set_rules('role', 'role', 'required');
-			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+			$this->form_validation->set_rules('firstname', 'Nombre', 'required');
+			$this->form_validation->set_rules('lastname', 'Apellido', 'required');
+			$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
+			$this->form_validation->set_rules('role', 'Rol', 'required');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			$data['title'] = "Editar Usuario";
 
@@ -776,11 +784,11 @@ class Main extends CI_Controller {
 			//check is admin or not
 			if ($dataLevel == "is_admin") {
 					
-					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-					$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-					$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+					$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
+					$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+					$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
-					$data['title'] = "Add User";
+					$data['title'] = "Agregar Usuario";
 					if ($this->form_validation->run() == false) {
 							$this->load->view('header', $data);
 							$this->load->view('navbar');
@@ -789,7 +797,7 @@ class Main extends CI_Controller {
 							$this->load->view('footer');
 					} else {
 							if ($this->user_model->isDuplicate($this->input->post('email'))) {
-									$this->session->set_flashdata('flash_message', 'User email already exists');
+									$this->session->set_flashdata('flash_message', 'El correo del usuario ya existe en el sistema.');
 									redirect(base_url() . 'main/adduserexterno');
 							} else {
 									$this->load->library('password');
@@ -807,9 +815,9 @@ class Main extends CI_Controller {
 
 									//insert to database
 									if (!$this->user_model->addUserExterno($cleanPost)) {
-											$this->session->set_flashdata('flash_message', 'There was a problem add new user');
+											$this->session->set_flashdata('flash_message', 'Hubo un problema al agregar el nuevo usuario.');
 									} else {
-											$this->session->set_flashdata('success_message', 'New user has been added.');
+											$this->session->set_flashdata('success_message', 'El usuario se agregó correctamente.');
 									}
 									redirect(base_url() . 'main/users/');
 							}
@@ -1137,7 +1145,7 @@ class Main extends CI_Controller {
 		// Reglas de validación
 		$this->form_validation->set_rules('firstname', 'Nombre', 'required');
 		$this->form_validation->set_rules('lastname', 'Apellido', 'required');
-		$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+		$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
 		$this->form_validation->set_rules('reg_razon_social', 'Razón Social de la Empresa', 'required');
 		$this->form_validation->set_rules('telefono', 'Teléfono', 'required');
 		$this->form_validation->set_rules('reg_pais_id', 'País', 'required');
@@ -1232,7 +1240,7 @@ class Main extends CI_Controller {
 			log_message('info', 'User Agent: ' . $_SERVER['HTTP_USER_AGENT']);
 			log_message('info', 'Referer: ' . (isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'No referer'));
 			
-			$data['title'] = "Success Register";
+			$data['title'] = "Registro Exitoso";
 			log_message('info', 'Cargando vistas: header, container, register-info, footer');
 			
 			$this->load->view('header', $data);
@@ -1246,7 +1254,7 @@ class Main extends CI_Controller {
 	//if success after set password
 	public function successresetpassword()
 	{
-			$data['title'] = "Success Reset Password";
+			$data['title'] = "Contraseña Restablecida";
 			$this->load->view('header', $data);
 			$this->load->view('container');
 			$this->load->view('reset-pass-info');
@@ -1276,10 +1284,10 @@ class Main extends CI_Controller {
 					'token'=>$this->base64url_encode($token)
 			);
 
-			$data['title'] = "Establecer Password";
+			$data['title'] = "Establecer Contraseña";
 
-			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			if ($this->form_validation->run() == FALSE) {
 					$this->load->view('header', $data);
@@ -1354,15 +1362,15 @@ class Main extends CI_Controller {
 			$data = $this->session->userdata();
 			log_message('DEBUG','#Main/login | '.json_encode($data));
 			
-			// si la sesion existe redirige a sistema
-			if($data['email']){
+			/* Si hay email en sesión, el usuario ya está autenticado en esta app */
+			if (!empty($data['email'])) {
 				log_message('DEBUG','#Main/login Sesion Existente');
 				redirect(DE);
-			}else{
+			} else {
 					$this->load->library('curl');
 					$this->load->library('recaptcha');
-					$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-					$this->form_validation->set_rules('password', 'Password', 'required');
+					$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
+					$this->form_validation->set_rules('password', 'Contraseña', 'required');
 
 					$data['title'] = "Trazalog Tools!";
 
@@ -1406,7 +1414,7 @@ class Main extends CI_Controller {
 							if(!$userInfo)
 							{
 									//log_message('ERROR','#Main/login | Email o contraseña erroneo.');
-									$this->session->set_flashdata('flash_message', 'Email o contraseña erroneo.');
+									$this->session->set_flashdata('flash_message', 'Correo o contraseña incorrectos.');
 									redirect(base_url().'main/login');
 							}
 							// usuario baneado o no
@@ -1431,7 +1439,7 @@ class Main extends CI_Controller {
 										$userInfo->groupBpm = $groupbpm;
 									} else {
 										//log_message('ERROR','#TRAZA|MAIN|LOGIN|NO HAY USUARIO EN BPM CON EL NICK >> '.$usernick);
-										$this->session->set_flashdata('flash_message', 'Error en logueo de BPM...');
+										$this->session->set_flashdata('flash_message', 'Error de inicio de sesión en BPM.');
 										redirect(base_url().'main/login/');
 									}
 									
@@ -1446,7 +1454,7 @@ class Main extends CI_Controller {
 							{
 									//log_message('ERROR','Something Error!');
 									//log_message('ERROR','#MAIN|LOGIN | .');
-									$this->session->set_flashdata('flash_message', 'Error!');
+									$this->session->set_flashdata('flash_message', 'Ocurrió un error inesperado.');
 									redirect(base_url().'main/login/');
 									exit;
 							}
@@ -1465,10 +1473,10 @@ class Main extends CI_Controller {
 	//forgot password
 	public function forgot()
 	{
-			$data['title'] = "Forgot Password";
+			$data['title'] = "Recuperar Contraseña";
 			$this->load->library('curl');
 			$this->load->library('recaptcha');
-			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+			$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
 			
 			$result = $this->user_model->getAllSettings();
 			$sTl = $result->site_title;
@@ -1485,12 +1493,12 @@ class Main extends CI_Controller {
 					$userInfo = $this->user_model->getUserInfoByEmail($clean);
 
 					if(!$userInfo){
-							$this->session->set_flashdata('flash_message', 'We cant find your email address');
+							$this->session->set_flashdata('flash_message', 'No encontramos esa dirección de correo en el sistema.');
 							redirect(base_url().'main/login');
 					}
 
 					if($userInfo->status != $this->status[1]){ //if status is not approved
-							$this->session->set_flashdata('flash_message', 'Your account is not in approved status');
+							$this->session->set_flashdata('flash_message', 'Tu cuenta aún no está aprobada.');
 							redirect(base_url().'main/login');
 					}
 
@@ -1517,21 +1525,21 @@ class Main extends CI_Controller {
 									
 									$message = $this->sendmail->sendForgot($this->input->post('lastname'),$this->input->post('email'),$link,$sTl);
 									$to_email = $this->input->post('email');
-									$this->email->from($this->config->item('forgot'), 'Reset Password! ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
+									$this->email->from($this->config->item('forgot'), 'Restablecer Contraseña - ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
 									$this->email->to($to_email);
-									$this->email->subject('Reset Password');
+									$this->email->subject('Restablecer Contraseña');
 									$this->email->message($message);
 									$this->email->set_mailtype("html");
 
 									if($this->email->send()){
 											redirect(base_url().'main/successresetpassword/');
 									}else{
-											$this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
+											$this->session->set_flashdata('flash_message', 'Hubo un problema al enviar el correo.');
 											exit;
 									}
 							}else{
 									//recaptcha failed
-									$this->session->set_flashdata('flash_message', 'Error...! Google Recaptcha UnSuccessful!');
+									$this->session->set_flashdata('flash_message', 'La validación de Google reCAPTCHA falló. Intentá nuevamente.');
 									redirect(base_url().'main/register/');
 									exit;
 							}
@@ -1547,16 +1555,16 @@ class Main extends CI_Controller {
 							
 							$message = $this->sendmail->sendForgot($this->input->post('lastname'),$this->input->post('email'),$link,$sTl);
 							$to_email = $this->input->post('email');
-							$this->email->from($this->config->item('forgot'), 'Reset Password! ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
+							$this->email->from($this->config->item('forgot'), 'Restablecer Contraseña - ' . $this->input->post('firstname') .' '. $this->input->post('lastname')); //from sender, title email
 							$this->email->to($to_email);
-							$this->email->subject('Reset Password');
+							$this->email->subject('Restablecer Contraseña');
 							$this->email->message($message);
 							$this->email->set_mailtype("html");
 
 							if($this->email->send()){
 									redirect(base_url().'main/successresetpassword/');
 							}else{
-									$this->session->set_flashdata('flash_message', 'There was a problem sending an email.');
+									$this->session->set_flashdata('flash_message', 'Hubo un problema al enviar el correo.');
 									exit;
 							}
 					}
@@ -1573,7 +1581,7 @@ class Main extends CI_Controller {
 			$user_info = $this->user_model->isTokenValid($cleanToken); //either false or array();
 
 			if(!$user_info){
-					$this->session->set_flashdata('flash_message', 'Token is invalid or expired');
+					$this->session->set_flashdata('flash_message', 'El token es inválido o expiró.');
 					redirect(base_url().'main/login');
 			}
 			$data = array(
@@ -1583,9 +1591,9 @@ class Main extends CI_Controller {
 					'token'=>$this->base64url_encode($token)
 			);
 
-			$data['title'] = "Reset Password";
-			$this->form_validation->set_rules('password', 'Password', 'required|min_length[5]');
-			$this->form_validation->set_rules('passconf', 'Password Confirmation', 'required|matches[password]');
+			$data['title'] = "Restablecer Contraseña";
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			if ($this->form_validation->run() == FALSE) {
 					$this->load->view('header', $data);
@@ -1601,9 +1609,9 @@ class Main extends CI_Controller {
 					$cleanPost['user_id'] = $user_info->id;
 					unset($cleanPost['passconf']);
 					if(!$this->user_model->updatePassword($cleanPost)){
-							$this->session->set_flashdata('flash_message', 'There was a problem updating your password');
+							$this->session->set_flashdata('flash_message', 'Hubo un problema al actualizar tu contraseña.');
 					}else{
-							$this->session->set_flashdata('success_message', 'Your password has been updated. You may now login');
+							$this->session->set_flashdata('success_message', 'Tu contraseña se actualizó correctamente. Ya podés iniciar sesión.');
 					}
 					redirect(base_url().'main/checkLoginUser');
 			}
@@ -1642,6 +1650,9 @@ class Main extends CI_Controller {
 			log_message('INFO', '#TRAZA|MAIN|procesarRegistro() >> Creando usuario y token vía API_CORE...');
 			$this->load->library('rest');
 			$token_30 = substr(sha1(rand()), 0, 30);
+			// El usuario que se auto-registra es el Administrador de su empresa.
+			// roles[0]='4' (operativo), roles[1]='1' (administrador). Usamos '1'.
+			$adminRole = isset($this->roles[1]) ? $this->roles[1] : '1';
 			$payloadReg = array(
 				'usuario' => array(
 					'firstname' => $clean['firstname'],
@@ -1650,7 +1661,7 @@ class Main extends CI_Controller {
 					'telefono' => isset($clean['telefono']) ? $clean['telefono'] : '',
 					'reg_pais_id' => isset($clean['reg_pais_id']) ? $clean['reg_pais_id'] : '',
 					'reg_razon_social' => isset($clean['reg_razon_social']) ? $clean['reg_razon_social'] : '',
-					'role' => isset($this->roles[0]) ? $this->roles[0] : '',
+					'role' => $adminRole,
 					'status' => isset($this->status[0]) ? $this->status[0] : '',
 					'banned_users' => (isset($this->user_model->banned_users[0]) ? $this->user_model->banned_users[0] : 'unban'),
 					'usernick' => ''

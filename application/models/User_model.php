@@ -58,34 +58,35 @@ class User_model extends CI_Model {
     }
     
     //check if razon social exists for the same country
-    public function existeRazonSocial($razon_social, $pais_id)
+    public function existeRazonSocial($razon_social, $pais_id, $cuit = null)
     {
-        // Obtener la descripción del país desde core.tablas
-        $this->db->select('descripcion');
-        $this->db->from('core.tablas');
-        $this->db->where('tabla', 'pais');
-        $this->db->where('valor', $pais_id);
-        $pais_query = $this->db->get();
-        
-        if ($pais_query->num_rows() == 0) {
-            log_message('WARNING', '#TRAZA|USER_MODEL|existeRazonSocial() >> País no encontrado: ' . $pais_id);
+        $razon = trim((string) $razon_social);
+        $pais = trim((string) $pais_id);
+        $cuitNorm = trim((string) $cuit);
+
+        if ($razon === '' || $pais === '') {
+            log_message('WARNING', '#TRAZA|USER_MODEL|existeRazonSocial() >> Datos incompletos | razon=' . $razon . ' | pais_id=' . $pais);
             return false;
         }
-        
-        $pais_descripcion = $pais_query->row()->descripcion;
-        
-        // Buscar en core.empresas por razón social y país (ambos en mayúsculas)
+
         $this->db->select('empr_id');
         $this->db->from('core.empresas');
-        $this->db->where('UPPER(descripcion)', strtoupper($razon_social));
-        $this->db->where('UPPER(pais)', strtoupper($pais_descripcion));
+        $this->db->where('eliminado', false);
+        $this->db->where('pais_id', $pais);
+        $this->db->group_start();
+        $this->db->where('UPPER(TRIM(nombre))', strtoupper($razon));
+        $this->db->or_where('UPPER(TRIM(descripcion))', strtoupper($razon));
+        $this->db->group_end();
+        if ($cuitNorm !== '') {
+            $this->db->where('cuit', $cuitNorm);
+        }
         $this->db->limit(1);
-        
+
         $query = $this->db->get();
         $existe = $query->num_rows() > 0;
-        
-        log_message('DEBUG', '#TRAZA|USER_MODEL|existeRazonSocial() >> Razón social: ' . $razon_social . ', País: ' . $pais_descripcion . ', Existe: ' . ($existe ? 'Sí' : 'No'));
-        
+
+        log_message('DEBUG', '#TRAZA|USER_MODEL|existeRazonSocial() >> razon=' . $razon . ' | pais_id=' . $pais . ' | cuit=' . ($cuitNorm !== '' ? $cuitNorm : 'N/A') . ' | existe=' . ($existe ? 'SI' : 'NO'));
+
         return $existe;
     }
     
@@ -141,28 +142,28 @@ class User_model extends CI_Model {
     public function gestMembershipsUserInfo($email, $sw=0){
         //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
 
+        $this->db->from('seg.memberships_users');
+        $emailNorm = strtolower(trim((string) $email));
+        $this->db->where(
+            'LOWER(TRIM(seg.memberships_users.email)) = ' . $this->db->escape($emailNorm),
+            null,
+            false
+        );
+
         if($sw == 1){
-            $this->db->distinct('seg.memberships_users.group');
             $this->db->select('seg.memberships_users.group');
+            $this->db->group_by('seg.memberships_users.group');
         }else{
             $this->db->select('*');
         }
-        
-        $this->db->from('seg.memberships_users');
-        //$this->db->where('email', $email );
-        $this->db->like('email', $email);
+
         $query = $this->db->get();
 
-        //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email) $query->row(): '. $query->row());
-
-
-        if($this->db->affected_rows() > 0){
+        if($query && $query->num_rows() > 0){
             return $query->result();
-        }else{
-            error_log('no user found gestMembershipsUserInfo('.$email.')');
-            return false;
         }
-        
+        error_log('no user found gestMembershipsUserInfo('.$email.')');
+        return false;
     }
 
     //get user memberships_users info
@@ -611,7 +612,8 @@ class User_model extends CI_Model {
 	*/
     public function getListUserData()
     {
-        $this->db->select("seg.users.id,
+        /* DISTINCT ON: un mismo usuario puede tener varias filas en users_business; sin esto el JOIN duplica filas. */
+        $this->db->select("DISTINCT ON (seg.users.id) seg.users.id,
         seg.users.email,
         seg.users.first_name,
         seg.users.last_name,
@@ -628,9 +630,10 @@ class User_model extends CI_Model {
         cast(seg.users.image as bytea),
         seg.users.image_name,seg.roles.*,seg.users_business.busines");
         $this->db->from('seg.users');
-        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
+        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)', 'left');
         $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
-        $this->db->order_by("first_name", "asc");
+        $this->db->order_by('seg.users.id', 'asc');
+        $this->db->order_by('seg.users_business.busines', 'asc');
         
         $query = $this->db->get();
         
@@ -641,6 +644,54 @@ class User_model extends CI_Model {
             return $query->result();
         else
             return false;
+    }
+
+    /**
+     * Usuarios visibles para un administrador según sus empresas (seg.memberships_users.group).
+     * No depende de seg.users_business.busines: los usuarios dados de alta por API pueden tener
+     * membresía correcta pero fila ausente o distinta en users_business.
+     *
+     * @param string[] $groups valores de columna "group" en seg.memberships_users (ej. nombre empresa BPM)
+     * @return array<int, object>|array{} filas como getListUserData()
+     */
+    public function getListUserDataForGroups(array $groups)
+    {
+        $groups = array_values(array_unique(array_filter(array_map('strval', $groups), function ($g) {
+            return $g !== '';
+        })));
+        if ($groups === array()) {
+            return array();
+        }
+
+        $inList = implode(',', array_map(array($this->db, 'escape'), $groups));
+
+        $this->db->select("DISTINCT ON (seg.users.id) seg.users.id,
+        seg.users.email,
+        seg.users.first_name,
+        seg.users.last_name,
+        seg.users.role,
+        seg.users.password,
+        seg.users.last_login,
+        seg.users.status,
+        seg.users.banned_users,
+        seg.users.passmd5,
+        seg.users.telefono,
+        seg.users.dni,
+        seg.users.usernick,
+        seg.users.depo_id,
+        cast(seg.users.image as bytea),
+        seg.users.image_name,seg.roles.*,seg.users_business.busines");
+        $this->db->from('seg.users');
+        $this->db->join('seg.memberships_users mu', 'mu.email = seg.users.email', 'inner');
+        $this->db->where('mu."group" IN (' . $inList . ')', null, false);
+        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)', 'left');
+        $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'left');
+        $this->db->order_by('seg.users.id', 'asc');
+        $this->db->order_by('seg.users_business.busines', 'asc');
+
+        $query = $this->db->get();
+        $res = $query ? $query->result() : array();
+        return is_array($res) ? $res : array();
     }
     
     public function getInfoEmpCore()

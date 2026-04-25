@@ -159,9 +159,65 @@
    <resource methods="GET" uri-template="/roles/{session}">
       <inSequence>
          <header name="Accept" scope="transport" value="application/json"/>
-         <property name="roles_url" value="/API/identity/role?p=0&amp;c=1000&amp;o=displayName%20ASC" scope="default" type="STRING"/>
+         <property name="p_query" expression="get-property('query.param.p')" scope="default" type="STRING"/>
+         <property name="c_query" expression="get-property('query.param.c')" scope="default" type="STRING"/>
+         <script language="js"><![CDATA[
+            var p = mc.getProperty("p_query");
+            var c = mc.getProperty("c_query");
+            if (p === null || p === "" || typeof p === "undefined") { p = "0"; }
+            if (c === null || c === "" || typeof c === "undefined") { c = "1000"; }
+            mc.setProperty("p_param", String(p));
+            mc.setProperty("c_param", String(c));
+         ]]></script>
+         <property name="roles_url" expression="fn:concat('/API/identity/role?p=', $ctx:p_param, '&amp;c=', $ctx:c_param, '&amp;o=displayName%20ASC')" scope="default" type="STRING"/>
+         <log level="custom" description="toolsbpmAPI GET /roles paginado">
+            <property name="p_param" expression="$ctx:p_param"/>
+            <property name="c_param" expression="$ctx:c_param"/>
+            <property name="roles_url" expression="$ctx:roles_url"/>
+         </log>
          <call-template target="bpmAPICallTemplate">
             <with-param name="recurso" value="{$ctx:roles_url}"/>
+            <with-param name="session" value="{$ctx:uri.var.session}"/>
+            <with-param name="method" value="GET"/>
+         </call-template>
+         <log level="custom" category="DEBUG">
+            <property name="msg" expression="json-eval($)"/>
+            <property name="session" expression="$ctx:uri.var.session"/>
+         </log>
+         <property name="session" expression="$ctx:uri.var.session"/>
+         <respond/>
+      </inSequence>
+      <outSequence>
+         <log level="full">
+            <property name="MESSAGE" value="FIRST"/>
+         </log>
+         <send/>
+      </outSequence>
+      <faultSequence>
+         <property name="TOOLS_ERROR" value="Error en API BPM" type="STRING"/>
+         <sequence key="toolsFault"/>
+      </faultSequence>
+   </resource>
+   <resource methods="GET" uri-template="/role/porNombre/{session}">
+      <inSequence>
+         <header name="Accept" scope="transport" value="application/json"/>
+         <property name="name_query" expression="get-property('query.param.name')" scope="default" type="STRING"/>
+         <property name="c_query" expression="get-property('query.param.c')" scope="default" type="STRING"/>
+         <script language="js"><![CDATA[
+            var n = mc.getProperty("name_query");
+            var c = mc.getProperty("c_query");
+            if (n === null || typeof n === "undefined") { n = ""; }
+            if (c === null || c === "" || typeof c === "undefined") { c = "10"; }
+            mc.setProperty("name_param", String(n));
+            mc.setProperty("c_param", String(c));
+         ]]></script>
+         <property name="role_search_url" expression="fn:concat('/API/identity/role?p=0&amp;c=', $ctx:c_param, '&amp;s=', $ctx:name_param)" scope="default" type="STRING"/>
+         <log level="custom" description="toolsbpmAPI GET /role/porNombre">
+            <property name="name_param" expression="$ctx:name_param"/>
+            <property name="role_search_url" expression="$ctx:role_search_url"/>
+         </log>
+         <call-template target="bpmAPICallTemplate">
+            <with-param name="recurso" value="{$ctx:role_search_url}"/>
             <with-param name="session" value="{$ctx:uri.var.session}"/>
             <with-param name="method" value="GET"/>
          </call-template>

@@ -44,16 +44,81 @@ class Roles extends CI_Model
 		}
 
 		/**
-		* Trae roles de BPM
-		* @param
-		* @return array con Roles de BPM
+		* Trae roles de BPM paginando hasta agotar el catálogo.
+		* Bonita limita cada página (por defecto 1000). Iteramos hasta que una página
+		* venga con menos elementos que $pageSize (fin del listado), o se alcance $maxPaginas.
+		*
+		* @param int $pageSize   tamaño de página (Bonita acepta hasta miles)
+		* @param int $maxPaginas tope de seguridad para evitar loops infinitos
+		* @return array lista de objetos rol (displayName, name, id, ...)
 		*/
-		function getBpmRoles(){
-				//TODO: deshardcodear
+		function getBpmRoles($pageSize = 1000, $maxPaginas = 50){
 				$token = 123;
-				$aux = $this->rest->callAPI("GET",REST_BPM."/roles/".$token);
-				$aux =json_decode($aux["data"]);
-				return $aux->payload;
+				$all = array();
+				$pageSize = (int) $pageSize;
+				if ($pageSize <= 0) { $pageSize = 1000; }
+				if ($maxPaginas <= 0) { $maxPaginas = 50; }
+
+				for ($p = 0; $p < $maxPaginas; $p++) {
+						$url = REST_BPM."/roles/".$token."?p=".$p."&c=".$pageSize;
+						$aux = $this->rest->callAPI("GET", $url);
+						if (!is_array($aux) || !isset($aux["data"])) {
+								log_message('ERROR', '#TRAZA|ROLES|getBpmRoles() >> respuesta inválida en p='.$p);
+								break;
+						}
+						$dec = json_decode($aux["data"]);
+						if (!$dec || !isset($dec->payload)) {
+								log_message('DEBUG', '#TRAZA|ROLES|getBpmRoles() >> payload vacío en p='.$p);
+								break;
+						}
+						$payload = $dec->payload;
+						if (is_object($payload)) {
+								$all[] = $payload;
+								break;
+						}
+						if (!is_array($payload)) {
+								break;
+						}
+						$n = count($payload);
+						if ($n === 0) { break; }
+						$all = array_merge($all, $payload);
+						log_message('DEBUG', '#TRAZA|ROLES|getBpmRoles() >> p='.$p.' traídos='.$n.' acumulados='.count($all));
+						if ($n < $pageSize) { break; }
+				}
+				return $all;
+		}
+
+		/**
+		* Resolución directa de un rol BPM por displayName, usando el filtro `s=`
+		* de Bonita (sin depender del listado paginado). Devuelve el primer rol
+		* cuyo displayName coincide exactamente (case-insensitive) con $displayName;
+		* si no hay match exacto pero hay resultados, devuelve el primero.
+		*
+		* @param string $displayName
+		* @return object|null
+		*/
+		function getBpmRoleByName($displayName){
+				$displayName = trim((string) $displayName);
+				if ($displayName === '') { return null; }
+				$token = 123;
+				$url = REST_BPM."/role/porNombre/".$token."?name=".rawurlencode($displayName)."&c=20";
+				$aux = $this->rest->callAPI("GET", $url);
+				if (!is_array($aux) || !isset($aux["data"])) {
+						log_message('WARN', '#TRAZA|ROLES|getBpmRoleByName() >> respuesta inválida para name='.$displayName);
+						return null;
+				}
+				$dec = json_decode($aux["data"]);
+				if (!$dec || !isset($dec->payload)) { return null; }
+				$payload = $dec->payload;
+				if (is_object($payload)) { return $payload; }
+				if (!is_array($payload) || count($payload) === 0) { return null; }
+				foreach ($payload as $r) {
+						if (is_object($r) && isset($r->displayName)
+								&& strcasecmp(trim((string) $r->displayName), $displayName) === 0) {
+								return $r;
+						}
+				}
+				return $payload[0];
 		}
 
 		/**

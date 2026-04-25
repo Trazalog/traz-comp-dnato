@@ -68,7 +68,7 @@
       <?php echo form_input(array(
           'name'=>'email', 
           'id'=> 'email', 
-          'placeholder'=>'Email', 
+          'placeholder'=>'Correo electrónico', 
           'class'=>'form-control', 
           'value'=> set_value('email'))); ?>
       <?php echo form_error('email') ?>
@@ -77,7 +77,7 @@
       <?php echo form_password(array(
           'name'=>'password',
           'id'=> 'password',
-          'placeholder'=>'Password',
+          'placeholder'=>'Contraseña',
           'class'=>'form-control',
           'value'=> set_value('password'))); ?>
       <?php echo form_error('password') ?>

@@ -7,6 +7,14 @@
          <property xmlns:ns2="http://org.apache.synapse/xsd" xmlns:ns="http://org.apache.synapse/xsd" name="dataservices_url" expression="$ctx:apiconf//dataservices_url"/>
          <property name="empr_nombre" expression="json-eval($.empresa.nombre)"/>
          <property name="empr_descripcion" expression="json-eval($.empresa.descripcion)"/>
+         <property name="empr_cuit" expression="json-eval($.empresa.cuit)"/>
+         <property name="empr_telefono" expression="json-eval($.empresa.telefono)"/>
+         <property name="empr_email" expression="json-eval($.empresa.email)"/>
+         <property name="empr_imagepath" expression="json-eval($.empresa.imagepath)"/>
+         <property name="empr_image" expression="json-eval($.empresa.image)"/>
+         <property name="empr_loca_id" expression="json-eval($.empresa.loca_id)"/>
+         <property name="empr_prov_id" expression="json-eval($.empresa.prov_id)"/>
+         <property name="empr_pais_id" expression="json-eval($.empresa.pais_id)"/>
          <log level="custom">
             <property name="donde" value="dentro de crear empresa"/>
             <property name="payload" expression="json-eval($)"/>
@@ -60,6 +68,71 @@
             <property name="empr_id" expression="$ctx:empr_id"/>
             <property name="empr_id_nombre" expression="$ctx:empr_id_nombre"/>
          </log>
+         <!--
+         ============================================================
+         Paso 3.b) Alta de la empresa en Asset (MariaDB).
+         El trigger AFTER INSERT de la tabla 'empresas' se encarga de
+         crear los grupos (sisgroups) y las acciones (sisgroupsactions)
+         fijos. Ver: development/sql/asset-empresa-trigger.sql
+         Si falla, se hace rollback borrando la empresa de core.empresas.
+         ============================================================
+         -->
+         <header name="Accept" scope="transport" value="application/json"/>
+         <property name="FORCE_ERROR_ON_SOAP_FAULT" value="true" scope="default" type="STRING"/>
+         <payloadFactory media-type="json" description="crear empresa asset">
+            <format>{ "_post_empresa_asset": { "descripcion":"$1", "empcuit":"$2", "empdir":"$3", "emptelefono":"$4", "empemail":"$5", "cliImagePath":"$6", "localidadid":"$7", "provinciaid":"$8", "paisid":"$9", "emlogo":"$10", "clienteid":"$11" } }</format>
+            <args>
+               <arg evaluator="xml" expression="get-property('empr_nombre')"/>
+               <arg evaluator="xml" expression="get-property('empr_cuit')"/>
+               <arg evaluator="xml" expression="''"/>
+               <arg evaluator="xml" expression="get-property('empr_telefono')"/>
+               <arg evaluator="xml" expression="get-property('empr_email')"/>
+               <arg evaluator="xml" expression="get-property('empr_imagepath')"/>
+               <arg evaluator="xml" expression="get-property('empr_loca_id')"/>
+               <arg evaluator="xml" expression="get-property('empr_prov_id')"/>
+               <arg evaluator="xml" expression="get-property('empr_pais_id')"/>
+               <arg evaluator="xml" expression="get-property('empr_image')"/>
+               <arg evaluator="xml" expression="''"/>
+            </args>
+         </payloadFactory>
+         <property name="uri.var.crear_empresa_asset_url" expression="fn:concat($ctx:dataservices_url,'/COREDataService/empresa/asset')" scope="default"/>
+         <log level="custom" description="donde 3.b">
+            <property name="msg antes post empresa asset" expression="json-eval($)"/>
+            <property name="asset url" expression="$ctx:uri.var.crear_empresa_asset_url"/>
+         </log>
+         <call>
+            <endpoint>
+               <http method="POST" uri-template="{uri.var.crear_empresa_asset_url}"/>
+            </endpoint>
+         </call>
+         <filter source="get-property('axis2', 'HTTP_SC')" regex="2[0-9][0-9]">
+            <then/>
+            <else>
+               <property name="ERROR_MESSAGE" expression="json-eval($)" type="STRING"/>
+               <!-- rollback: borrar empresa en core.empresas (Postgres) -->
+               <header name="Accept" scope="transport" value="application/json"/>
+               <property name="FORCE_ERROR_ON_SOAP_FAULT" value="true" scope="default" type="STRING"/>
+               <payloadFactory media-type="json" description="rollback empresa core por fallo asset">
+                  <format>{ "_delete_empresa": { "empr_id":"$1"} }</format>
+                  <args>
+                     <arg evaluator="xml" expression="get-property('empr_id')"/>
+                  </args>
+               </payloadFactory>
+               <property name="uri.var.empresaDELETE" expression="fn:concat($ctx:dataservices_url,'/COREDataService/empresa')" scope="default"/>
+               <call>
+                  <endpoint>
+                     <http method="DELETE" uri-template="{uri.var.empresaDELETE}"/>
+                  </endpoint>
+               </call>
+               <property name="TOOLS_ERROR" value="POST /empresa/asset con problemas (rollback empresa core)" type="STRING"/>
+               <sequence key="toolsFault"/>
+            </else>
+         </filter>
+         <property name="asset_id_empresa" expression="json-eval($.GeneratedKeys.Entry[0].ID)"/>
+         <log level="custom" description="donde 3.c">
+            <property name="msg despues post empresa asset" expression="json-eval($)"/>
+            <property name="asset_id_empresa" expression="$ctx:asset_id_empresa"/>
+         </log>
          <header name="Accept" scope="transport" value="application/json"/>
          <property name="FORCE_ERROR_ON_SOAP_FAULT" value="true" scope="default" type="STRING"/>
          <payloadFactory media-type="json" description="crear empresa bonita">
@@ -102,6 +175,19 @@
                <call>
                   <endpoint>
                      <http method="DELETE" uri-template="{uri.var.empresaDELETE}"/>
+                  </endpoint>
+               </call>
+               <!-- rollback asset: DELETE /empresa/asset con asset_id_empresa -->
+               <payloadFactory media-type="json" description="rollback empresa asset por fallo bpm group">
+                  <format>{ "_delete_empresa_asset": { "id_empresa":"$1"} }</format>
+                  <args>
+                     <arg evaluator="xml" expression="get-property('asset_id_empresa')"/>
+                  </args>
+               </payloadFactory>
+               <property name="uri.var.empresaAssetDELETE" expression="fn:concat($ctx:dataservices_url,'/COREDataService/empresa/asset')" scope="default"/>
+               <call>
+                  <endpoint>
+                     <http method="DELETE" uri-template="{uri.var.empresaAssetDELETE}"/>
                   </endpoint>
                </call>
                <property name="TOOLS_ERROR" value="POST /bpm/grupo con problemas" type="STRING"/>
@@ -153,6 +239,19 @@
                <call>
                   <endpoint>
                      <http method="DELETE" uri-template="{uri.var.empresaDELETE}"/>
+                  </endpoint>
+               </call>
+               <!-- rollback asset: DELETE /empresa/asset con asset_id_empresa -->
+               <payloadFactory media-type="json" description="rollback empresa asset por fallo bpm profileMember">
+                  <format>{ "_delete_empresa_asset": { "id_empresa":"$1"} }</format>
+                  <args>
+                     <arg evaluator="xml" expression="get-property('asset_id_empresa')"/>
+                  </args>
+               </payloadFactory>
+               <property name="uri.var.empresaAssetDELETE" expression="fn:concat($ctx:dataservices_url,'/COREDataService/empresa/asset')" scope="default"/>
+               <call>
+                  <endpoint>
+                     <http method="DELETE" uri-template="{uri.var.empresaAssetDELETE}"/>
                   </endpoint>
                </call>
                <property name="TOOLS_ERROR" value="POST /bpm/profileMember con problemas" type="STRING"/>

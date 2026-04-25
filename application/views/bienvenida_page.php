@@ -163,11 +163,55 @@ body {
             
             <p>Se generaron los siguientes usuarios para que puedas utilizar Trazalog Tools:</p>
             
-            <?php echo FREEMIUM_USERS; ?>
+            <?php
+            $pwdHint = isset($welcome_password_hint) ? $welcome_password_hint : (defined('REGISTRACION_PASSWORD_DEFAULT') ? REGISTRACION_PASSWORD_DEFAULT : '123456');
+            $usuarios = isset($welcome_usuarios) ? $welcome_usuarios : array();
+            $provisioningWarnings = isset($provisioning_warnings) && is_array($provisioning_warnings) ? $provisioning_warnings : array();
+            ?>
+            <?php if (!empty($provisioningWarnings)): ?>
+            <div style="background-color: #fff3cd; padding: 14px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #f0ad4e;">
+                <h4 style="color: #856404; margin-top: 0;">Atención: aprovisionamiento parcial</h4>
+                <p style="color: #856404; margin-bottom: 10px; font-size: 14px;">El alta de la empresa se completó, pero hubo incidencias al crear cuentas o al asignar roles en BPM. Revisá con un administrador o los logs (Tools / WSO2).</p>
+                <ul style="margin: 0; padding-left: 20px; color: #333;">
+                    <?php foreach ($provisioningWarnings as $w): ?>
+                    <li><?php echo htmlspecialchars((string) $w, ENT_QUOTES, 'UTF-8'); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($usuarios)): ?>
+            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db;">
+                <h4 style="color: #2c3e50; margin-top: 0;">Usuarios generados automáticamente</h4>
+                <p style="margin-bottom: 15px; color: #7f8c8d;">Cuentas creadas según la configuración del sistema (mismas que verás en la gestión de usuarios de tu empresa):</p>
+                <div style="background-color: white; padding: 15px; border-radius: 5px; border: 1px solid #ecf0f1;">
+                    <?php
+                    $last = count($usuarios) - 1;
+                    foreach ($usuarios as $i => $u):
+                        $border = ($i < $last) ? 'border-bottom: 1px solid #ecf0f1;' : '';
+                    ?>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; <?php echo $border; ?>">
+                        <div>
+                            <strong style="color: #2c3e50;"><?php echo htmlspecialchars($u['email'], ENT_QUOTES, 'UTF-8'); ?></strong>
+                            <br><small style="color: #7f8c8d;"><?php echo htmlspecialchars($u['roles_label'], ENT_QUOTES, 'UTF-8'); ?></small>
+                        </div>
+                        <span style="background-color: #27ae60; color: white; padding: 4px 8px; border-radius: 3px; font-size: 12px;">ACTIVO</span>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background-color: #e8f4fd; border-radius: 5px;">
+                    <p style="margin: 0; color: #2980b9; font-size: 14px;">
+                        <strong>Nota:</strong> Contraseña inicial <strong><?php echo htmlspecialchars($pwdHint, ENT_QUOTES, 'UTF-8'); ?></strong>.
+                        Te recomendamos cambiarla después del primer inicio de sesión.
+                    </p>
+                </div>
+            </div>
+            <?php else: ?>
+            <p style="color: #7f8c8d;">Si completaste el alta de empresa desde el flujo de registro, aquí se listan los usuarios creados; si entraste directo a esta página, iniciá sesión y revisá <em>Gestión de usuarios</em> en el menú.</p>
+            <?php endif; ?>
         </div>
         
         <div style="text-align: center;">
-            <a href="<?php echo base_url(); ?>main/login" class="btn-login">Ir a Iniciar Sesión</a>
+            <a href="<?php echo defined('DS') ? DS : site_url('main/login'); ?>" class="btn-login">Ir a Iniciar Sesión</a>
         </div>
     </div>
     

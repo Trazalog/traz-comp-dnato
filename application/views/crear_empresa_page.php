@@ -215,7 +215,7 @@ select.form-control {
         </div>
         
         <div class="form-group">
-            <label>Email</label>
+            <label>Correo electrónico</label>
             <?php echo form_input(array(
                 'name'=>'email_display', 
                 'id'=> 'email_display', 
@@ -237,6 +237,43 @@ select.form-control {
         </div>
         
         <!-- Campos Editables -->
+        <?php
+            $is_webmail   = !empty($is_webmail);
+            $email_domain = isset($email_domain) ? $email_domain : '';
+        ?>
+        <?php if ($is_webmail): ?>
+        <div class="form-group">
+            <label>Dominio de la Empresa <strong class="text-danger">*</strong></label>
+            <?php echo form_input(array(
+                'name'        => 'company_domain',
+                'id'          => 'company_domain',
+                'placeholder' => 'Ej: rtools.ca',
+                'class'       => 'form-control',
+                'value'       => set_value('company_domain'),
+                'required'    => 'required',
+                'pattern'     => '^@?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$'
+            )); ?>
+            <small class="text-muted">
+                Detectamos que te registraste con un email de webmail publico (<strong><?php echo htmlspecialchars($email_domain); ?></strong>).
+                Ingresá el dominio corporativo de tu empresa; lo vamos a usar para crear los usuarios por defecto
+                (ej: <em>usuario@tuempresa.com</em>).
+            </small>
+            <?php echo form_error('company_domain'); ?>
+        </div>
+        <?php else: ?>
+        <div class="form-group">
+            <label>Dominio de la Empresa</label>
+            <?php echo form_input(array(
+                'name'     => 'company_domain_display',
+                'id'       => 'company_domain_display',
+                'value'    => $email_domain,
+                'class'    => 'form-control readonly-field',
+                'readonly' => 'readonly'
+            )); ?>
+            <small class="text-muted">Este dominio se utilizará para crear los usuarios por defecto de la empresa.</small>
+        </div>
+        <?php endif; ?>
+
         <div class="form-group">
             <label>Identificador Tributario <strong class="text-danger">*</strong></label>
             <?php echo form_input(array(

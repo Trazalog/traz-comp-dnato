@@ -22,8 +22,20 @@ WSO2_MI_HOME="${WSO2_MI_HOME:-${HOME}/.wso2-mi/micro-integrator/wso2mi-4.5.0}"
 CARBONAPPS_DIR="${WSO2_MI_HOME}/repository/deployment/server/carbonapps"
 
 # Lista por defecto: rutas relativas a ToolsAPIProject_1.0.0/
+# Incluye APIs, Data Services, Secuencias y Templates que se editan desde el repo.
+# Mantener ordenado y SIN duplicados. Si algún archivo adicional se empieza a editar
+# desde el repo, sumarlo acá para que el repack lo lleve al CAR.
 DEFAULT_SYNC_FILES=(
+  # APIs
   "toolsCOREAPI_1.0.0/toolsCOREAPI-1.0.0.xml"
+  "toolsbpmAPI_1.0.0/toolsbpmAPI-1.0.0.xml"
+  # Data Services
+  "COREDataService_1.0.0/COREDataService-1.0.0.dbs"
+  # Sequences
+  "toolsBpmActorMembership_1.0.0/toolsBpmActorMembership-1.0.0.xml"
+  "toolsBpmActorGrupo_1.0.0/toolsBpmActorGrupo-1.0.0.xml"
+  "toolsCreateRole_1.0.0/toolsCreateRole-1.0.0.xml"
+  # Templates
   "bpmAPICallTemplate_1.0.0/bpmAPICallTemplate-1.0.0.xml"
 )
 

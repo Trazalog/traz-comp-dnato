@@ -276,7 +276,7 @@ if (!empty($arr['danger_message'])) {
     </div>
         
     <div class="form-group">
-            <input type="email" name="email" id="email" class="form-control" placeholder="Email *" value="<?php echo isset($form_data['email']) ? htmlspecialchars($form_data['email']) : ''; ?>" required>
+            <input type="email" name="email" id="email" class="form-control" placeholder="Correo electrónico *" value="<?php echo isset($form_data['email']) ? htmlspecialchars($form_data['email']) : ''; ?>" required>
             <div class="warning-text">Atención! Utilizaremos este dominio para generarte usuarios para tu empresa</div>
     </div>
         
