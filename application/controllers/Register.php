@@ -54,7 +54,7 @@ class Register extends CI_Controller {
 			$this->load->view('footer');
 
 			$this->limpiarEmprIdTemporalRegistro();
-		} catch (Throwable $e) {
+		} catch (Exception $e) {
 			$this->limpiarEmprIdTemporalRegistro();
 			log_message('error', '#TRAZA|REGISTER|register_success() >> ' . $e->getMessage() . ' | ' . $e->getFile() . ':' . $e->getLine());
 			$this->session->set_flashdata(
@@ -285,7 +285,7 @@ class Register extends CI_Controller {
 
     private function prepararDatosVistaCrearEmpresa($user_data)
     {
-        $emailDomain = strtolower((string) $this->obtenerDominioEmail($user_data->email ?? ''));
+        $emailDomain = strtolower((string) $this->obtenerDominioEmail(isset($user_data->email) ? $user_data->email : ''));
         $isWebmail = $this->esDominioWebmail($emailDomain);
 
         return array(
@@ -469,7 +469,7 @@ class Register extends CI_Controller {
             $provision = $this->postProcesarEmpresa($result, $user_data, $companyDomain, $emprId);
 
             if (empty($provision['ok'])) {
-                $detalle = $this->formatearTextoIncidenciasProvision($provision['warnings'] ?? array());
+                $detalle = $this->formatearTextoIncidenciasProvision(isset($provision['warnings']) ? $provision['warnings'] : array());
                 log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> postProcesarEmpresa falló. empr_id=' . $emprId . ' | ' . $detalle);
                 $mensajeUsuario = 'No se pudo completar el alta: ' . $detalle;
                 if ($emprId !== '') {
@@ -480,7 +480,7 @@ class Register extends CI_Controller {
                     } else {
                         $body = isset($rev['data']) ? substr((string) $rev['data'], 0, 400) : '';
                         log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> Rollback empresa falló | empr_id=' . $emprId
-                            . ' | code=' . ($rev['code'] ?? 'N/A') . ' | body=' . $body);
+                            . ' | code=' . (isset($rev['code']) ? $rev['code'] : 'N/A') . ' | body=' . $body);
                         $mensajeUsuario .= ' La reversión automática falló (empr_id ' . $emprId . '). Contactá soporte para limpiar datos huérfanos.';
                     }
                 } else {
@@ -496,11 +496,11 @@ class Register extends CI_Controller {
             log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Empresa creada exitosamente');
             $this->session->set_flashdata('welcome_registro', array(
                 'domain' => strtolower($companyDomain),
-                'company_name' => trim($user_data->reg_razon_social ?? ''),
+                'company_name' => trim(isset($user_data->reg_razon_social) ? $user_data->reg_razon_social : ''),
             ));
             redirect(base_url() . 'register/registro_completo');
 
-        } catch (Throwable $e) {
+        } catch (Exception $e) {
             log_message('ERROR', '#TRAZA|REGISTER|guardarEmpresa() >> Error: ' . $e->getMessage()
                 . ' | file=' . $e->getFile() . ':' . $e->getLine()
                 . ' | trace=' . str_replace("\n", ' | ', $e->getTraceAsString()));
@@ -725,9 +725,9 @@ class Register extends CI_Controller {
         $this->provisionWarnings = array();
         $this->clearBpmCaches();
 
-        $companyName = trim($userData->reg_razon_social ?? '');
+        $companyName = trim(isset($userData->reg_razon_social) ? $userData->reg_razon_social : '');
         $override = strtolower(trim((string) $overrideDomain));
-        $companyEmailDomain = $override !== '' ? $override : $this->obtenerDominioEmail($userData->email ?? '');
+        $companyEmailDomain = $override !== '' ? $override : $this->obtenerDominioEmail(isset($userData->email) ? $userData->email : '');
 
         if (!$companyName || !$companyEmailDomain) {
             $this->addProvisionWarning('Faltan el nombre de empresa o el dominio de correo para crear usuarios y asignar roles.');
@@ -792,7 +792,7 @@ class Register extends CI_Controller {
                 'empr_id'   => $emprId,
             ));
             if (empty($resEsta['ok']) || empty($resEsta['esta_id'])) {
-                $msg = 'No se pudo crear el Establecimiento por defecto para empr_id=' . $emprId . '. ' . ($resEsta['message'] ?? '');
+                $msg = 'No se pudo crear el Establecimiento por defecto para empr_id=' . $emprId . '. ' . (isset($resEsta['message']) ? $resEsta['message'] : '');
                 log_message('ERROR', '#TRAZA|REGISTER|crearEstablecimientoDefectoEmpresa() >> ' . $msg);
                 $this->addProvisionWarning($msg);
                 return;
@@ -807,7 +807,7 @@ class Register extends CI_Controller {
                 'esta_id'     => $estaId,
             ));
             if (empty($resDepo['ok']) || empty($resDepo['depo_id'])) {
-                $msg = 'No se pudo crear el Depósito por defecto (empr_id=' . $emprId . ', esta_id=' . $estaId . '). ' . ($resDepo['message'] ?? '');
+                $msg = 'No se pudo crear el Depósito por defecto (empr_id=' . $emprId . ', esta_id=' . $estaId . '). ' . (isset($resDepo['message']) ? $resDepo['message'] : '');
                 log_message('ERROR', '#TRAZA|REGISTER|crearEstablecimientoDefectoEmpresa() >> ' . $msg);
                 $this->addProvisionWarning($msg);
                 $this->Establecimientos->eliminarEstablecimiento($estaId);
@@ -832,7 +832,7 @@ class Register extends CI_Controller {
 
             $resEnc = $this->Establecimientos->asignarEncargadoDeposito($depoId, $userRow->id);
             if (empty($resEnc['ok'])) {
-                $msg = 'No se pudo asignar encargado al Depósito (depo_id=' . $depoId . ', user_id=' . $userRow->id . '). ' . ($resEnc['message'] ?? '');
+                $msg = 'No se pudo asignar encargado al Depósito (depo_id=' . $depoId . ', user_id=' . $userRow->id . '). ' . (isset($resEnc['message']) ? $resEnc['message'] : '');
                 log_message('ERROR', '#TRAZA|REGISTER|crearEstablecimientoDefectoEmpresa() >> ' . $msg);
                 $this->addProvisionWarning($msg);
                 $this->Establecimientos->eliminarDeposito($depoId);
@@ -909,10 +909,10 @@ class Register extends CI_Controller {
         $password = defined('REGISTRACION_PASSWORD_DEFAULT') ? REGISTRACION_PASSWORD_DEFAULT : '123456';
         $firstName = ucfirst($alias);
         $lastName = $companyName;
-        $telefono = $userData->telefono ?? '+0000000000';
-        $status = isset($this->user_model->status[1]) ? $this->user_model->status[1] : ($this->user_model->status[0] ?? 'pending');
-        $banned = $this->user_model->banned_users[0] ?? 'unban';
-        $roleDefault = $this->user_model->roles[0] ?? '4';
+        $telefono = isset($userData->telefono) ? $userData->telefono : '+0000000000';
+        $status = isset($this->user_model->status[1]) ? $this->user_model->status[1] : (isset($this->user_model->status[0]) ? $this->user_model->status[0] : 'pending');
+        $banned = isset($this->user_model->banned_users[0]) ? $this->user_model->banned_users[0] : 'unban';
+        $roleDefault = isset($this->user_model->roles[0]) ? $this->user_model->roles[0] : '4';
 
         $payload = array(
             'bpmSession' => $bpmSession,
@@ -1010,7 +1010,7 @@ class Register extends CI_Controller {
                 $response = $this->rest->callAPI('POST', API_CORE . '/rol/asignar', $payload);
                 if (!$response['status'] || (isset($response['code']) && $response['code'] >= 300)) {
                     $body = isset($response['data']) ? substr((string) $response['data'], 0, 600) : '';
-                    log_message('ERROR', '#TRAZA|REGISTER|asignarRolesAUsuario() >> Error API asignar rol ' . $roleFullName . ' | code: ' . ($response['code'] ?? 'N/A') . ' | body: ' . $body);
+                    log_message('ERROR', '#TRAZA|REGISTER|asignarRolesAUsuario() >> Error API asignar rol ' . $roleFullName . ' | code: ' . (isset($response['code']) ? $response['code'] : 'N/A') . ' | body: ' . $body);
                     $this->addProvisionWarning('Error al asignar el rol "' . $roleFullName . '" a ' . $email . ' (HTTP o API; ver logs).');
                 } else {
                     log_message('INFO', '#TRAZA|REGISTER|asignarRolesAUsuario() >> Rol asignado: ' . $email . ' | ' . $roleFullName);
@@ -1035,7 +1035,7 @@ class Register extends CI_Controller {
         $groups = $this->getCachedBpmGroups();
         foreach ($groups as $group) {
             $displayName = isset($group->displayName) ? trim($group->displayName) : '';
-            $nameCandidate = $this->extraerNombreIdentificador($group->name ?? '');
+            $nameCandidate = $this->extraerNombreIdentificador(isset($group->name) ? $group->name : '');
             if (strcasecmp($displayName, $companyName) === 0 || strcasecmp($nameCandidate, $companyName) === 0) {
                 return $group;
             }
@@ -1086,8 +1086,8 @@ class Register extends CI_Controller {
             if (!is_object($role)) {
                 continue;
             }
-            $displayName = $this->normalizarTextoRol($role->displayName ?? '');
-            $nameCandidate = $this->normalizarTextoRol($this->extraerNombreIdentificador($role->name ?? ''));
+            $displayName = $this->normalizarTextoRol(isset($role->displayName) ? $role->displayName : '');
+            $nameCandidate = $this->normalizarTextoRol($this->extraerNombreIdentificador(isset($role->name) ? $role->name : ''));
             if (strcasecmp($displayName, $full) === 0 || strcasecmp($nameCandidate, $full) === 0) {
                 return $role;
             }
@@ -1099,7 +1099,7 @@ class Register extends CI_Controller {
                 if (!is_object($role)) {
                     continue;
                 }
-                $displayName = $this->normalizarTextoRol($role->displayName ?? '');
+                $displayName = $this->normalizarTextoRol(isset($role->displayName) ? $role->displayName : '');
                 if ($displayName === '') {
                     continue;
                 }
@@ -1119,7 +1119,7 @@ class Register extends CI_Controller {
                 }
             }
             if ($best !== null) {
-                $dn = $this->normalizarTextoRol($best->displayName ?? '');
+                $dn = $this->normalizarTextoRol(isset($best->displayName) ? $best->displayName : '');
                 log_message('INFO', '#TRAZA|REGISTER|obtenerRolBpmPorNombre() >> Resolución por subcadena. Buscado "' . $roleFullName . '", usado: ' . $dn);
                 return $best;
             }
@@ -1234,7 +1234,7 @@ class Register extends CI_Controller {
         if (!$body || !isset($body->respuesta)) {
             return null;
         }
-        return $body->respuesta->bpmSession ?? null;
+        return (isset($body->respuesta->bpmSession)) ? $body->respuesta->bpmSession : null;
     }
 
     private function obtenerSesionBpmToken()
@@ -1267,9 +1267,9 @@ class Register extends CI_Controller {
                 }
             }
 
-            $token = $apiToken ?: ($cookies['X-Bonita-API-Token'] ?? '');
-            $sessionId = $cookies['JSESSIONID'] ?? '';
-            $tenant = $cookies['bonita_tenant'] ?? ($cookies['bonita.tenant'] ?? '1');
+            $token = $apiToken ? $apiToken : (isset($cookies['X-Bonita-API-Token']) ? $cookies['X-Bonita-API-Token'] : '');
+            $sessionId = isset($cookies['JSESSIONID']) ? $cookies['JSESSIONID'] : '';
+            $tenant = isset($cookies['bonita_tenant']) ? $cookies['bonita_tenant'] : (isset($cookies['bonita.tenant']) ? $cookies['bonita.tenant'] : '1');
 
             if ($token && $sessionId && $tenant) {
                 return sprintf('"X-Bonita-API-Token=%s;JSESSIONID=%s;bonita.tenant=%s;"', $token, $sessionId, $tenant);
