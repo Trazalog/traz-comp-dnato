@@ -1,0 +1,7 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<bpm>
+<bpm_url>http://10.142.0.13:8080/bonita</bpm_url>
+<usuario>admin</usuario>
+<password>123traza</password>
+<dataservices_url>http://localhost:8290/services</dataservices_url>
+</bpm>

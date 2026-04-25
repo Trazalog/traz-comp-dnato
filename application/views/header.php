@@ -1,6 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+// Cargar tema Bootstrap para todas las páginas
 $result = $this->user_model->getAllSettings();
 $theme = $result->theme;
 ?>

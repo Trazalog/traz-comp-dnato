@@ -578,56 +578,47 @@
 
         }
 
-        /** Esta funcion funcionamiento guardar actual */
+        /** Guarda todos los roles de la tabla (1 o más) usando changeLevelRolUserObject */
         function guardarRolesUsuario() {
 
             var email = $("#emailuser").val();
             var level = $("#level option:selected").val();
 
-            var table = {};
-            var tableBpm = {};
+            var table = [];
+            var tableBpm = [];
             $('#tbl_temporal tr').each(function(row, tr) {
 
-                var email = $(tr).find('td:eq(0)').text();
+                var rowEmail = $(tr).find('td:eq(0)').text();
                 var group = $(tr).find('td:eq(1)').text();
                 var role = $(tr).find('td:eq(2)').text();
-                if (email !== '' && group !== '' && role !== '') {
+                if (rowEmail !== '' && group !== '' && role !== '') {
 
                     var idGroup = group.split("-");
                     var idRole = role.split("-");
 
-                    var grupo = idGroup[0]; /** group; */ /** idGroup[(idGroup.length-2)]+'-'+idGroup[(idGroup.length-1)];*/
-                    var rol = idRole[0]; /** role; */ /** idRole[(idRole.length-2)]+'-'+idRole[(idRole.length-1)]; */
+                    var grupo = idGroup[0];
+                    var rol = idRole[0];
 
                     var nombGrupo = idGroup[(idGroup.length - 1)];
                     var nombRole = idRole[(idRole.length - 1)];
-                    /**BPM */
-                    tableBpm.group_id = grupo;
-                    tableBpm.role_id = rol;
 
-                    /** Local */
-                    table.email = email;
-                    table.group = nombGrupo.replace(/^\s*|\s*$/g, "");
-                    table.role = nombRole.replace(/^\s*|\s*$/g, "");
-
+                    tableBpm.push({ group_id: grupo, role_id: rol });
+                    table.push({
+                        email: rowEmail,
+                        group: nombGrupo.replace(/^\s*|\s*$/g, ""),
+                        role: nombRole.replace(/^\s*|\s*$/g, "")
+                    });
                 }
             });
 
-            /*var dataBpm = tableBpm.filter(Boolean);
-            var dataRoleBpm = JSON.stringify(dataBpm);
-            var RoleBpm = JSON.parse(dataRoleBpm);
-            var data = table.filter(Boolean);
-            var dataRole = JSON.stringify(data);
-            var Role = JSON.parse(dataRole);*/
-
-
-            console.log(tableBpm);
-            console.log(table);
-
+            if (table.length === 0) {
+                alert("Agregue al menos un rol antes de guardar.");
+                return;
+            }
 
             $.ajax({
                 type: "POST",
-                url: '<?php echo base_url() ?>/main/changeLevelRolUser',
+                url: '<?php echo base_url() ?>/main/changeLevelRolUserObject',
                 data: {
                     dataRole: table,
                     dataRoleBpm: tableBpm,

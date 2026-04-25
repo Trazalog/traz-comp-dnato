@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>An&aacute;lisis del Flujo de Creaci&oacute;n de Usuarios - Trazalog Tools</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+/* From extension foam.foam-vscode */
+.foam-placeholder-link {
+  color: var(--vscode-editorWarning-foreground);
+  cursor: default;
+}
+
+.foam-note-link,
+.foam-attachment-link {
+  color: var(--vscode-textLink-foreground);
+}
+
+.foam-tag {
+  color: var(--vscode-editorLineNumber-foreground);
+}
+
+.foam-cyclic-link-warning {
+  border: 1px solid var(--vscode-editorWarning-foreground);
+  background-color: var(--vscode-editorError-background);
+  color: var(--vscode-editorError-foreground);
+  padding: 0.5em;
+}
+
+.foam-cyclic-link-warning__stack {
+  color: var(--vscode-editorWarning-foreground);
+}
+
+.foam-embed-not-supported-warning {
+  border: 1px solid var(--vscode-editorWarning-foreground);
+  background-color: var(--vscode-editorError-background);
+  color: var(--vscode-editorWarning-foreground);
+  padding: 0.5em;
+}
+
+.embed-container-note {
+  padding: 0.5em;
+  margin: 1.5em 0;
+  border: 1px solid var(--vscode-editorLineNumber-foreground);
+}
+
+.embed-container-attachment {
+  padding: 0.25em;
+  margin: 1.5em 0;
+  text-align: center;
+  border: 1px solid var(--vscode-editorLineNumber-foreground);
+}
+
+.embed-container-image {
+  margin: auto;
+  padding: 0.25em;
+  text-align: center;
+}
+
+</style>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="análisis-del-flujo-de-creación-de-usuarios---trazalog-tools">Análisis del Flujo de Creación de Usuarios - Trazalog Tools</h1>
+<h2 id="-descripción-general">📋 Descripción General</h2>
+<p>Este documento describe el flujo completo de creación de usuarios en Trazalog Tools, desde el formulario ABM hasta los diferentes backends que se impactan. Se incluye un análisis detallado del proceso específico para AssetPlanner, que utiliza una base de datos MySQL.</p>
+<h2 id="️-arquitectura-del-sistema">🏗️ Arquitectura del Sistema</h2>
+<h3 id="componentes-principales">Componentes Principales</h3>
+<ol>
+<li><strong>Frontend (Vista)</strong>: <code>application/views/adduser.php</code></li>
+<li><strong>Controlador</strong>: <code>application/controllers/Main.php</code> → método <code>adduser()</code></li>
+<li><strong>Modelo</strong>: <code>application/models/User_model.php</code></li>
+<li><strong>Librería REST</strong>: <code>application/libraries/REST.php</code></li>
+<li><strong>Backends Externos</strong>:
+<ul>
+<li>PostgreSQL (Base de datos principal - schema <code>seg</code>)</li>
+<li>MySQL (AssetPlanner - vía WSO2 DataService)</li>
+<li>Bonita BPM (Sistema de gestión de procesos)</li>
+</ul>
+</li>
+</ol>
+<h2 id="-flujo-completo-de-creación-de-usuarios">🔄 Flujo Completo de Creación de Usuarios</h2>
+<h3 id="diagrama-de-flujo">Diagrama de Flujo</h3>
+<pre><code class="language-mermaid">flowchart TD
+    A[Usuario completa formulario ABM] --&gt; B{Validación del formulario}
+    B --&gt;|Fallo| C[Mostrar errores de validación]
+    B --&gt;|Éxito| D{Verificar email duplicado}
+    D --&gt;|Duplicado| E[Mostrar error: Email ya existe]
+    D --&gt;|No duplicado| F[Sanitizar datos POST]
+    F --&gt; G[Hashear contraseña]
+    G --&gt; H[Codificar imagen en base64]
+    H --&gt; I[Preparar array cleanPost]
+    
+    I --&gt; J[addUser: Insertar en PostgreSQL]
+    J --&gt; K{¿Inserción exitosa?}
+    K --&gt;|No| L[Retornar false]
+    K --&gt;|Sí| M[Insertar en seg.users_business]
+    M --&gt; N[Obtener ID del usuario creado]
+    N --&gt; O[Retornar usr_id]
+    
+    O --&gt; P[addUserAsset: Llamar REST_CORE/assetuser/add]
+    P --&gt; Q[POST a WSO2 DataService]
+    Q --&gt; R[WSO2 procesa y crea usuario en MySQL AssetPlanner]
+    
+    O --&gt; S{¿usr_id válido?}
+    S --&gt;|No| T[No crear usuario en BPM]
+    S --&gt;|Sí| U[crearUsrBPM: Crear usuario en Bonita BPM]
+    U --&gt; V[POST a REST_BPM/users]
+    V --&gt; W{¿Creación exitosa?}
+    W --&gt;|Sí| X[Mostrar mensaje de éxito]
+    W --&gt;|No| Y[Mostrar error: No se pudo crear en BPM]
+    
+    X --&gt; Z[Redirigir a lista de usuarios]
+    Y --&gt; Z
+    T --&gt; Z
+    L --&gt; Z
+    
+    style J fill:#e1f5ff
+    style P fill:#fff4e1
+    style U fill:#ffe1f5
+    style R fill:#e1ffe1
+</code></pre>
+<h3 id="flujo-detallado-paso-a-paso">Flujo Detallado Paso a Paso</h3>
+<h4 id="1-formulario-abm-frontend">1. <strong>Formulario ABM (Frontend)</strong></h4>
+<p><strong>Archivo</strong>: <code>application/views/adduser.php</code></p>
+<p><strong>Datos capturados</strong>:</p>
+<ul>
+<li><code>firstname</code> (Nombre)</li>
+<li><code>lastname</code> (Apellido)</li>
+<li><code>email</code> (Email)</li>
+<li><code>usernick</code> (Nick de usuario)</li>
+<li><code>image</code> (Imagen de perfil - archivo)</li>
+<li><code>telefono</code> (Teléfono)</li>
+<li><code>dni</code> (DNI)</li>
+<li><code>business</code> (Empresa - dropdown)</li>
+<li><code>role</code> (Rol del sistema - dropdown)</li>
+<li><code>password</code> (Contraseña)</li>
+<li><code>passconf</code> (Confirmación de contraseña)</li>
+</ul>
+<p><strong>Acción</strong>: POST a <code>/main/adduser</code></p>
+<h4 id="2-controlador---validación-y-preparación">2. <strong>Controlador - Validación y Preparación</strong></h4>
+<p><strong>Archivo</strong>: <code>application/controllers/Main.php</code> → método <code>adduser()</code></p>
+<p><strong>Líneas clave</strong>: 214-327</p>
+<p><strong>Proceso</strong>:</p>
+<pre><code class="language-php"><span class="hljs-comment">// 1. Validación de permisos (debe ser admin)</span>
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$dataLevel</span> == <span class="hljs-string">&quot;is_admin&quot;</span>) {
+    
+    <span class="hljs-comment">// 2. Validación de formulario</span>
+    <span class="hljs-variable language_">$this</span>-&gt;form_validation-&gt;<span class="hljs-title function_ invoke__">set_rules</span>(<span class="hljs-string">&#x27;firstname&#x27;</span>, <span class="hljs-string">&#x27;First Name&#x27;</span>, <span class="hljs-string">&#x27;required&#x27;</span>);
+    <span class="hljs-variable language_">$this</span>-&gt;form_validation-&gt;<span class="hljs-title function_ invoke__">set_rules</span>(<span class="hljs-string">&#x27;lastname&#x27;</span>, <span class="hljs-string">&#x27;Last Name&#x27;</span>, <span class="hljs-string">&#x27;required&#x27;</span>);
+    <span class="hljs-variable language_">$this</span>-&gt;form_validation-&gt;<span class="hljs-title function_ invoke__">set_rules</span>(<span class="hljs-string">&#x27;email&#x27;</span>, <span class="hljs-string">&#x27;Email&#x27;</span>, <span class="hljs-string">&#x27;required|valid_email&#x27;</span>);
+    <span class="hljs-variable language_">$this</span>-&gt;form_validation-&gt;<span class="hljs-title function_ invoke__">set_rules</span>(<span class="hljs-string">&#x27;role&#x27;</span>, <span class="hljs-string">&#x27;role&#x27;</span>, <span class="hljs-string">&#x27;required&#x27;</span>);
+    <span class="hljs-variable language_">$this</span>-&gt;form_validation-&gt;<span class="hljs-title function_ invoke__">set_rules</span>(<span class="hljs-string">&#x27;password&#x27;</span>, <span class="hljs-string">&#x27;Password&#x27;</span>, <span class="hljs-string">&#x27;required|min_length[5]&#x27;</span>);
+    <span class="hljs-variable language_">$this</span>-&gt;form_validation-&gt;<span class="hljs-title function_ invoke__">set_rules</span>(<span class="hljs-string">&#x27;passconf&#x27;</span>, <span class="hljs-string">&#x27;Password Confirmation&#x27;</span>, <span class="hljs-string">&#x27;required|matches[password]&#x27;</span>);
+    
+    <span class="hljs-comment">// 3. Verificar duplicados</span>
+    <span class="hljs-keyword">if</span>(<span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">isDuplicate</span>(<span class="hljs-variable">$this</span>-&gt;input-&gt;<span class="hljs-title function_ invoke__">post</span>(<span class="hljs-string">&#x27;email&#x27;</span>))) {
+        <span class="hljs-comment">// Error: Email ya existe</span>
+    }
+    
+    <span class="hljs-comment">// 4. Sanitizar y preparar datos</span>
+    <span class="hljs-variable">$post</span> = <span class="hljs-variable language_">$this</span>-&gt;input-&gt;<span class="hljs-title function_ invoke__">post</span>(<span class="hljs-literal">NULL</span>, <span class="hljs-literal">TRUE</span>);
+    <span class="hljs-variable">$cleanPost</span> = <span class="hljs-variable language_">$this</span>-&gt;security-&gt;<span class="hljs-title function_ invoke__">xss_clean</span>(<span class="hljs-variable">$post</span>);
+    
+    <span class="hljs-comment">// 5. Hashear contraseña</span>
+    <span class="hljs-variable">$hashed</span> = <span class="hljs-variable language_">$this</span>-&gt;password-&gt;<span class="hljs-title function_ invoke__">create_hash</span>(<span class="hljs-variable">$cleanPost</span>[<span class="hljs-string">&#x27;password&#x27;</span>]);
+    
+    <span class="hljs-comment">// 6. Codificar imagen</span>
+    <span class="hljs-variable">$cleanPost</span>[<span class="hljs-string">&#x27;image&#x27;</span>] = <span class="hljs-title function_ invoke__">base64_encode</span>(<span class="hljs-title function_ invoke__">file_get_contents</span>(<span class="hljs-variable">$_FILES</span>[<span class="hljs-string">&#x27;image&#x27;</span>][<span class="hljs-string">&#x27;tmp_name&#x27;</span>]));
+    
+    <span class="hljs-comment">// 7. Preparar array final</span>
+    <span class="hljs-variable">$cleanPost</span>[<span class="hljs-string">&#x27;password&#x27;</span>] = <span class="hljs-variable">$hashed</span>;
+    <span class="hljs-comment">// ... otros campos</span>
+}
+</code></pre>
+<h4 id="3-creación-en-postgresql-base-principal">3. <strong>Creación en PostgreSQL (Base Principal)</strong></h4>
+<p><strong>Archivo</strong>: <code>application/models/User_model.php</code> → método <code>addUser()</code></p>
+<p><strong>Líneas clave</strong>: 284-344</p>
+<p><strong>Proceso</strong>:</p>
+<pre><code class="language-php"><span class="hljs-comment">// 1. Insertar en seg.users</span>
+<span class="hljs-variable">$q</span> = <span class="hljs-variable language_">$this</span>-&gt;db-&gt;<span class="hljs-title function_ invoke__">insert</span>(<span class="hljs-string">&#x27;seg.users&#x27;</span>, <span class="hljs-variable">$string</span>);
+<span class="hljs-comment">// Campos: first_name, last_name, email, telefono, dni, usernick, </span>
+<span class="hljs-comment">//         password (hasheado), role, status=&#x27;approved&#x27;, </span>
+<span class="hljs-comment">//         banned_users=&#x27;unban&#x27;, depo_id, image_name, image</span>
+
+<span class="hljs-comment">// 2. Si éxito, insertar en seg.users_business</span>
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$q</span>) {
+    <span class="hljs-variable">$bs</span> = <span class="hljs-variable language_">$this</span>-&gt;db-&gt;<span class="hljs-title function_ invoke__">insert</span>(<span class="hljs-string">&#x27;seg.users_business&#x27;</span>, <span class="hljs-keyword">array</span>(
+        <span class="hljs-string">&#x27;email&#x27;</span> =&gt; <span class="hljs-variable">$d</span>[<span class="hljs-string">&#x27;email&#x27;</span>],
+        <span class="hljs-string">&#x27;busines&#x27;</span> =&gt; <span class="hljs-variable">$d</span>[<span class="hljs-string">&#x27;business&#x27;</span>]
+    ));
+    
+    <span class="hljs-comment">// 3. Obtener ID del usuario creado</span>
+    <span class="hljs-variable language_">$this</span>-&gt;db-&gt;<span class="hljs-title function_ invoke__">select_max</span>(<span class="hljs-string">&#x27;id&#x27;</span>);
+    <span class="hljs-variable">$query</span> = <span class="hljs-variable language_">$this</span>-&gt;db-&gt;<span class="hljs-title function_ invoke__">get</span>(<span class="hljs-string">&#x27;seg.users&#x27;</span>);
+    <span class="hljs-variable">$userInfo</span> = <span class="hljs-variable">$query</span>-&gt;<span class="hljs-title function_ invoke__">row</span>(<span class="hljs-string">&#x27;id&#x27;</span>);
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-variable">$userInfo</span>; <span class="hljs-comment">// Retorna el ID o false</span>
+}
+</code></pre>
+<p><strong>Tablas afectadas</strong>:</p>
+<ul>
+<li><code>seg.users</code> (tabla principal de usuarios)</li>
+<li><code>seg.users_business</code> (relación usuario-empresa)</li>
+</ul>
+<p><strong>Orden</strong>: <strong>1º</strong> - Primera operación en el flujo</p>
+<h4 id="4-creación-en-assetplanner-mysql-vía-wso2">4. <strong>Creación en AssetPlanner (MySQL vía WSO2)</strong></h4>
+<p><strong>Archivo</strong>: <code>application/models/User_model.php</code> → método <code>addUserAsset()</code></p>
+<p><strong>Líneas clave</strong>: 685-700</p>
+<p><strong>Proceso</strong>:</p>
+<pre><code class="language-php"><span class="hljs-comment">// 1. Preparar payload para WSO2 DataService</span>
+<span class="hljs-variable">$post</span>[<span class="hljs-string">&#x27;_post_assetuser_add&#x27;</span>] = <span class="hljs-keyword">array</span>(
+    <span class="hljs-string">&#x27;nick&#x27;</span> =&gt; <span class="hljs-variable">$data</span>[<span class="hljs-string">&#x27;usernick&#x27;</span>],
+    <span class="hljs-string">&#x27;name&#x27;</span> =&gt; <span class="hljs-variable">$data</span>[<span class="hljs-string">&#x27;firstname&#x27;</span>],
+    <span class="hljs-string">&#x27;lastName&#x27;</span> =&gt; <span class="hljs-variable">$data</span>[<span class="hljs-string">&#x27;lastname&#x27;</span>],
+    <span class="hljs-string">&#x27;pass&#x27;</span> =&gt; <span class="hljs-variable">$data</span>[<span class="hljs-string">&#x27;password&#x27;</span>], <span class="hljs-comment">// ⚠️ PROBLEMA: Envía password hasheado</span>
+    <span class="hljs-string">&#x27;image&#x27;</span> =&gt; <span class="hljs-variable">$data</span>[<span class="hljs-string">&#x27;image&#x27;</span>]     <span class="hljs-comment">// Imagen en base64</span>
+);
+
+<span class="hljs-comment">// 2. Llamar al servicio REST</span>
+<span class="hljs-variable">$url</span> = REST_CORE.<span class="hljs-string">&quot;/assetuser/add&quot;</span>;
+<span class="hljs-comment">// REST_CORE = &#x27;http://10.142.0.13:8280/services/COREDataService&#x27;</span>
+<span class="hljs-variable">$aux</span> = <span class="hljs-variable language_">$this</span>-&gt;rest-&gt;<span class="hljs-title function_ invoke__">callAPI</span>(<span class="hljs-string">&quot;POST&quot;</span>, <span class="hljs-variable">$url</span>, <span class="hljs-variable">$post</span>);
+</code></pre>
+<p><strong>Endpoint WSO2</strong>: <code>POST /services/COREDataService/assetuser/add</code></p>
+<p><strong>Base de datos</strong>: MySQL (AssetPlanner)</p>
+<p><strong>Configuración WSO2</strong>: Utiliza el datasource <code>AssetPlannerDataSource</code> configurado en WSO2 DataService.</p>
+<p><strong>Orden</strong>: <strong>2º</strong> - Se ejecuta inmediatamente después de <code>addUser()</code>, <strong>independientemente del resultado</strong></p>
+<p><strong>⚠️ PROBLEMA IDENTIFICADO</strong>:</p>
+<ul>
+<li>El método <code>addUserAsset()</code> se ejecuta <strong>siempre</strong>, incluso si <code>addUser()</code> falla</li>
+<li>No valida el resultado de <code>addUser()</code> antes de ejecutarse</li>
+<li>Envía el password hasheado (bcrypt) a AssetPlanner, que probablemente espera password en texto plano o con otro formato</li>
+<li>No valida la respuesta del servicio REST</li>
+</ul>
+<h4 id="5-creación-en-bonita-bpm">5. <strong>Creación en Bonita BPM</strong></h4>
+<p><strong>Archivo</strong>: <code>application/models/User_model.php</code> → método <code>crearUsrBPM()</code></p>
+<p><strong>Líneas clave</strong>: 351-370</p>
+<p><strong>Proceso</strong>:</p>
+<pre><code class="language-php"><span class="hljs-comment">// 1. Preparar datos para BPM</span>
+<span class="hljs-variable">$datos</span> = <span class="hljs-keyword">array</span>(
+    <span class="hljs-string">&quot;userName&quot;</span> =&gt; <span class="hljs-variable">$cleanPost</span>[<span class="hljs-string">&#x27;usernick&#x27;</span>],
+    <span class="hljs-string">&quot;password&quot;</span> =&gt; BPM_USER_PASS, <span class="hljs-comment">// ⚠️ Password hardcodeado: &#x27;bpm&#x27;</span>
+    <span class="hljs-string">&quot;password_confirm&quot;</span> =&gt; BPM_USER_PASS,
+    <span class="hljs-string">&quot;firstname&quot;</span> =&gt; <span class="hljs-variable">$cleanPost</span>[<span class="hljs-string">&#x27;firstname&#x27;</span>],
+    <span class="hljs-string">&quot;lastname&quot;</span> =&gt; <span class="hljs-variable">$cleanPost</span>[<span class="hljs-string">&#x27;lastname&#x27;</span>],
+    <span class="hljs-string">&quot;title&quot;</span> =&gt; <span class="hljs-string">&quot;Sr&quot;</span>,
+    <span class="hljs-string">&quot;job_title&quot;</span> =&gt; <span class="hljs-string">&quot;Human resources benefits&quot;</span>
+);
+
+<span class="hljs-comment">// 2. Llamar al servicio REST de BPM</span>
+<span class="hljs-variable">$aux</span> = <span class="hljs-variable language_">$this</span>-&gt;rest-&gt;<span class="hljs-title function_ invoke__">callAPI</span>(<span class="hljs-string">&quot;POST&quot;</span>, REST_BPM.<span class="hljs-string">&quot;/users&quot;</span>, <span class="hljs-variable">$post</span>);
+<span class="hljs-comment">// REST_BPM = &#x27;http://10.142.0.13:8280/tools/bpm&#x27;</span>
+</code></pre>
+<p><strong>Endpoint BPM</strong>: <code>POST /tools/bpm/users</code></p>
+<p><strong>Orden</strong>: <strong>3º</strong> - Solo se ejecuta si <code>addUser()</code> retorna un <code>usr_id</code> válido</p>
+<p><strong>Condición</strong>:</p>
+<pre><code class="language-php"><span class="hljs-keyword">if</span>(<span class="hljs-variable">$usr_id</span>) {
+    <span class="hljs-variable">$status</span> = <span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">crearUsrBPM</span>(<span class="hljs-variable">$cleanPost</span>);
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable">$status</span>) {
+        <span class="hljs-comment">// Éxito</span>
+    } <span class="hljs-keyword">else</span> {
+        <span class="hljs-comment">// Error: No se pudo crear en BPM</span>
+    }
+}
+</code></pre>
+<p><strong>⚠️ PROBLEMA IDENTIFICADO</strong>:</p>
+<ul>
+<li>Usa password hardcodeado (<code>BPM_USER_PASS = 'bpm'</code>) en lugar del password del usuario</li>
+<li>Session token hardcodeado (TODO comentado en código)</li>
+<li>No se valida si la creación en AssetPlanner fue exitosa antes de crear en BPM</li>
+</ul>
+<h2 id="-orden-de-ejecución-de-backends">📊 Orden de Ejecución de Backends</h2>
+<h3 id="secuencia-temporal">Secuencia Temporal</h3>
+<pre><code class="language-mermaid">sequenceDiagram
+    participant F as Formulario ABM
+    participant C as Controller Main
+    participant UM as User_model
+    participant PG as PostgreSQL
+    participant WSO2 as WSO2 DataService
+    participant MySQL as MySQL AssetPlanner
+    participant BPM as Bonita BPM
+    
+    F-&gt;&gt;C: POST /main/adduser
+    C-&gt;&gt;C: Validar formulario
+    C-&gt;&gt;C: Verificar email duplicado
+    C-&gt;&gt;C: Sanitizar y hashear password
+    C-&gt;&gt;UM: addUser($cleanPost)
+    UM-&gt;&gt;PG: INSERT INTO seg.users
+    PG--&gt;&gt;UM: ID del usuario
+    UM-&gt;&gt;PG: INSERT INTO seg.users_business
+    PG--&gt;&gt;UM: Resultado
+    UM--&gt;&gt;C: usr_id (o false)
+    
+    Note over C,MySQL: ⚠️ Se ejecuta SIEMPRE, sin validar resultado anterior
+    C-&gt;&gt;UM: addUserAsset($cleanPost)
+    UM-&gt;&gt;WSO2: POST /services/COREDataService/assetuser/add
+    WSO2-&gt;&gt;MySQL: INSERT INTO usuarios (AssetPlanner)
+    MySQL--&gt;&gt;WSO2: Resultado
+    WSO2--&gt;&gt;UM: Respuesta (no validada)
+    UM--&gt;&gt;C: Resultado (ignorado)
+    
+    alt usr_id válido
+        C-&gt;&gt;UM: crearUsrBPM($cleanPost)
+        UM-&gt;&gt;BPM: POST /tools/bpm/users
+        BPM--&gt;&gt;UM: Resultado
+        UM--&gt;&gt;C: status
+        C-&gt;&gt;C: Mostrar mensaje de éxito/error
+    else usr_id inválido
+        C-&gt;&gt;C: No crear en BPM
+    end
+    
+    C-&gt;&gt;F: Redirect a /main/users/
+</code></pre>
+<h3 id="resumen-del-orden">Resumen del Orden</h3>
+<ol>
+<li>
+<p><strong>PostgreSQL</strong> (<code>seg.users</code> y <code>seg.users_business</code>)</p>
+<ul>
+<li>Orden: <strong>1º</strong></li>
+<li>Condición: Validación de formulario exitosa y email no duplicado</li>
+<li>Validación: Se verifica el resultado antes de continuar</li>
+</ul>
+</li>
+<li>
+<p><strong>MySQL AssetPlanner</strong> (vía WSO2 DataService)</p>
+<ul>
+<li>Orden: <strong>2º</strong></li>
+<li>Condición: <strong>Ninguna</strong> - se ejecuta siempre después de <code>addUser()</code></li>
+<li>Validación: <strong>No se valida</strong> el resultado</li>
+<li>Problema: Se ejecuta incluso si falla la creación en PostgreSQL</li>
+</ul>
+</li>
+<li>
+<p><strong>Bonita BPM</strong></p>
+<ul>
+<li>Orden: <strong>3º</strong></li>
+<li>Condición: Solo si <code>addUser()</code> retorna un <code>usr_id</code> válido</li>
+<li>Validación: Se valida el resultado y se muestra mensaje de error si falla</li>
+</ul>
+</li>
+</ol>
+<h2 id="-análisis-específico-assetplanner">🔍 Análisis Específico: AssetPlanner</h2>
+<h3 id="configuración">Configuración</h3>
+<p><strong>Datasource WSO2</strong>: <code>AssetPlannerDataSource</code></p>
+<ul>
+<li>Tipo: MySQL</li>
+<li>Configurado en WSO2 DataService</li>
+<li>Referencia: <code>scripts/README_BULKLOAD.md</code> línea 62</li>
+</ul>
+<p><strong>Endpoint</strong>:</p>
+<pre><code>POST http://10.142.0.13:8280/services/COREDataService/assetuser/add
+</code></pre>
+<h3 id="payload-enviado">Payload Enviado</h3>
+<pre><code class="language-json"><span class="hljs-punctuation">{</span>
+  <span class="hljs-attr">&quot;_post_assetuser_add&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">{</span>
+    <span class="hljs-attr">&quot;nick&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;usernick&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;firstname&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;lastName&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;lastname&quot;</span><span class="hljs-punctuation">,</span>
+    <span class="hljs-attr">&quot;pass&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;password_hasheado_bcrypt&quot;</span><span class="hljs-punctuation">,</span>  <span class="hljs-comment">// ⚠️ PROBLEMA</span>
+    <span class="hljs-attr">&quot;image&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;base64_encoded_image&quot;</span>
+  <span class="hljs-punctuation">}</span>
+<span class="hljs-punctuation">}</span>
+</code></pre>
+<h3 id="problemas-identificados">Problemas Identificados</h3>
+<h4 id="1-ejecución-incondicional">1. <strong>Ejecución Incondicional</strong></h4>
+<pre><code class="language-php"><span class="hljs-comment">// En Main.php línea 303-305</span>
+<span class="hljs-variable">$usr_id</span> = <span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">addUser</span>(<span class="hljs-variable">$cleanPost</span>);
+<span class="hljs-comment">//Insert to MariaDB Asset</span>
+<span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">addUserAsset</span>(<span class="hljs-variable">$cleanPost</span>); <span class="hljs-comment">// ⚠️ Se ejecuta siempre</span>
+</code></pre>
+<p><strong>Problema</strong>: Si <code>addUser()</code> falla y retorna <code>false</code>, <code>addUserAsset()</code> se ejecuta de todas formas, intentando crear un usuario en AssetPlanner que no existe en la base principal.</p>
+<p><strong>Solución propuesta</strong>: Validar <code>$usr_id</code> antes de llamar a <code>addUserAsset()</code>:</p>
+<pre><code class="language-php"><span class="hljs-variable">$usr_id</span> = <span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">addUser</span>(<span class="hljs-variable">$cleanPost</span>);
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$usr_id</span>) {
+    <span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">addUserAsset</span>(<span class="hljs-variable">$cleanPost</span>);
+}
+</code></pre>
+<h4 id="2-password-hasheado">2. <strong>Password Hasheado</strong></h4>
+<pre><code class="language-php"><span class="hljs-comment">// En User_model.php línea 690</span>
+<span class="hljs-string">&#x27;pass&#x27;</span> =&gt; <span class="hljs-variable">$data</span>[<span class="hljs-string">&#x27;password&#x27;</span>], <span class="hljs-comment">// ⚠️ Este password ya está hasheado con bcrypt</span>
+</code></pre>
+<p><strong>Problema</strong>: El password que se envía a AssetPlanner está hasheado con bcrypt (del método <code>create_hash()</code>), pero AssetPlanner probablemente espera:</p>
+<ul>
+<li>Password en texto plano (para hashearlo con su propio algoritmo)</li>
+<li>Password con otro formato de hash</li>
+<li>O necesita el password original antes del hash</li>
+</ul>
+<p><strong>Solución propuesta</strong>:</p>
+<ul>
+<li>Opción A: Enviar el password original (antes del hash) si está disponible</li>
+<li>Opción B: Verificar qué formato espera AssetPlanner y adaptar</li>
+<li>Opción C: Si AssetPlanner debe usar el mismo hash, verificar compatibilidad</li>
+</ul>
+<h4 id="3-falta-de-validación-de-respuesta">3. <strong>Falta de Validación de Respuesta</strong></h4>
+<pre><code class="language-php"><span class="hljs-comment">// En User_model.php línea 695-699</span>
+<span class="hljs-variable">$aux</span> = <span class="hljs-variable language_">$this</span>-&gt;rest-&gt;<span class="hljs-title function_ invoke__">callAPI</span>(<span class="hljs-string">&quot;POST&quot;</span>,<span class="hljs-variable">$url</span>,<span class="hljs-variable">$post</span>);
+<span class="hljs-title function_ invoke__">log_message</span>(<span class="hljs-string">&#x27;DEBUG&#x27;</span>, <span class="hljs-string">&quot;#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: &gt;&gt; &quot;</span> . <span class="hljs-title function_ invoke__">json_encode</span>(<span class="hljs-variable">$aux</span>));
+<span class="hljs-keyword">return</span> <span class="hljs-variable">$aux</span>; <span class="hljs-comment">// ⚠️ No se valida el resultado</span>
+</code></pre>
+<p><strong>Problema</strong>: No se valida si la creación en AssetPlanner fue exitosa. El método retorna el resultado pero no se usa en el controlador.</p>
+<p><strong>Solución propuesta</strong>: Validar la respuesta y manejar errores:</p>
+<pre><code class="language-php"><span class="hljs-variable">$aux</span> = <span class="hljs-variable language_">$this</span>-&gt;rest-&gt;<span class="hljs-title function_ invoke__">callAPI</span>(<span class="hljs-string">&quot;POST&quot;</span>, <span class="hljs-variable">$url</span>, <span class="hljs-variable">$post</span>);
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$aux</span>[<span class="hljs-string">&#x27;status&#x27;</span>] &amp;&amp; <span class="hljs-variable">$aux</span>[<span class="hljs-string">&#x27;code&#x27;</span>] == <span class="hljs-number">200</span>) {
+    <span class="hljs-title function_ invoke__">log_message</span>(<span class="hljs-string">&#x27;INFO&#x27;</span>, <span class="hljs-string">&quot;Usuario creado exitosamente en AssetPlanner&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+} <span class="hljs-keyword">else</span> {
+    <span class="hljs-title function_ invoke__">log_message</span>(<span class="hljs-string">&#x27;ERROR&#x27;</span>, <span class="hljs-string">&quot;Error al crear usuario en AssetPlanner: &quot;</span> . <span class="hljs-title function_ invoke__">json_encode</span>(<span class="hljs-variable">$aux</span>));
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+}
+</code></pre>
+<h4 id="4-falta-de-rollbackcompensación">4. <strong>Falta de Rollback/Compensación</strong></h4>
+<p>Si la creación en AssetPlanner falla después de crear el usuario en PostgreSQL, no hay mecanismo de rollback o compensación.</p>
+<p><strong>Problema</strong>: El usuario queda creado en PostgreSQL pero no en AssetPlanner, generando inconsistencia.</p>
+<p><strong>Solución propuesta</strong>:</p>
+<ul>
+<li>Implementar transacciones distribuidas (complejo)</li>
+<li>Implementar compensación: si falla AssetPlanner, eliminar el usuario de PostgreSQL</li>
+<li>O al menos registrar el error y permitir reintento manual</li>
+</ul>
+<h2 id="-código-relevante">📝 Código Relevante</h2>
+<h3 id="controller-mainphp">Controller: Main.php</h3>
+<pre><code class="language-303:321:application/controllers/Main.php">//insert to database
+$usr_id = $this-&gt;user_model-&gt;addUser($cleanPost);
+//Insert to MariaDB Asset
+$this-&gt;user_model-&gt;addUserAsset($cleanPost);
+//
+
+//crea usr en BPM
+if($usr_id){
+    $status = $this-&gt;user_model-&gt;crearUsrBPM($cleanPost);
+    if ($status) {
+        $this-&gt;session-&gt;set_flashdata('flash_message', 'Usuario creado exitosamente...');
+        redirect(base_url().'main/users/'.$usr_id);
+    } else {
+        //log_message('ERROR','#TRAZA|MAIN|ADDUSER &gt;&gt; ERROR: NO SE PUDO CREAR USUARIO EN BPM');
+        $this-&gt;session-&gt;set_flashdata('danger_message', 'Error al crear usuario en BPM');
+    }
+}
+
+//redirect(base_url().'main/users/'.$usr_id);
+redirect(base_url().'main/users/');
+</code></pre>
+<h3 id="model-user_modelphp---adduser">Model: User_model.php - addUser()</h3>
+<pre><code class="language-284:344:application/models/User_model.php">//add user login
+public function addUser($d)
+{
+    if ($d['depo_id']) {
+        $depo = $d['depo_id'];
+    } else {
+        $depo = NULL;
+    }
+
+    $string = array(
+        'first_name'=&gt;$d['firstname'],
+        'last_name'=&gt;$d['lastname'],
+        'email'=&gt;$d['email'],							
+        'telefono'=&gt;$d['telefono'],				
+        'dni'=&gt;$d['dni'],									
+        'usernick'=&gt;$d['usernick'],
+        'password'=&gt;$d['password'], 			
+        'role'=&gt;$d['role'], 							
+        'status'=&gt;'approved',
+        'banned_users'=&gt;'unban',
+        'depo_id'=&gt; $depo,
+    );
+
+    //imagen codificada
+    $string['image_name'] = $d['image_name'];
+    $string['image'] = $d['image'];
+
+    $q = $this-&gt;db-&gt;insert('seg.users',$string);
+
+    $error = $this-&gt;db-&gt;error();
+
+    if($q){
+        $bsnes = array (
+            'email'=&gt;$d['email'],	
+            'busines' =&gt;  $d['business']              
+        );
+
+        $bs = $this-&gt;db-&gt;insert('seg.users_business', $bsnes);
+
+        $error = $this-&gt;db-&gt;error();
+
+        $this-&gt;db-&gt;select_max('id');						
+        $query = $this-&gt;db-&gt;get('seg.users');
+        $userInfo = $query-&gt;row('id');
+
+        if($userInfo){
+            return $userInfo;
+        }else{
+            return false;
+        }
+
+    }else{
+        return false;
+    }
+}
+</code></pre>
+<h3 id="model-user_modelphp---adduserasset">Model: User_model.php - addUserAsset()</h3>
+<pre><code class="language-685:700:application/models/User_model.php">/**
+* Agrega un usuario a MariaDB de Asset
+* @param array datos ingresados en formulario
+* @return 
+*/
+public function addUserAsset($data){
+    $post['_post_assetuser_add']= array(
+        'nick' =&gt; $data['usernick'],
+        'name' =&gt; $data['firstname'],
+        'lastName' =&gt; $data['lastname'],
+        'pass' =&gt; $data['password'],
+        'image' =&gt; $data['image']
+    );
+
+    $url = REST_CORE.&quot;/assetuser/add&quot;;
+    $aux = $this-&gt;rest-&gt;callAPI(&quot;POST&quot;,$url,$post);
+
+    log_message('DEBUG', &quot;#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: &gt;&gt; &quot; . json_encode($aux));
+
+    return $aux;
+}
+</code></pre>
+<h3 id="model-user_modelphp---crearusrbpm">Model: User_model.php - crearUsrBPM()</h3>
+<pre><code class="language-351:370:application/models/User_model.php">/**
+* Crear usuarios en BPM
+* @param array info de usr nuevos
+* @return string status de servicio
+*/
+function crearUsrBPM($cleanPost){
+    
+    //TODO: SACAR HARDCODEO ACA
+    $session = '&quot;X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;&quot;';
+    $datos[&quot;userName&quot;] = $cleanPost['usernick'];
+    $datos[&quot;password&quot;] = BPM_USER_PASS;
+    $datos[&quot;password_confirm&quot;] = BPM_USER_PASS;
+    $datos[&quot;icon&quot;] = &quot;&quot;;
+    $datos[&quot;firstname&quot;] = $cleanPost['firstname'];
+    $datos[&quot;lastname&quot;] = $cleanPost['lastname'];
+    $datos[&quot;title&quot;] = &quot;Sr&quot;;
+    $datos[&quot;job_title&quot;] = &quot;Human resources benefits&quot;;
+    $datos[&quot;manager_id&quot;] = &quot;&quot;;			
+    $post[&quot;session&quot;] = $session;
+    $post[&quot;payload&quot;] = $datos;
+                                    
+    $aux = $this-&gt;rest-&gt;callAPI(&quot;POST&quot;,REST_BPM.&quot;/users&quot;, $post);
+    $aux =json_decode($aux[&quot;status&quot;]);
+    return $aux;
+}
+</code></pre>
+<h2 id="-problemas-generales-identificados">🐛 Problemas Generales Identificados</h2>
+<h3 id="1-falta-de-manejo-de-errores">1. <strong>Falta de Manejo de Errores</strong></h3>
+<ul>
+<li>No se valida el resultado de <code>addUserAsset()</code></li>
+<li>No se manejan errores de conexión a WSO2</li>
+<li>No se manejan errores de MySQL AssetPlanner</li>
+</ul>
+<h3 id="2-inconsistencia-de-datos">2. <strong>Inconsistencia de Datos</strong></h3>
+<ul>
+<li>Si falla AssetPlanner, el usuario queda creado en PostgreSQL pero no en AssetPlanner</li>
+<li>No hay mecanismo de sincronización o compensación</li>
+</ul>
+<h3 id="3-password-management">3. <strong>Password Management</strong></h3>
+<ul>
+<li>Password hasheado enviado a AssetPlanner (probablemente incorrecto)</li>
+<li>Password hardcodeado para BPM (<code>'bpm'</code>)</li>
+</ul>
+<h3 id="4-orden-de-ejecución">4. <strong>Orden de Ejecución</strong></h3>
+<ul>
+<li><code>addUserAsset()</code> se ejecuta siempre, sin validar si <code>addUser()</code> fue exitoso</li>
+<li>Debería ejecutarse solo si <code>addUser()</code> retorna un ID válido</li>
+</ul>
+<h3 id="5-logging-insuficiente">5. <strong>Logging Insuficiente</strong></h3>
+<ul>
+<li>Solo se loguea en DEBUG, no en ERROR cuando falla</li>
+<li>No se loguea información suficiente para debugging</li>
+</ul>
+<h2 id="-recomendaciones">📌 Recomendaciones</h2>
+<ol>
+<li>
+<p><strong>Validar resultado antes de crear en AssetPlanner</strong>:</p>
+<pre><code class="language-php"><span class="hljs-variable">$usr_id</span> = <span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">addUser</span>(<span class="hljs-variable">$cleanPost</span>);
+<span class="hljs-keyword">if</span>(<span class="hljs-variable">$usr_id</span>) {
+    <span class="hljs-variable">$assetResult</span> = <span class="hljs-variable language_">$this</span>-&gt;user_model-&gt;<span class="hljs-title function_ invoke__">addUserAsset</span>(<span class="hljs-variable">$cleanPost</span>);
+    <span class="hljs-keyword">if</span>(!<span class="hljs-variable">$assetResult</span> || !<span class="hljs-variable">$assetResult</span>[<span class="hljs-string">&#x27;status&#x27;</span>]) {
+        <span class="hljs-comment">// Manejar error</span>
+    }
+}
+</code></pre>
+</li>
+<li>
+<p><strong>Verificar formato de password para AssetPlanner</strong>:</p>
+<ul>
+<li>Revisar documentación del servicio WSO2</li>
+<li>Verificar qué formato espera MySQL AssetPlanner</li>
+<li>Ajustar el payload según corresponda</li>
+</ul>
+</li>
+<li>
+<p><strong>Implementar validación de respuestas</strong>:</p>
+<ul>
+<li>Validar código HTTP de respuesta</li>
+<li>Validar estructura de respuesta JSON</li>
+<li>Manejar errores apropiadamente</li>
+</ul>
+</li>
+<li>
+<p><strong>Mejorar logging</strong>:</p>
+<ul>
+<li>Loguear errores en nivel ERROR</li>
+<li>Incluir más contexto en los logs</li>
+<li>Loguear intentos de creación en cada backend</li>
+</ul>
+</li>
+<li>
+<p><strong>Considerar transacciones o compensación</strong>:</p>
+<ul>
+<li>Si falla AssetPlanner, considerar eliminar usuario de PostgreSQL</li>
+<li>O implementar un mecanismo de reintento</li>
+<li>O al menos registrar el estado de sincronización</li>
+</ul>
+</li>
+</ol>
+<h2 id="-referencias">📚 Referencias</h2>
+<ul>
+<li><strong>Vista del formulario</strong>: <code>application/views/adduser.php</code></li>
+<li><strong>Controlador</strong>: <code>application/controllers/Main.php</code> (método <code>adduser()</code>)</li>
+<li><strong>Modelo</strong>: <code>application/models/User_model.php</code></li>
+<li><strong>Librería REST</strong>: <code>application/libraries/REST.php</code></li>
+<li><strong>Constantes</strong>: <code>application/config/constants.php</code></li>
+<li><strong>Documentación AssetPlanner</strong>: <code>scripts/README_BULKLOAD.md</code></li>
+</ul>
+<hr>
+<p><strong>Última actualización</strong>: Diciembre 2024<br>
+<strong>Versión del documento</strong>: 1.0.0<br>
+<strong>Estado</strong>: Análisis completo - Listo para implementar correcciones</p>
+
+            <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+            
+        </body>
+        </html>

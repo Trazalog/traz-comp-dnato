@@ -5,11 +5,8 @@
         <div class="portlet light profile-sidebar-portlet bordered">
             <div class="profile-userpic" style="width: 50%;  display: block;  margin-left: auto;  margin-right: auto; ">
             <?php
-
-use function PHPSTORM_META\type;
-
               foreach($usersList as $user){
-                if(($email == $user->email) && ($usernick == $user->usernick)){                             
+                if(strcasecmp((string) $email, (string) $user->email) === 0){
                   echo '<img src="'.imageAdmin($user->image, $user->image_name).'" class="img-responsive" style="border: 1px solid #000;" alt="User Image"/>';
                   break;
                 }
@@ -24,7 +21,7 @@ use function PHPSTORM_META\type;
             <div class="portlet-title tabbable-line">
                 <div class="caption caption-md">
                   <h2>Editar perfil</h2>
-                  <h5>Hola <span><?php echo $$groups->first_name; ?></span>.</h5>
+                  <h5>Hola <span><?php echo $groups->first_name; ?></span>.</h5>
                 </div>
             </div>
             <div class="portlet-body">              

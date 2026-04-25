@@ -73,7 +73,7 @@
       <?php echo form_input(array(
           'name'=>'email', 
           'id'=> 'email', 
-          'placeholder'=>'Email', 
+          'placeholder'=>'Correo electrónico', 
           'class'=>'form-control', 
           'value'=> set_value('email'))); ?>
       <?php echo form_error('email') ?>
@@ -82,7 +82,7 @@
       <?php echo form_password(array(
           'name'=>'password',
           'id'=> 'password',
-          'placeholder'=>'Password',
+          'placeholder'=>'Contraseña',
           'class'=>'form-control',
           'value'=> set_value('password'))); ?>
       <?php echo form_error('password') ?>
@@ -96,6 +96,6 @@
     echo form_submit(array('value'=>'Ingresar', 'class'=>'btn btn-lg btn-primary btn-block')); ?>
     <?php echo form_close(); ?>
     <br>
-    <!-- <p>No esta registrado? <a href="<?php //echo base_url();?>main/register">Registrese por favor</a></p>
-    <p>Olvido su contraseña? <a href="<?php //echo base_url();?>main/forgot">Recupere contraseña</a></p> -->
+    <p>No esta registrado? <a href="<?php echo base_url();?>main/register">Registrese por favor</a></p>
+    <p>Olvido su contraseña? <a href="<?php echo base_url();?>main/forgot">Recupere contraseña</a></p>
 </div>

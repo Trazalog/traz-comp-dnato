@@ -85,29 +85,83 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
-define('REST_BPM', 'http://10.142.0.13:8280/tools/bpm');
-define('API_CORE', 'http://10.142.0.13:8280/tools/core');
+
+/*
+|--------------------------------------------------------------------------
+| WSO2 Micro Integrator - URL base
+|--------------------------------------------------------------------------
+| Cada ambiente tiene su propio constants.php: en este (desa) usamos nuestro
+| WSO2 local. En otros ambientes, en su constants ponen su URL (ej. 10.142.0.13:8280).
+*/
+$wso2_base = 'http://localhost:8290';
+define('REST_BPM', $wso2_base.'/tools/bpm');
+define('API_CORE', $wso2_base . '/tools/core');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
-define('TOOLS_ADMIN_USER','admin@gmail.com');
+define('FRM', 'traz-comp-formularios/');
+define('FORMULARIO_REGISTRO_ID', 72);
+define('REGISTER_TEMP_EMPR_ID', 9000);
+#define('TOOLS_ADMIN_USER','admin@gmail.com');
+define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');
+
+/*
+|--------------------------------------------------------------------------
+| Sesión BPM para asignación de roles (tools/bpm)
+|--------------------------------------------------------------------------
+| Usado por Roles->getInfoBPM, guardarMembershipBPM, deleteMembershipBPM.
+| Obtener sesión: login a Bonita, extraer X-Bonita-API-Token y JSESSIONID.
+| Formato base: X-Bonita-API-Token=xxx;JSESSIONID=xxx;bonita.tenant=1;
+| Actualizar cuando expire la sesión.
+*/
+$bpm_roles_session_base = 'X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;';
+define('BPM_ROLES_SESSION', '"' . $bpm_roles_session_base . '"');
+define('BPM_ROLES_SESSION_URL', rawurlencode($bpm_roles_session_base));
 
 #SISTEMA A ENLAZAR
 define('USUARIO_EXTERNO', 8);
-define('DE', 'http://localhost/traz-tools/');
-define('DS', 'http://localhost/traz-comp-dnato/main/login');
-define('DNATO', 'http://localhost/traz-comp-dnato/');
+define('DE', 'http://traz-comp.local/traz-tools/');
+define('DS', 'http://traz-comp.local/traz-comp-dnato/main/login');
+define('DNATO', 'http://traz-comp.local/traz-comp-dnato/main/users');
 define('SIS_NAME', 'TOOLS');
+
+/*
+|--------------------------------------------------------------------------
+| Dominios de webmail publicos
+|--------------------------------------------------------------------------
+| Si el email con el que se registra el usuario pertenece a alguno de estos
+| dominios, durante "Completar Datos de Empresa" se le pedira un dominio
+| corporativo adicional para generar los usuarios por defecto de la empresa.
+| Si el email NO pertenece a un webmail, se reutiliza directamente el dominio
+| del email para generar esos usuarios.
+*/
+define('WEBMAIL_DOMAINS', array(
+    'gmail.com', 'googlemail.com',
+    'hotmail.com', 'hotmail.es', 'hotmail.com.ar', 'hotmail.co.uk',
+    'outlook.com', 'outlook.es', 'outlook.com.ar',
+    'live.com', 'live.com.ar', 'live.com.mx', 'msn.com',
+    'yahoo.com', 'yahoo.es', 'yahoo.com.ar', 'yahoo.com.mx', 'ymail.com', 'rocketmail.com',
+    'aol.com',
+    'icloud.com', 'me.com', 'mac.com',
+    'protonmail.com', 'proton.me', 'pm.me',
+    'zoho.com',
+    'gmx.com', 'gmx.net', 'gmx.us', 'gmx.es',
+    'yandex.com', 'yandex.ru',
+    'mail.com', 'mail.ru',
+    'fastmail.com',
+    'tutanota.com', 'tuta.io', 'tutamail.com',
+    'hey.com',
+));
 
 /*
 |--------------------------------------------------------------------------
 | Variables HOST y REST
 |--------------------------------------------------------------------------
 |
-| Variables Locales
+| Variables Locales (HOST usa mismo puerto WSO2 que API_CORE)
 |
 */
-define('HOST', 'http://10.142.0.13:8280');
+define('HOST', $wso2_base);
 define('REST_CORE', HOST.'/services/COREDataService');
 define('API_URL', HOST.'/tools/log');
 define('REST_RESI', HOST.'/services/semaresiduosDS');
@@ -138,7 +192,7 @@ define('ASP_115', 'Error al Leer Variable');
 | URLs para los servicios de datos de WSO2
 |
 */
-define('COREDataService_URL', 'http://10.142.0.13:8280/services/COREDataService');
+define('COREDataService_URL', $wso2_base . '/services/COREDataService');
 
 /*
 |--------------------------------------------------------------------------
@@ -152,3 +206,80 @@ define('BULKLOAD_STAGING_DIR', FCPATH . 'bulkload_stage_files');
 define('BULKLOAD_MAX_FILE_SIZE', 10 * 1024 * 1024); // 10 MB
 define('BULKLOAD_ALLOWED_EXTENSIONS', 'xlsx,xls');
 define('BULKLOAD_TIMEOUT', 60); // segundos
+
+/*
+|--------------------------------------------------------------------------
+| Registro de Usuarios Configuration
+|--------------------------------------------------------------------------
+|
+| Configuración para la funcionalidad de registro de usuarios
+|
+*/
+define('REST_CORE_PAISES', REST_CORE . '/tablas/paises_registracion');
+
+// Campos adicionales para usuarios
+define('CAMPOS_USUARIO_ADICIONALES', array(
+    'reg_pais_id',
+    'reg_razon_social', 
+    'telefono'
+));
+
+define('REGISTRACION_PASSWORD_DEFAULT', '12345');
+
+/*
+|--------------------------------------------------------------------------
+| Imágenes del flujo de registro y login (configurables)
+|--------------------------------------------------------------------------
+*/
+define('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png');
+define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.png');
+define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.png');
+define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.png');
+define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.png');
+define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.png');
+define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
+define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
+
+define('REGISTRACION_USUARIOS_DEFAULT', array(
+    'usuario' => array(
+        'Solicitante de Almacén',
+        'Solicitante de Mantenimiento'
+    ),
+    'almacen' => array(
+        'Responsable de Almacén'
+    ),
+    'panol' => array(
+        'Responsable de Pañol'
+    ),
+    'produccion' => array(
+        'Responsable de Producción'
+    ),
+    'mantenimiento' => array(
+        'Supervisor de Mantenimiento',
+        'Planificador de Mantenimiento'
+    )
+));
+
+define('BPM_SESSION_FALLBACK', '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"');
+
+/*
+ * Defaults para el alta automática de Establecimiento + Depósito que se crea al dar de alta una empresa
+ * (Register::postProcesarEmpresa -> Establecimientos::crearDefaultsEmpresa).
+ * ENCARGADO_ALIAS debe coincidir con una clave de REGISTRACION_USUARIOS_DEFAULT para que el usuario exista.
+ */
+define('REGISTRACION_ESTABLECIMIENTO_DEFAULT_NOMBRE', 'Establecimiento Principal');
+define('REGISTRACION_DEPOSITO_DEFAULT_NOMBRE', 'Deposito 1');
+define('REGISTRACION_DEPOSITO_DEFAULT_DESCRIPCION', 'Depósito 1');
+define('REGISTRACION_DEPOSITO_DEFAULT_ENCARGADO_ALIAS', 'almacen');
+
+// La página de bienvenida (register/registro_completo) arma el listado desde REGISTRACION_USUARIOS_DEFAULT + dominio corporativo.
+
+/*
+||--------------------------------------------------------------------------
+|| Formularios Dinámicos Configuration
+||--------------------------------------------------------------------------
+||
+|| Configuración para el módulo de formularios dinámicos
+||
+*/
+

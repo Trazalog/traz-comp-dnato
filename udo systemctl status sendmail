@@ -1,0 +1,11 @@
+[0;1;31m×[0m sendmail.service - LSB: powerful, efficient, and scalable Mail Transport Agent
+     Loaded: loaded (]8;;file://rodo-thinkbook/usr/lib/systemd/system/sendmail.service/usr/lib/systemd/system/sendmail.service]8;;; [0;1;38;5;185mdisabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;31mfailed[0m (Result: exit-code) since Wed 2025-10-15 12:31:25 -03; 14min ago
+        CPU: 49ms
+
+oct 15 12:31:25 rodo-thinkbook systemd[1]: Starting sendmail.service - LSB: powerful, efficient, and scalable Mail Transport Agent...
+oct 15 12:31:25 rodo-thinkbook sendmail[779715]:  * Starting Mail Transport Agent (MTA) sendmail
+oct 15 12:31:25 rodo-thinkbook sendmail[779715]:  * MTA is already running.
+oct 15 12:31:25 rodo-thinkbook systemd[1]: [0;1;39m[0;1;31m[0;1;39msendmail.service: Control process exited, code=exited, status=1/FAILURE[0m
+oct 15 12:31:25 rodo-thinkbook systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185msendmail.service: Failed with result 'exit-code'.[0m
+oct 15 12:31:25 rodo-thinkbook systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start sendmail.service - LSB: powerful, efficient, and scalable Mail Transport Agent.[0m

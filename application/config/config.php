@@ -228,7 +228,7 @@ $config['allow_get_array'] = TRUE;
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 2;
+$config['log_threshold'] = 4;  // Cambiado temporalmente a 4 para debugging
 
 /*
 |--------------------------------------------------------------------------
@@ -549,7 +549,7 @@ $config['banned_users'] = array('unban', 'ban');
 | This is about email sender
 |
 */
-$config['register'] = 'soportetrazalog24@gmail.com';
-$config['forgot'] = 'soportetrazalog24@gmail.com';
+$config['register'] = 'register@trazalog.com';
+$config['forgot'] = 'register@trazalog.com';
 
 

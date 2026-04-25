@@ -17,17 +17,37 @@ class User_model extends CI_Model {
     //insert user into database
     public function insertUser($d)
     {  
-				$string = array(
-						'first_name'=>$d['firstname'],
-						'last_name'=>$d['lastname'],
-						'email'=>$d['email'],
-						'role'=>$this->roles[0],
-						'status'=>$this->status[0],
-						'banned_users'=>$this->banned_users[0]
-				);
-				$q = $this->db->insert_string('seg.users',$string);
-				$this->db->query($q);
-				return $this->db->insert_id();
+        log_message('INFO', '#TRAZA|USER_MODEL|insertUser() >> Insertando nuevo usuario');
+        
+        $string = array(
+            'first_name' => $d['firstname'],
+            'last_name' => $d['lastname'],
+            'email' => $d['email'],
+            'role' => $this->roles[0],
+            'status' => $this->status[0],
+            'banned_users' => $this->banned_users[0]
+        );
+        
+        // Agregar campos adicionales si existen
+        if (isset($d['reg_pais_id'])) {
+            $string['reg_pais_id'] = $d['reg_pais_id'];
+        }
+        if (isset($d['reg_razon_social'])) {
+            $string['reg_razon_social'] = $d['reg_razon_social'];
+        }
+        if (isset($d['telefono'])) {
+            $string['telefono'] = $d['telefono'];
+        }
+        
+        log_message('DEBUG', '#TRAZA|USER_MODEL|insertUser() >> Datos a insertar: ' . json_encode($string));
+        
+        $q = $this->db->insert_string('seg.users', $string);
+        $this->db->query($q);
+        
+        $insert_id = $this->db->insert_id();
+        log_message('INFO', '#TRAZA|USER_MODEL|insertUser() >> Usuario insertado con ID: ' . $insert_id);
+        
+        return $insert_id;
     }
     
     //check is duplicate
@@ -35,6 +55,39 @@ class User_model extends CI_Model {
     {
         $this->db->get_where('seg.users', array('email' => $email), 1);
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
+    }
+    
+    //check if razon social exists for the same country
+    public function existeRazonSocial($razon_social, $pais_id, $cuit = null)
+    {
+        $razon = trim((string) $razon_social);
+        $pais = trim((string) $pais_id);
+        $cuitNorm = trim((string) $cuit);
+
+        if ($razon === '' || $pais === '') {
+            log_message('WARNING', '#TRAZA|USER_MODEL|existeRazonSocial() >> Datos incompletos | razon=' . $razon . ' | pais_id=' . $pais);
+            return false;
+        }
+
+        $this->db->select('empr_id');
+        $this->db->from('core.empresas');
+        $this->db->where('eliminado', false);
+        $this->db->where('pais_id', $pais);
+        $this->db->group_start();
+        $this->db->where('UPPER(TRIM(nombre))', strtoupper($razon));
+        $this->db->or_where('UPPER(TRIM(descripcion))', strtoupper($razon));
+        $this->db->group_end();
+        if ($cuitNorm !== '') {
+            $this->db->where('cuit', $cuitNorm);
+        }
+        $this->db->limit(1);
+
+        $query = $this->db->get();
+        $existe = $query->num_rows() > 0;
+
+        log_message('DEBUG', '#TRAZA|USER_MODEL|existeRazonSocial() >> razon=' . $razon . ' | pais_id=' . $pais . ' | cuit=' . ($cuitNorm !== '' ? $cuitNorm : 'N/A') . ' | existe=' . ($existe ? 'SI' : 'NO'));
+
+        return $existe;
     }
     
     //insert the token
@@ -89,28 +142,28 @@ class User_model extends CI_Model {
     public function gestMembershipsUserInfo($email, $sw=0){
         //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email): '. $email);
 
+        $this->db->from('seg.memberships_users');
+        $emailNorm = strtolower(trim((string) $email));
+        $this->db->where(
+            'LOWER(TRIM(seg.memberships_users.email)) = ' . $this->db->escape($emailNorm),
+            null,
+            false
+        );
+
         if($sw == 1){
-            $this->db->distinct('seg.memberships_users.group');
             $this->db->select('seg.memberships_users.group');
+            $this->db->group_by('seg.memberships_users.group');
         }else{
             $this->db->select('*');
         }
-        
-        $this->db->from('seg.memberships_users');
-        //$this->db->where('email', $email );
-        $this->db->like('email', $email);
+
         $query = $this->db->get();
 
-        //log_message('ERROR','#TRAZA|USER_MODEL|  gestMembershipsUserInfo($email) $query->row(): '. $query->row());
-
-
-        if($this->db->affected_rows() > 0){
+        if($query && $query->num_rows() > 0){
             return $query->result();
-        }else{
-            error_log('no user found gestMembershipsUserInfo('.$email.')');
-            return false;
         }
-        
+        error_log('no user found gestMembershipsUserInfo('.$email.')');
+        return false;
     }
 
     //get user memberships_users info
@@ -170,11 +223,19 @@ class User_model extends CI_Model {
     //update data user
     public function updateUserInfo($post)
     {
+        $this->db->where('id', $post['user_id']);
+        $current = $this->db->get('seg.users', 1)->row();
+
         $data = array(
                'password' => $post['password'],
                'last_login' => date('Y-m-d h:i:s A'),
                'status' => $this->status[1]
             );
+        // BPM / WSO2 bpm-asset: el DataService usuario/usernick debe devolver nick; si quedó vacío al alta, usar email.
+        if ($current && ( ! isset($current->usernick) || trim((string) $current->usernick) === '')) {
+            $data['usernick'] = strtolower(trim($current->email));
+        }
+
         $this->db->where('id', $post['user_id']);
         $this->db->update('seg.users', $data);
         $success = $this->db->affected_rows(); 
@@ -280,7 +341,10 @@ class User_model extends CI_Model {
         return true;
     } 
     
-    //add user login
+    /**
+     * @deprecated Usar crearUsuarioAPI() en su lugar. Mantenido para rollback (Fase 4).
+     * add user login
+     */
     public function addUser($d)
     {
 				if ($d['depo_id']) {
@@ -344,6 +408,7 @@ class User_model extends CI_Model {
 		}
 
 		/**
+		* @deprecated Usar crearUsuarioAPI() en su lugar. Mantenido para rollback (Fase 4).
 		* Crear usuarios en BPM
 		* @param array info de usr nuevos
 		* @return string status de servicio
@@ -547,7 +612,8 @@ class User_model extends CI_Model {
 	*/
     public function getListUserData()
     {
-        $this->db->select("seg.users.id,
+        /* DISTINCT ON: un mismo usuario puede tener varias filas en users_business; sin esto el JOIN duplica filas. */
+        $this->db->select("DISTINCT ON (seg.users.id) seg.users.id,
         seg.users.email,
         seg.users.first_name,
         seg.users.last_name,
@@ -564,9 +630,10 @@ class User_model extends CI_Model {
         cast(seg.users.image as bytea),
         seg.users.image_name,seg.roles.*,seg.users_business.busines");
         $this->db->from('seg.users');
-        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)');
+        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)', 'left');
         $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'LEFT');
-        $this->db->order_by("first_name", "asc");
+        $this->db->order_by('seg.users.id', 'asc');
+        $this->db->order_by('seg.users_business.busines', 'asc');
         
         $query = $this->db->get();
         
@@ -577,6 +644,54 @@ class User_model extends CI_Model {
             return $query->result();
         else
             return false;
+    }
+
+    /**
+     * Usuarios visibles para un administrador según sus empresas (seg.memberships_users.group).
+     * No depende de seg.users_business.busines: los usuarios dados de alta por API pueden tener
+     * membresía correcta pero fila ausente o distinta en users_business.
+     *
+     * @param string[] $groups valores de columna "group" en seg.memberships_users (ej. nombre empresa BPM)
+     * @return array<int, object>|array{} filas como getListUserData()
+     */
+    public function getListUserDataForGroups(array $groups)
+    {
+        $groups = array_values(array_unique(array_filter(array_map('strval', $groups), function ($g) {
+            return $g !== '';
+        })));
+        if ($groups === array()) {
+            return array();
+        }
+
+        $inList = implode(',', array_map(array($this->db, 'escape'), $groups));
+
+        $this->db->select("DISTINCT ON (seg.users.id) seg.users.id,
+        seg.users.email,
+        seg.users.first_name,
+        seg.users.last_name,
+        seg.users.role,
+        seg.users.password,
+        seg.users.last_login,
+        seg.users.status,
+        seg.users.banned_users,
+        seg.users.passmd5,
+        seg.users.telefono,
+        seg.users.dni,
+        seg.users.usernick,
+        seg.users.depo_id,
+        cast(seg.users.image as bytea),
+        seg.users.image_name,seg.roles.*,seg.users_business.busines");
+        $this->db->from('seg.users');
+        $this->db->join('seg.memberships_users mu', 'mu.email = seg.users.email', 'inner');
+        $this->db->where('mu."group" IN (' . $inList . ')', null, false);
+        $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)', 'left');
+        $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'left');
+        $this->db->order_by('seg.users.id', 'asc');
+        $this->db->order_by('seg.users_business.busines', 'asc');
+
+        $query = $this->db->get();
+        $res = $query ? $query->result() : array();
+        return is_array($res) ? $res : array();
     }
     
     public function getInfoEmpCore()
@@ -678,10 +793,11 @@ class User_model extends CI_Model {
         return $list;*/
     }
     /**
-	* Agrega un usuario a MariaDB de Asset
-	* @param array datos ingresados en formulario
-	* @return 
-	*/
+     * @deprecated Usar crearUsuarioAPI() en su lugar. Mantenido para rollback (Fase 4).
+     * Agrega un usuario a MariaDB de Asset
+     * @param array datos ingresados en formulario
+     * @return 
+     */
     public function addUserAsset($data){
         $post['_post_assetuser_add']= array(
             'nick' => $data['usernick'],
@@ -697,5 +813,168 @@ class User_model extends CI_Model {
         log_message('DEBUG', "#TRAZ-COMP-DNATO | User_model | addUserAsset()  resp: >> " . json_encode($aux));
 
         return $aux;
+    }
+
+    /**
+     * Obtiene lista de países desde REST_CORE
+     * @return array|false Lista de países o false si hay error
+     */
+    public function obtenerPaisesRegistracion()
+    {
+        log_message('INFO', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Iniciando obtención de países');
+        
+        try {
+            $this->load->library('rest');
+            
+            $response = $this->rest->callAPI("GET", REST_CORE_PAISES, array());
+            
+            if ($response && isset($response['data'])) {
+                // Limpiar la respuesta antes de decodificar
+                $cleanResponse = trim($response['data']);
+                log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Respuesta limpia: ' . substr($cleanResponse, 0, 200) . '...');
+                
+                $data = json_decode($cleanResponse, true);
+                
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Error JSON: ' . json_last_error_msg());
+                    log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Respuesta cruda: ' . $cleanResponse);
+                    return false;
+                }
+                
+                if (isset($data['tablas']['tabla']) && is_array($data['tablas']['tabla'])) {
+                    log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Países obtenidos: ' . count($data['tablas']['tabla']));
+                    return $data['tablas']['tabla'];
+                } else {
+                    log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Estructura de respuesta: ' . json_encode($data));
+                }
+            } else {
+                log_message('DEBUG', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Respuesta completa: ' . json_encode($response));
+            }
+            
+            log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Error al obtener países');
+            return false;
+            
+        } catch (Exception $e) {
+            log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisesRegistracion() >> Excepción: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Valida formato de teléfono según país
+     * @param string $telefono
+     * @param int $reg_pais_id
+     * @return bool
+     */
+    public function validarTelefonoPorPais($telefono, $reg_pais_id)
+    {
+        log_message('INFO', '#TRAZA|USER_MODEL|validarTelefonoPorPais() >> Validando teléfono para país: ' . $reg_pais_id);
+        
+        // Patrones básicos por país usando los IDs de la base de datos
+        $patrones = array(
+            'paises_registracionAR' => '/^\+?54\s?9?\d{4}\s?\d{6}$/', // Argentina
+            'paises_registracionBR' => '/^\+?55\s?\d{2}\s?\d{4,5}\s?\d{4}$/', // Brasil
+            'paises_registracionCL' => '/^\+?56\s?9?\d{8}$/', // Chile
+            'paises_registracionUY' => '/^\+?598\s?9?\d{7}$/', // Uruguay
+            'paises_registracionPE' => '/^\+?51\s?9?\d{8}$/', // Perú
+            'paises_registracionEC' => '/^\+?593\s?9?\d{8}$/', // Ecuador
+            'paises_registracionMX' => '/^\+?52\s?9?\d{10}$/', // México
+            'paises_registracionBO' => '/^\+?591\s?9?\d{8}$/', // Bolivia
+        );
+        
+        $patron = isset($patrones[$reg_pais_id]) ? $patrones[$reg_pais_id] : '/^\+?[\d\s\-\(\)]{7,15}$/';
+        
+        $valido = preg_match($patron, $telefono);
+        log_message('DEBUG', '#TRAZA|USER_MODEL|validarTelefonoPorPais() >> Teléfono válido: ' . ($valido ? 'Sí' : 'No'));
+        
+        return $valido;
+    }
+
+    /**
+     * Crea un usuario usando la nueva API WSO2 (PostgreSQL + AssetPlanner + BPM si hay sesión).
+     * Reemplaza el flujo addUser() + addUserAsset() + crearUsrBPM().
+     *
+     * @param array $data Datos del usuario. Debe incluir password en texto plano (la API lo hashea).
+     * @return array|false Array con 'usr_id', 'resultado', 'bpmSession' o false si falla
+     */
+    public function crearUsuarioAPI($data)
+    {
+        $this->load->library('REST');
+
+        $payload = array(
+            'usuario' => array(
+                'usernick'   => isset($data['usernick']) ? $data['usernick'] : '',
+                'email'      => isset($data['email']) ? $data['email'] : '',
+                'firstname'  => isset($data['firstname']) ? $data['firstname'] : '',
+                'lastname'   => isset($data['lastname']) ? $data['lastname'] : '',
+                'password'   => isset($data['password']) ? $data['password'] : '',
+                'role'       => isset($data['role']) ? $data['role'] : '2',
+                'status'     => isset($data['status']) ? $data['status'] : 'approved',
+                'banned_users' => isset($data['banned_users']) ? $data['banned_users'] : 'unban',
+                'telefono'   => isset($data['telefono']) ? $data['telefono'] : '',
+                'dni'        => isset($data['dni']) ? $data['dni'] : '',
+                'business'   => isset($data['business']) ? $data['business'] : '',
+                'image_name' => isset($data['image_name']) ? $data['image_name'] : '',
+                'image'      => isset($data['image']) ? $data['image'] : ''
+            ),
+            'bpmSession' => $this->getBpmSession()
+        );
+
+        $url = API_CORE . '/usuario';
+        log_message('INFO', '#TRAZA | User_model | crearUsuarioAPI() >> URL: ' . $url);
+        log_message('DEBUG', '#TRAZA | User_model | crearUsuarioAPI() >> Payload: ' . json_encode($payload));
+
+        $result = $this->rest->callAPI('POST', $url, $payload, array('Accept: application/json'));
+
+        if (!$result || !isset($result['status'])) {
+            $errMsg = isset($result['data']) ? $result['data'] : json_encode($result);
+            log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> Error conexión/respuesta: ' . $errMsg);
+            return array('error' => 'No se pudo conectar con el servicio de usuarios.', 'detail' => $errMsg);
+        }
+
+        $response_body = json_decode($result['data'], true);
+        $httpCode = isset($result['code']) ? $result['code'] : 0;
+
+        if (!$result['status'] || $httpCode >= 300) {
+            $apiError = 'Error del servicio (HTTP ' . $httpCode . ')';
+            $apiDetail = $result['data'];
+            if (is_array($response_body) && isset($response_body['respuesta'])) {
+                $r = $response_body['respuesta'];
+                $apiError = isset($r['error']) ? $r['error'] : $apiError;
+                $apiDetail = isset($r['detalle']) ? $r['detalle'] : $result['data'];
+            }
+            log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> ' . $apiError . ' | detalle: ' . (is_string($apiDetail) ? $apiDetail : json_encode($apiDetail)));
+            log_message('ERROR', 'adduser API HTTP ' . $httpCode . ' | URL=' . $url . ' | body=' . substr(is_string($result['data']) ? $result['data'] : json_encode($result['data']), 0, 800));
+            return array('error' => $apiError, 'detail' => $apiDetail);
+        }
+
+        if (!is_array($response_body) || !isset($response_body['respuesta'])) {
+            log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> Respuesta inválida: ' . json_encode($response_body));
+            return array('error' => 'Respuesta inválida del servicio.', 'detail' => $result['data']);
+        }
+
+        $resp = $response_body['respuesta'];
+        if (isset($resp['resultado']) && $resp['resultado'] === 'ok' && isset($resp['usr_id'])) {
+            log_message('INFO', '#TRAZA | User_model | crearUsuarioAPI() >> Usuario creado. ID: ' . $resp['usr_id']);
+            return array(
+                'usr_id'     => $resp['usr_id'],
+                'resultado'  => 'ok',
+                'bpmSession' => isset($resp['bpmSession']) ? $resp['bpmSession'] : null
+            );
+        }
+
+        $apiError = isset($resp['error']) ? $resp['error'] : 'Respuesta sin éxito';
+        $apiDetail = isset($resp['detalle']) ? $resp['detalle'] : json_encode($resp);
+        log_message('ERROR', '#TRAZA | User_model | crearUsuarioAPI() >> Respuesta sin éxito: ' . json_encode($resp));
+        return array('error' => $apiError, 'detail' => $apiDetail);
+    }
+
+    /**
+     * Obtiene la sesión de BPM para la API (si se implementa).
+     * Por ahora retorna null (la API no llama a BPM en ese caso).
+     */
+    private function getBpmSession()
+    {
+        return null;
     }
 }

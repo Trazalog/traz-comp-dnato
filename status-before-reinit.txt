@@ -1,0 +1,44 @@
+STATUS ANTES DE REINICIALIZACIÓN - 9 OCT 2025
+================================================
+
+OBJETIVO PRINCIPAL:
+- Configurar funcionalidad de registración en Dnato con envío de emails
+
+ESTADO ACTUAL:
+✅ COMPLETADO:
+- XAMPP 7 instalado y funcionando correctamente
+- Virtual Host configurado (traz-comp.local)
+- Enlaces de registración habilitados en login.php
+- Funcionalidad de registro implementada y funcionando
+- SMTP configurado con datos de Trazalog (register@trazalog.com)
+- Sendmail instalado en el sistema
+- Configuración cambiada de SMTP a protocolo 'mail'
+
+❌ PROBLEMA ACTUAL:
+- Los emails NO llegan al destinatario
+- Sendmail funciona localmente pero no puede enviar emails externos
+- Falta configuración de relay SMTP en sendmail
+
+ARCHIVOS MODIFICADOS:
+- application/views/login.php (enlaces habilitados)
+- application/config/email.php (configuración mail)
+- application/config/config.php (remitente actualizado)
+- application/controllers/Main.php (configuración mail)
+
+PRÓXIMOS PASOS NECESARIOS:
+1. Configurar sendmail para usar servidor SMTP externo como relay
+2. O volver a configuración SMTP directa con ajustes adicionales
+3. Probar envío de emails de registro
+
+URLS FUNCIONANDO:
+- http://traz-comp.local/main/login (con enlaces de registro)
+- http://traz-comp.local/main/register (formulario de registro)
+
+CONFIGURACIÓN SMTP TRAZALOG:
+- Servidor: mauriper.ferozo.com
+- Puerto: 465 (SSL) o 587 (TLS)
+- Usuario: register@trazalog.com
+- Contraseña: Xdv*mq35wW
+
+NOTA: El sistema de registro está 95% funcional, solo falta resolver el envío de emails.
+
