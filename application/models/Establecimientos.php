@@ -43,7 +43,20 @@ class Establecimientos extends CI_Model
         $url = rtrim((string) REST_CORE, '/') . '/establecimiento';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|crearEstablecimiento() >> POST ' . $url . ' payload=' . json_encode($payload));
         $res = $this->rest->callAPI('POST', $url, $payload);
-        return $this->procesarRespuestaSimple($res, 'esta_id', 'Error creando establecimiento');
+        $out = $this->procesarRespuestaSimple($res, 'esta_id', 'Error creando establecimiento');
+        if (!$out['ok'] && $this->puedeIntentarResolverId($res)) {
+            $estaId = $this->resolverEstaIdPorConsulta(
+                isset($data['empr_id']) ? (string) $data['empr_id'] : '',
+                isset($data['nombre']) ? (string) $data['nombre'] : ''
+            );
+            if ($estaId !== '') {
+                log_message('WARNING', '#TRAZA|ESTABLECIMIENTOS|crearEstablecimiento() >> Respuesta sin esta_id; recuperado por GET /establecimientos: esta_id=' . $estaId);
+                $out['ok'] = true;
+                $out['esta_id'] = $estaId;
+                $out['message'] = '';
+            }
+        }
+        return $out;
     }
 
     /**
@@ -66,7 +79,21 @@ class Establecimientos extends CI_Model
         $url = rtrim((string) REST_CORE, '/') . '/deposito/establecimiento';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|crearDeposito() >> POST ' . $url . ' payload=' . json_encode($payload));
         $res = $this->rest->callAPI('POST', $url, $payload);
-        return $this->procesarRespuestaSimple($res, 'depo_id', 'Error creando depósito');
+        $out = $this->procesarRespuestaSimple($res, 'depo_id', 'Error creando depósito');
+        if (!$out['ok'] && $this->puedeIntentarResolverId($res)) {
+            $depoId = $this->resolverDepoIdPorConsulta(
+                isset($data['esta_id']) ? (string) $data['esta_id'] : '',
+                isset($data['empr_id']) ? (string) $data['empr_id'] : '',
+                isset($data['nombre']) ? (string) $data['nombre'] : ''
+            );
+            if ($depoId !== '') {
+                log_message('WARNING', '#TRAZA|ESTABLECIMIENTOS|crearDeposito() >> Respuesta sin depo_id; recuperado por GET /depositos/establecimiento: depo_id=' . $depoId);
+                $out['ok'] = true;
+                $out['depo_id'] = $depoId;
+                $out['message'] = '';
+            }
+        }
+        return $out;
     }
 
     /**
@@ -195,6 +222,125 @@ class Establecimientos extends CI_Model
 
         $out['message'] = $errLabel . ': respuesta sin ' . $idField . ' (body=' . substr($body, 0, 300) . ')';
         return $out;
+    }
+
+    /**
+     * Cuando el DataService responde 2xx pero body vacío/sin GeneratedKeys,
+     * intentamos resolver id por endpoint de lectura.
+     *
+     * @param array|false $res
+     * @return bool
+     */
+    private function puedeIntentarResolverId($res)
+    {
+        if (!is_array($res) || empty($res['status'])) {
+            return false;
+        }
+        $code = isset($res['code']) ? (int) $res['code'] : 0;
+        if ($code < 200 || $code >= 300) {
+            return false;
+        }
+        $body = isset($res['data']) ? trim((string) $res['data']) : '';
+        return ($body === '' || $body === 'false' || $body === 'null');
+    }
+
+    /**
+     * Busca el establecimiento recién creado por empr_id + nombre.
+     *
+     * @param string $emprId
+     * @param string $nombre
+     * @return string esta_id o ''
+     */
+    private function resolverEstaIdPorConsulta($emprId, $nombre)
+    {
+        $emprId = trim((string) $emprId);
+        if ($emprId === '') {
+            return '';
+        }
+        $url = rtrim((string) REST_CORE, '/') . '/establecimientos/' . rawurlencode($emprId);
+        $res = $this->rest->callAPI('GET', $url);
+        if (!is_array($res) || empty($res['status'])) {
+            return '';
+        }
+        $decoded = json_decode(isset($res['data']) ? (string) $res['data'] : '');
+        if (!$decoded || !isset($decoded->establecimientos->establecimiento)) {
+            return '';
+        }
+        $items = $this->normalizarLista($decoded->establecimientos->establecimiento);
+        $targetNombre = trim((string) $nombre);
+        $best = '';
+        foreach ($items as $it) {
+            if (!is_object($it) || !isset($it->esta_id)) {
+                continue;
+            }
+            if ($targetNombre !== '' && isset($it->nombre) && trim((string) $it->nombre) !== $targetNombre) {
+                continue;
+            }
+            $cand = trim((string) $it->esta_id);
+            if ($cand !== '' && ((int) $cand >= (int) $best)) {
+                $best = $cand;
+            }
+        }
+        return $best;
+    }
+
+    /**
+     * Busca el depósito recién creado por esta_id + empr_id + nombre.
+     *
+     * @param string $estaId
+     * @param string $emprId
+     * @param string $nombre
+     * @return string depo_id o ''
+     */
+    private function resolverDepoIdPorConsulta($estaId, $emprId, $nombre)
+    {
+        $estaId = trim((string) $estaId);
+        $emprId = trim((string) $emprId);
+        if ($estaId === '' || $emprId === '') {
+            return '';
+        }
+        $url = rtrim((string) REST_CORE, '/') . '/depositos/establecimiento/' . rawurlencode($estaId) . '/empresa/' . rawurlencode($emprId);
+        $res = $this->rest->callAPI('GET', $url);
+        if (!is_array($res) || empty($res['status'])) {
+            return '';
+        }
+        $decoded = json_decode(isset($res['data']) ? (string) $res['data'] : '');
+        if (!$decoded || !isset($decoded->depositos->deposito)) {
+            return '';
+        }
+        $items = $this->normalizarLista($decoded->depositos->deposito);
+        $targetNombre = trim((string) $nombre);
+        $best = '';
+        foreach ($items as $it) {
+            if (!is_object($it) || !isset($it->depo_id)) {
+                continue;
+            }
+            if ($targetNombre !== '' && isset($it->nombre) && trim((string) $it->nombre) !== $targetNombre) {
+                continue;
+            }
+            $cand = trim((string) $it->depo_id);
+            if ($cand !== '' && ((int) $cand >= (int) $best)) {
+                $best = $cand;
+            }
+        }
+        return $best;
+    }
+
+    /**
+     * Convierte objeto|array en lista homogénea.
+     *
+     * @param mixed $node
+     * @return array
+     */
+    private function normalizarLista($node)
+    {
+        if (is_array($node)) {
+            return $node;
+        }
+        if (is_object($node)) {
+            return array($node);
+        }
+        return array();
     }
 
 }
