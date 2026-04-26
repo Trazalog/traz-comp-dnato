@@ -356,9 +356,10 @@ class Register extends CI_Controller {
         }
 
         $json = (string) REGISTRACION_USUARIOS_DEFAULT_JSON;
-        $decoded = json_decode($json, true);
+        $decoded = $this->decodificarJsonUsuariosDefault($json);
         if (!is_array($decoded) || count($decoded) === 0) {
-            log_message('WARNING', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> JSON inválido en REGISTRACION_USUARIOS_DEFAULT_JSON');
+            log_message('WARNING', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> JSON inválido en REGISTRACION_USUARIOS_DEFAULT_JSON | len='
+                . strlen($json) . ' | error=' . $this->jsonLastErrorText());
             return array();
         }
 
@@ -380,6 +381,59 @@ class Register extends CI_Controller {
             log_message('DEBUG', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> JSON OK (alias=' . count($out) . ')');
         }
         return $out;
+    }
+
+    /**
+     * Decodifica JSON de usuarios por defecto tolerando problemas de encoding
+     * (ambientes legacy con archivo constants.php en ISO-8859-1/Windows-1252).
+     *
+     * @param string $json
+     * @return array|null
+     */
+    private function decodificarJsonUsuariosDefault($json)
+    {
+        // intento 1: decode directo
+        $decoded = json_decode($json, true);
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        // intento 2: utf8_encode (para latin1 típico en servidores legacy)
+        $jsonUtf8 = function_exists('utf8_encode') ? utf8_encode($json) : $json;
+        if ($jsonUtf8 !== $json) {
+            $decoded = json_decode($jsonUtf8, true);
+            if (is_array($decoded)) {
+                log_message('WARNING', '#TRAZA|REGISTER|decodificarJsonUsuariosDefault() >> JSON decodificado tras utf8_encode (archivo probablemente no UTF-8)');
+                return $decoded;
+            }
+        }
+
+        // intento 3: iconv desde ISO-8859-1/CP1252 a UTF-8
+        if (function_exists('iconv')) {
+            $jsonIconv = @iconv('ISO-8859-1', 'UTF-8//IGNORE', $json);
+            if (is_string($jsonIconv) && $jsonIconv !== '') {
+                $decoded = json_decode($jsonIconv, true);
+                if (is_array($decoded)) {
+                    log_message('WARNING', '#TRAZA|REGISTER|decodificarJsonUsuariosDefault() >> JSON decodificado tras iconv ISO-8859-1->UTF-8');
+                    return $decoded;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Mensaje de error de json_decode compatible con PHP 5.6+.
+     *
+     * @return string
+     */
+    private function jsonLastErrorText()
+    {
+        if (function_exists('json_last_error_msg')) {
+            return (string) json_last_error_msg();
+        }
+        return 'json_last_error=' . (string) json_last_error();
     }
 
     private function validarDominioCorporativo($dominio)

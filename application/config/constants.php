@@ -267,7 +267,7 @@ define('REGISTRACION_DEPOSITO_DEFAULT_NOMBRE', 'Deposito 1');
 define('REGISTRACION_DEPOSITO_DEFAULT_DESCRIPCION', 'Depósito 1');
 define('REGISTRACION_DEPOSITO_DEFAULT_ENCARGADO_ALIAS', 'almacen');
 
-// La página de bienvenida (register/registro_completo) arma el listado desde REGISTRACION_USUARIOS_DEFAULT + dominio corporativo.
+// La página de bienvenida (register/registro_completo) arma el listado desde REGISTRACION_USUARIOS_DEFAULT_JSON + dominio corporativo.
 
 /*
 ||--------------------------------------------------------------------------
