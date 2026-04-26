@@ -342,6 +342,46 @@ class Register extends CI_Controller {
         return in_array($dom, $listaNormalizada, true);
     }
 
+    /**
+     * Devuelve el mapa alias=>roles[] de usuarios por defecto a crear cuando se da de alta una empresa.
+     * Formato unico soportado: REGISTRACION_USUARIOS_DEFAULT_JSON.
+     *
+     * @return array<string, array<int, string>>
+     */
+    private function obtenerUsuariosDefault()
+    {
+        if (!defined('REGISTRACION_USUARIOS_DEFAULT_JSON')) {
+            log_message('WARNING', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> REGISTRACION_USUARIOS_DEFAULT_JSON no está definida');
+            return array();
+        }
+
+        $json = (string) REGISTRACION_USUARIOS_DEFAULT_JSON;
+        $decoded = json_decode($json, true);
+        if (!is_array($decoded) || count($decoded) === 0) {
+            log_message('WARNING', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> JSON inválido en REGISTRACION_USUARIOS_DEFAULT_JSON');
+            return array();
+        }
+
+        $out = array();
+        foreach ($decoded as $alias => $roles) {
+            if (!is_string($alias) || $alias === '') {
+                continue;
+            }
+            if (is_array($roles)) {
+                $out[$alias] = array_values(array_filter(array_map('strval', $roles), 'strlen'));
+            } elseif (is_string($roles) && $roles !== '') {
+                $out[$alias] = array($roles);
+            }
+        }
+
+        if (empty($out)) {
+            log_message('WARNING', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> JSON válido pero sin alias utilizables');
+        } else {
+            log_message('DEBUG', '#TRAZA|REGISTER|obtenerUsuariosDefault() >> JSON OK (alias=' . count($out) . ')');
+        }
+        return $out;
+    }
+
     private function validarDominioCorporativo($dominio)
     {
         if (!$dominio) {
@@ -723,7 +763,7 @@ class Register extends CI_Controller {
     }
 
     /**
-     * Misma lógica de correo que crearUsuariosPorDefecto(): alias de REGISTRACION_USUARIOS_DEFAULT + dominio corporativo.
+     * Misma lógica de correo que crearUsuariosPorDefecto(): alias de REGISTRACION_USUARIOS_DEFAULT_JSON + dominio corporativo.
      *
      * @param string $domain dominio sin @ (ej. miempresa.com)
      * @return array<int, array{email:string, roles_label:string}>
@@ -732,10 +772,11 @@ class Register extends CI_Controller {
     {
         $domain = strtolower(trim((string) $domain));
         $out = array();
-        if ($domain === '' || !defined('REGISTRACION_USUARIOS_DEFAULT') || !is_array(REGISTRACION_USUARIOS_DEFAULT)) {
+        $config = $this->obtenerUsuariosDefault();
+        if ($domain === '' || empty($config)) {
             return $out;
         }
-        foreach (REGISTRACION_USUARIOS_DEFAULT as $alias => $roles) {
+        foreach ($config as $alias => $roles) {
             $emailLocalPart = strtolower(preg_replace('/[^a-z0-9]/i', '', $alias));
             if ($emailLocalPart === '') {
                 continue;
@@ -906,17 +947,18 @@ class Register extends CI_Controller {
 
     private function crearUsuariosPorDefecto($userData, $emailDomain, $companyName, $bpmSession)
     {
-        if (!defined('REGISTRACION_USUARIOS_DEFAULT') || !is_array(REGISTRACION_USUARIOS_DEFAULT)) {
+        $config = $this->obtenerUsuariosDefault();
+        if (empty($config)) {
             log_message('DEBUG', '#TRAZA|REGISTER|crearUsuariosPorDefecto() >> No hay configuración de usuarios por defecto');
-            $this->addProvisionWarning('Falta la constante REGISTRACION_USUARIOS_DEFAULT o no es un array válido.');
+            $this->addProvisionWarning('Falta la constante REGISTRACION_USUARIOS_DEFAULT_JSON o contiene JSON inválido.');
             return;
         }
 
-        foreach (REGISTRACION_USUARIOS_DEFAULT as $alias => $roles) {
+        foreach ($config as $alias => $roles) {
             $emailLocalPart = strtolower(preg_replace('/[^a-z0-9]/i', '', $alias));
             if (!$emailLocalPart) {
                 $this->addProvisionWarning('Omito alias de usuario por defecto (clave vacía o inválida tras normalizar: "' . (string) $alias . '").');
-                log_message('WARNING', '#TRAZA|REGISTER|crearUsuariosPorDefecto() >> Alias inválido en REGISTRACION_USUARIOS_DEFAULT: ' . json_encode($alias));
+                log_message('WARNING', '#TRAZA|REGISTER|crearUsuariosPorDefecto() >> Alias inválido en REGISTRACION_USUARIOS_DEFAULT_JSON: ' . json_encode($alias));
                 continue;
             }
             $email = $emailLocalPart . '@' . strtolower($emailDomain);

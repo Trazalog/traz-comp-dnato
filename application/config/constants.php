@@ -243,32 +243,24 @@ define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.png');
 define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
 define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
 
-define('REGISTRACION_USUARIOS_DEFAULT', array(
-    'usuario' => array(
-        'Solicitante de Almacén',
-        'Solicitante de Mantenimiento'
-    ),
-    'almacen' => array(
-        'Responsable de Almacén'
-    ),
-    'panol' => array(
-        'Responsable de Pañol'
-    ),
-    'produccion' => array(
-        'Responsable de Producción'
-    ),
-    'mantenimiento' => array(
-        'Supervisor de Mantenimiento',
-        'Planificador de Mantenimiento'
-    )
-));
+/*
+ * Configuracion unica (JSON) para usuarios por defecto de registracion.
+ * Se usa JSON para compatibilidad total con PHP 5.6+ y superiores.
+ */
+define('REGISTRACION_USUARIOS_DEFAULT_JSON', '{'
+    . '"usuario":["Solicitante de Almacén","Solicitante de Mantenimiento"],'
+    . '"almacen":["Responsable de Almacén"],'
+    . '"panol":["Responsable de Pañol"],'
+    . '"produccion":["Responsable de Producción"],'
+    . '"mantenimiento":["Supervisor de Mantenimiento","Planificador de Mantenimiento"]'
+. '}');
 
 define('BPM_SESSION_FALLBACK', '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"');
 
 /*
  * Defaults para el alta automática de Establecimiento + Depósito que se crea al dar de alta una empresa
  * (Register::postProcesarEmpresa -> Establecimientos::crearDefaultsEmpresa).
- * ENCARGADO_ALIAS debe coincidir con una clave de REGISTRACION_USUARIOS_DEFAULT para que el usuario exista.
+ * ENCARGADO_ALIAS debe coincidir con una clave de REGISTRACION_USUARIOS_DEFAULT_JSON para que el usuario exista.
  */
 define('REGISTRACION_ESTABLECIMIENTO_DEFAULT_NOMBRE', 'Establecimiento Principal');
 define('REGISTRACION_DEPOSITO_DEFAULT_NOMBRE', 'Deposito 1');
