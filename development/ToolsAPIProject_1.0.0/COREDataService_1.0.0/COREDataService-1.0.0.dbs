@@ -528,7 +528,7 @@
       <result outputType="json">{"response":{"health":[{"status":"$status","timestamp":"$timestamp"}]}}</result>
    </query>
    <query id="setUsuario" useConfig="ToolsDataSource">
-      <sql>SELECT seg.insert_usuario_con_hash(:first_name, :last_name, :email, :password_plain, :role, :status, :banned_users, :telefono, :dni, :usernick, NULL, NULL, NULL) as id</sql>
+      <sql>SELECT seg.insert_usuario_con_hash(:first_name, :last_name, :email, :password_plain, :role, :status, :banned_users, :telefono, :dni, :usernick, NULL::varchar, NULL::text) as id</sql>
       <result outputType="json">{"GeneratedKeys":{"Entry":[{"ID":"$id"}]}}</result>
       <param name="first_name" sqlType="STRING"/>
       <param name="last_name" sqlType="STRING"/>
