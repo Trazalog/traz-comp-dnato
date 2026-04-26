@@ -107,7 +107,7 @@ class Empresas extends CI_Model
                 'empr_id' => $emprId
             )
         );
-        $url = COREDataService_URL . '/empresa';
+        $url = rtrim((string) REST_CORE, '/') . '/empresa';
         log_message('INFO', '#TRAZA|EMPRESAS|eliminarEmpresa() >> DELETE ' . $url . ' empr_id=' . $emprId);
         return $this->rest->callAPI('DELETE', $url, $post);
     }

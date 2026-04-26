@@ -888,12 +888,14 @@
             try {
                var p = mc.getPayloadJSON();
                var uid = '';
-               if (p && p.payload != null) {
-                  var pl = p.payload;
-                  if (pl instanceof Array && pl.length > 0 && pl[0] != null) {
-                     uid = String(pl[0].id != null ? pl[0].id : '');
-                  } else if (typeof pl === 'object' && pl.id != null) {
+               var pl = (p && p.payload != null) ? p.payload : null;
+               if (pl != null) {
+                  // Rhino puede no evaluar "instanceof Array" como esperamos.
+                  // Soportamos: array JSON, objeto único y estructuras Java-like.
+                  if (pl.id != null) {
                      uid = String(pl.id);
+                  } else if (pl.length != null && Number(pl.length) > 0 && pl[0] != null) {
+                     uid = String(pl[0].id != null ? pl[0].id : '');
                   }
                }
                mc.setProperty('rol_user_id', uid);
@@ -1044,12 +1046,14 @@
             try {
                var p = mc.getPayloadJSON();
                var uid = '';
-               if (p && p.payload != null) {
-                  var pl = p.payload;
-                  if (pl instanceof Array && pl.length > 0 && pl[0] != null) {
-                     uid = String(pl[0].id != null ? pl[0].id : '');
-                  } else if (typeof pl === 'object' && pl.id != null) {
+               var pl = (p && p.payload != null) ? p.payload : null;
+               if (pl != null) {
+                  // Rhino puede no evaluar "instanceof Array" como esperamos.
+                  // Soportamos: array JSON, objeto único y estructuras Java-like.
+                  if (pl.id != null) {
                      uid = String(pl.id);
+                  } else if (pl.length != null && Number(pl.length) > 0 && pl[0] != null) {
+                     uid = String(pl[0].id != null ? pl[0].id : '');
                   }
                }
                mc.setProperty('rol_user_id', uid);

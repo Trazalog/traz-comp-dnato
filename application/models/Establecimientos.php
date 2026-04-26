@@ -40,7 +40,7 @@ class Establecimientos extends CI_Model
             )
         );
 
-        $url = COREDataService_URL . '/establecimiento';
+        $url = rtrim((string) REST_CORE, '/') . '/establecimiento';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|crearEstablecimiento() >> POST ' . $url . ' payload=' . json_encode($payload));
         $res = $this->rest->callAPI('POST', $url, $payload);
         return $this->procesarRespuestaSimple($res, 'esta_id', 'Error creando establecimiento');
@@ -63,7 +63,7 @@ class Establecimientos extends CI_Model
             )
         );
 
-        $url = COREDataService_URL . '/deposito/establecimiento';
+        $url = rtrim((string) REST_CORE, '/') . '/deposito/establecimiento';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|crearDeposito() >> POST ' . $url . ' payload=' . json_encode($payload));
         $res = $this->rest->callAPI('POST', $url, $payload);
         return $this->procesarRespuestaSimple($res, 'depo_id', 'Error creando depósito');
@@ -95,7 +95,7 @@ class Establecimientos extends CI_Model
                 'user_id' => $userId,
             )
         );
-        $url = COREDataService_URL . '/deposito/encargado';
+        $url = rtrim((string) REST_CORE, '/') . '/deposito/encargado';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|asignarEncargadoDeposito() >> POST ' . $url . ' payload=' . json_encode($payload));
         $res = $this->rest->callAPI('POST', $url, $payload);
 
@@ -125,7 +125,7 @@ class Establecimientos extends CI_Model
         $payload = array(
             '_delete_establecimiento' => array('esta_id' => $estaId)
         );
-        $url = COREDataService_URL . '/establecimiento';
+        $url = rtrim((string) REST_CORE, '/') . '/establecimiento';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|eliminarEstablecimiento() >> DELETE ' . $url . ' esta_id=' . $estaId);
         $res = $this->rest->callAPI('DELETE', $url, $payload);
         return !empty($res['status']) && (isset($res['code']) ? $res['code'] : 0) >= 200 && (isset($res['code']) ? $res['code'] : 0) < 300;
@@ -145,12 +145,12 @@ class Establecimientos extends CI_Model
         }
 
         // Primero encargados (FK) y luego el depósito.
-        $urlEnc = COREDataService_URL . '/deposito/encargado';
+        $urlEnc = rtrim((string) REST_CORE, '/') . '/deposito/encargado';
         $this->rest->callAPI('DELETE', $urlEnc, array(
             '_delete_deposito_encargado' => array('depo_id' => $depoId)
         ));
 
-        $url = COREDataService_URL . '/deposito';
+        $url = rtrim((string) REST_CORE, '/') . '/deposito';
         log_message('INFO', '#TRAZA|ESTABLECIMIENTOS|eliminarDeposito() >> DELETE ' . $url . ' depo_id=' . $depoId);
         $res = $this->rest->callAPI('DELETE', $url, array(
             '_delete_deposito' => array('depo_id' => $depoId)
@@ -196,4 +196,5 @@ class Establecimientos extends CI_Model
         $out['message'] = $errLabel . ': respuesta sin ' . $idField . ' (body=' . substr($body, 0, 300) . ')';
         return $out;
     }
+
 }
