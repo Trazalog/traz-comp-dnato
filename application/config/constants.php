@@ -153,6 +153,9 @@ define('WEBMAIL_DOMAINS', array(
     'hey.com',
 ));
 
+// Fallback para ambientes PHP legacy donde define(..., array(...)) no sea soportado.
+define('WEBMAIL_DOMAINS_CSV', 'gmail.com,googlemail.com,hotmail.com,hotmail.es,hotmail.com.ar,hotmail.co.uk,outlook.com,outlook.es,outlook.com.ar,live.com,live.com.ar,live.com.mx,msn.com,yahoo.com,yahoo.es,yahoo.com.ar,yahoo.com.mx,ymail.com,rocketmail.com,aol.com,icloud.com,me.com,mac.com,protonmail.com,proton.me,pm.me,zoho.com,gmx.com,gmx.net,gmx.us,gmx.es,yandex.com,yandex.ru,mail.com,mail.ru,fastmail.com,tutanota.com,tuta.io,tutamail.com,hey.com');
+
 /*
 |--------------------------------------------------------------------------
 | Variables HOST y REST

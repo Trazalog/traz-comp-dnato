@@ -102,19 +102,39 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="password" class="control-label">Password <span class="required" aria-hidden="true">*</span></label>
-                    <?php echo form_password(array('name' => 'password', 'id' => 'password', 'placeholder' => 'Password', 'class' => 'form-control')); ?>
+                    <label for="password" class="control-label">Contraseña <span class="required" aria-hidden="true">*</span></label>
+                    <?php echo form_password(array(
+                        'name' => 'password',
+                        'id' => 'password',
+                        'placeholder' => 'Contraseña',
+                        'class' => 'form-control js-password-strength',
+                        'autocomplete' => 'new-password',
+                        'minlength' => '10',
+                        'required' => 'required',
+                        'data-ps-confirm-target' => 'passconf'
+                    )); ?>
                     <?php echo form_error('password'); ?>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <label for="passconf" class="control-label">Confirme Password <span class="required" aria-hidden="true">*</span></label>
-                    <?php echo form_password(array('name' => 'passconf', 'id' => 'passconf', 'placeholder' => 'Confirme Password', 'class' => 'form-control')); ?>
+                    <label for="passconf" class="control-label">Confirme Contraseña <span class="required" aria-hidden="true">*</span></label>
+                    <?php echo form_password(array(
+                        'name' => 'passconf',
+                        'id' => 'passconf',
+                        'placeholder' => 'Confirme Contraseña',
+                        'class' => 'form-control',
+                        'autocomplete' => 'new-password',
+                        'minlength' => '10',
+                        'required' => 'required'
+                    )); ?>
                     <?php echo form_error('passconf'); ?>
                 </div>
             </div>
         </div>
+
+        <link rel="stylesheet" href="<?php echo base_url(); ?>public/css/password-strength.css">
+        <script src="<?php echo base_url(); ?>public/js/password-strength.js"></script>
 
         <?php echo form_submit(array('value' => 'Guardar', 'class' => 'btn btn-primary btn-submit btn-block')); ?>
         <?php echo form_close(); ?>

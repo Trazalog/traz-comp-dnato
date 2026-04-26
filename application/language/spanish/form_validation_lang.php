@@ -38,3 +38,4 @@ $lang['form_validation_greater_than']           = 'El campo {field} debe contene
 $lang['form_validation_greater_than_equal_to']  = 'El campo {field} debe contener un número mayor o igual a {param}.';
 $lang['form_validation_error_message_not_set']  = 'No se pudo obtener un mensaje de error para el campo {field}.';
 $lang['form_validation_in_list']                = 'El campo {field} debe ser uno de los siguientes: {param}.';
+$lang['form_validation_password_strong']        = 'El campo {field} debe tener al menos 10 caracteres e incluir mayúscula, minúscula, número y un símbolo.';

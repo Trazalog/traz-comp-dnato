@@ -285,7 +285,7 @@ class Register extends CI_Controller {
 
     private function prepararDatosVistaCrearEmpresa($user_data)
     {
-        $emailDomain = strtolower((string) $this->obtenerDominioEmail(isset($user_data->email) ? $user_data->email : ''));
+        $emailDomain = $this->normalizarDominio($this->obtenerDominioEmail(isset($user_data->email) ? $user_data->email : ''));
         $isWebmail = $this->esDominioWebmail($emailDomain);
 
         return array(
@@ -298,14 +298,48 @@ class Register extends CI_Controller {
         );
     }
 
-    private function esDominioWebmail($dominio)
+    private function normalizarDominio($dominio)
     {
-        if (!$dominio) {
-            return false;
+        if (!is_string($dominio) || $dominio === '') {
+            return '';
         }
         $dom = strtolower(trim($dominio));
-        $lista = (defined('WEBMAIL_DOMAINS') && is_array(WEBMAIL_DOMAINS)) ? WEBMAIL_DOMAINS : array();
-        return in_array($dom, $lista, true);
+        if ($dom !== '' && $dom[0] === '@') {
+            $dom = substr($dom, 1);
+        }
+        return rtrim($dom, '.');
+    }
+
+    private function obtenerListaDominiosWebmail()
+    {
+        if (defined('WEBMAIL_DOMAINS') && is_array(WEBMAIL_DOMAINS) && count(WEBMAIL_DOMAINS) > 0) {
+            return WEBMAIL_DOMAINS;
+        }
+
+        // Fallback para ambientes donde WEBMAIL_DOMAINS no soporte arrays en constants.php.
+        if (defined('WEBMAIL_DOMAINS_CSV')) {
+            $items = explode(',', (string) WEBMAIL_DOMAINS_CSV);
+            $items = array_values(array_filter(array_map('trim', $items), function ($d) {
+                return $d !== '';
+            }));
+            if (!empty($items)) {
+                return $items;
+            }
+        }
+
+        // Fallback defensivo minimo para no romper el flujo de webmail.
+        return array('gmail.com', 'googlemail.com', 'hotmail.com', 'outlook.com', 'live.com', 'yahoo.com');
+    }
+
+    private function esDominioWebmail($dominio)
+    {
+        $dom = $this->normalizarDominio($dominio);
+        if ($dom === '') {
+            return false;
+        }
+        $lista = $this->obtenerListaDominiosWebmail();
+        $listaNormalizada = array_map(array($this, 'normalizarDominio'), $lista);
+        return in_array($dom, $listaNormalizada, true);
     }
 
     private function validarDominioCorporativo($dominio)
@@ -313,7 +347,10 @@ class Register extends CI_Controller {
         if (!$dominio) {
             return false;
         }
-        $dom = strtolower(trim($dominio));
+        $dom = $this->normalizarDominio($dominio);
+        if ($dom === '') {
+            return false;
+        }
         // Regex simple para dominio: letras/numeros/guiones, con al menos un punto y TLD >= 2 chars.
         if (!preg_match('/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i', $dom)) {
             return false;
@@ -404,11 +441,7 @@ class Register extends CI_Controller {
         //   - Caso contrario, se reutiliza el dominio del email del usuario.
         $companyDomain = $viewData['email_domain'];
         if ($viewData['is_webmail']) {
-            $inputDomain = strtolower(trim((string) $this->input->post('company_domain', true)));
-            // Permitir que el usuario ingrese con o sin "@"
-            if ($inputDomain !== '' && $inputDomain[0] === '@') {
-                $inputDomain = substr($inputDomain, 1);
-            }
+            $inputDomain = $this->normalizarDominio((string) $this->input->post('company_domain', true));
             if (!$this->validarDominioCorporativo($inputDomain)) {
                 log_message('WARNING', '#TRAZA|REGISTER|guardarEmpresa() >> company_domain invalido | valor=' . $inputDomain);
                 $this->session->set_flashdata('flash_message', 'Ingresá un dominio de empresa valido (por ejemplo: rtools.ca). No se permiten dominios de webmail publicos.');

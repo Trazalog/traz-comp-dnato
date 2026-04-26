@@ -277,7 +277,8 @@ function nuevoForm($form_id)
 {
     if ($form_id) {
         $ci = &get_instance();
-        $ci->load->model(FRM . 'Forms');
+        $formsModelPath = defined('FRM') ? (FRM . 'Forms') : 'traz-comp-formularios/Forms';
+        $ci->load->model($formsModelPath, 'Forms');
         $res = $ci->Forms->generarInstancia($form_id);
         $res = getForm($res['info_id']);
         return $res;
@@ -292,7 +293,8 @@ function getForm($info_id){
     log_message('DEBUG',"#TRAZA | #TRAZ-COMP-FORMULARIOS | HELPER | getForm() -> info_id : ". $info_id);
     if ($info_id) {
         $ci = &get_instance();
-        $ci->load->model(FRM . 'Forms');
+        $formsModelPath = defined('FRM') ? (FRM . 'Forms') : 'traz-comp-formularios/Forms';
+        $ci->load->model($formsModelPath, 'Forms');
         $res = $ci->Forms->obtener($info_id);
         $res = form($res);
         return $res;
@@ -301,7 +303,8 @@ function getForm($info_id){
 
 function getFormXEmpresa($nombre, $emprId){
         $ci = &get_instance();
-        $ci->load->model(FRM . 'Forms');
+        $formsModelPath = defined('FRM') ? (FRM . 'Forms') : 'traz-comp-formularios/Forms';
+        $ci->load->model($formsModelPath, 'Forms');
         $res = $ci->Forms->obtenerXEmpresa($nombre, $emprId);
         return form($res);
 }

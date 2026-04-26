@@ -149,26 +149,33 @@ body {
         
         <div class="form-group">
             <?php echo form_password(array(
-                'name'=>'password', 
-                'id'=> 'password', 
-                'placeholder'=>'Contraseña', 
-                'class'=>'form-control', 
+                'name'=>'password',
+                'id'=> 'password',
+                'placeholder'=>'Contraseña',
+                'class'=>'form-control js-password-strength',
+                'autocomplete' => 'new-password',
+                'minlength' => '10',
+                'required' => 'required',
+                'data-ps-confirm-target' => 'passconf',
                 'value' => set_value('password')
             )); ?>
             <?php echo form_error('password') ?>
         </div>
-        
+
         <div class="form-group">
             <?php echo form_password(array(
-                'name'=>'passconf', 
-                'id'=> 'passconf', 
-                'placeholder'=>'Confirmar Contraseña', 
-                'class'=>'form-control', 
+                'name'=>'passconf',
+                'id'=> 'passconf',
+                'placeholder'=>'Confirmar Contraseña',
+                'class'=>'form-control',
+                'autocomplete' => 'new-password',
+                'minlength' => '10',
+                'required' => 'required',
                 'value'=> set_value('passconf')
             )); ?>
             <?php echo form_error('passconf') ?>
         </div>
-        
+
         <?php echo form_hidden('user_id', $user_id);?>
         <?php echo form_submit(array('value'=>'Completar Registro', 'class'=>'btn-complete')); ?>
         <?php echo form_close(); ?>
@@ -180,4 +187,7 @@ body {
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="<?php echo base_url(); ?>public/css/password-strength.css">
+<script src="<?php echo base_url(); ?>public/js/password-strength.js"></script>
 

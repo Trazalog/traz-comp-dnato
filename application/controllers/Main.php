@@ -245,7 +245,7 @@ class Main extends CI_Controller {
 					$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
 					$this->form_validation->set_rules('business', 'Empresa', 'required');
 					$this->form_validation->set_rules('role', 'Rol', 'required');
-					$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+					$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 					$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 					
@@ -569,7 +569,7 @@ class Main extends CI_Controller {
 			/*$this->form_validation->set_rules('firstname', 'First Name', 'required');
 			$this->form_validation->set_rules('lastname', 'Last Name', 'required');
 			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');*/
-			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			$data['groups'] = $this->user_model->getUserInfo($dataInfo['id']);
@@ -758,7 +758,7 @@ class Main extends CI_Controller {
 			$this->form_validation->set_rules('lastname', 'Apellido', 'required');
 			$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
 			$this->form_validation->set_rules('role', 'Rol', 'required');
-			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			$data['title'] = "Editar Usuario";
@@ -787,7 +787,7 @@ class Main extends CI_Controller {
 			if ($dataLevel == "is_admin") {
 					
 					$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
-					$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+					$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 					$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 					$data['title'] = "Agregar Usuario";
@@ -1288,7 +1288,7 @@ class Main extends CI_Controller {
 
 			$data['title'] = "Establecer Contraseña";
 
-			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			if ($this->form_validation->run() == FALSE) {
@@ -1602,7 +1602,7 @@ class Main extends CI_Controller {
 			);
 
 			$data['title'] = "Restablecer Contraseña";
-			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[5]');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			if ($this->form_validation->run() == FALSE) {
