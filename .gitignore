@@ -7,3 +7,8 @@ bulkload_stage_files/
 
 testing/
 .env
+
+vendor/
+composer.lock
+
+application/config/keys/

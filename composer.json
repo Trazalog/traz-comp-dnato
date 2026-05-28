@@ -1,0 +1,11 @@
+{
+    "require": {
+        "firebase/php-jwt": "^7.0"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    }
+}

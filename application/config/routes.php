@@ -56,3 +56,8 @@ $route['translate_uri_dashes'] = FALSE;
 // Alias de compatibilidad: redirigir rutas de la versión SEPARATED al controlador unificado
 $route['bulkload_separated'] = 'bulkload';
 $route['bulkload_separated/(:any)'] = 'bulkload/$1';
+
+// OAuth 2.1 endpoints — E9-IDENT-03
+$route['oauth/authorize']              = 'oauth/authorize';
+$route['oauth/token']                  = 'oauth/token';
+$route['oauth/.well-known/jwks.json']  = 'oauth/jwks';
