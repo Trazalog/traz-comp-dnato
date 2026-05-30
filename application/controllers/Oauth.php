@@ -71,7 +71,7 @@ class Oauth extends CI_Controller
             return;
         }
 
-        // Si no hay sesión, redirigir al login guardando los params OAuth
+        // Sin sesión activa → redirigir al login OAuth (E9-IDENT-04)
         $sessionEmail = $this->session->userdata('email');
         if (empty($sessionEmail)) {
             $this->session->set_userdata('oauth_pending', [
@@ -81,7 +81,7 @@ class Oauth extends CI_Controller
                 'code_challenge_method' => $code_challenge_method,
                 'state'                 => $state,
             ]);
-            redirect(base_url('main/login'));
+            redirect(base_url('oauth/login'));
             return;
         }
 

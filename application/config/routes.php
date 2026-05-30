@@ -61,3 +61,8 @@ $route['bulkload_separated/(:any)'] = 'bulkload/$1';
 $route['oauth/authorize']              = 'oauth/authorize';
 $route['oauth/token']                  = 'oauth/token';
 $route['oauth/.well-known/jwks.json']  = 'oauth/jwks';
+
+// OAuth 2.1 login screen — E9-IDENT-04
+$route['oauth/login']                  = 'oauthlogin/index';
+$route['oauth/login/credentials']      = 'oauthlogin/credentials';
+$route['oauth/login/select-company']   = 'oauthlogin/select_company';
