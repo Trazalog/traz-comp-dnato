@@ -58,7 +58,7 @@ class JwtIssuerTest extends TestCase
 
         $this->assertEquals('jperez', $decoded->sub);
         $this->assertEquals('jperez@empresa.com', $decoded->email);
-        $this->assertEquals(7, $decoded->empr_id);
+        $this->assertSame('7', $decoded->empr_id);   // string — fix ADR-008 tipo consistente
         $this->assertEquals('Empresa ABC', $decoded->groupBpm);
         $this->assertEquals('42', $decoded->userIdBpm);
         $this->assertEquals('2', $decoded->role);
@@ -97,7 +97,7 @@ class JwtIssuerTest extends TestCase
             'iat'     => $now - 3700,
             'exp'     => $now - 100,
             'sub'     => 'jperez',
-            'empr_id' => 7,
+            'empr_id' => '7',
         ];
         $expiredJwt = JWT::encode($payload, $this->privateKey, 'RS256');
 
@@ -106,15 +106,16 @@ class JwtIssuerTest extends TestCase
     }
 
     /**
-     * empr_id debe ser un entero en el payload (no string).
+     * empr_id debe ser un string en el payload (ADR-008: consistencia de tipo en todo el flujo).
+     * Antes era int; el cast explícito en JwtIssuer::issue() garantiza string.
      */
-    public function testEmprIdIsInteger(): void
+    public function testEmprIdIsString(): void
     {
         $jwt     = $this->_issue($this->buildPayload(), 99, 'Empresa Test');
         $decoded = JWT::decode($jwt, new Key($this->publicKey, 'RS256'));
 
-        $this->assertIsInt($decoded->empr_id);
-        $this->assertEquals(99, $decoded->empr_id);
+        $this->assertIsString($decoded->empr_id);
+        $this->assertSame('99', $decoded->empr_id);
     }
 
     /**
@@ -148,7 +149,7 @@ class JwtIssuerTest extends TestCase
             'exp'       => $now + 3600,
             'sub'       => $userInfo['usernick'],
             'email'     => $userInfo['email'],
-            'empr_id'   => $empr_id,
+            'empr_id'   => (string) $empr_id,   // ADR-008: string para consistencia de tipo
             'role'      => $userInfo['role'],
             'userIdBpm' => $userInfo['userIdBpm'],
             'groupBpm'  => $groupBpm,

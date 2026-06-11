@@ -50,7 +50,7 @@ class JwtIssuer
             'exp'       => $now + $this->ttl,
             'sub'       => $userInfo['usernick']  ?? '',
             'email'     => $userInfo['email']     ?? '',
-            'empr_id'   => $empr_id,
+            'empr_id'   => (string) $empr_id,
             'role'      => $userInfo['role']      ?? '',
             'userIdBpm' => $userInfo['userIdBpm'] ?? '',
             'groupBpm'  => $groupBpm,
