@@ -23,7 +23,7 @@ class OauthCode_model extends CI_Model
      * @param string $groupbpm       Nombre del grupo Bonita
      * @return bool
      */
-    public function store(string $code, string $email, int $empr_id, string $code_challenge, string $redirect_uri, string $useridbpm = '', string $groupbpm = ''): bool
+    public function store($code, $email, $empr_id, $code_challenge, $redirect_uri, $useridbpm = '', $groupbpm = '')
     {
         $data = [
             'id_code'        => $code,
@@ -46,7 +46,7 @@ class OauthCode_model extends CI_Model
      * @param string $redirect_uri  URI de redirección (debe coincidir)
      * @return array|false
      */
-    public function consume(string $code, string $redirect_uri)
+    public function consume($code, $redirect_uri)
     {
         $this->db->where('id_code', $code);
         $this->db->where('redirect_uri', $redirect_uri);
@@ -75,7 +75,7 @@ class OauthCode_model extends CI_Model
     /**
      * Elimina codes expirados y usados (limpieza on-the-fly).
      */
-    public function purgeExpired(): void
+    public function purgeExpired()
     {
         $cutoff = date('Y-m-d H:i:s', time() - self::CODE_TTL_SECONDS * 10);
         $this->db->where('created_at <', $cutoff);

@@ -6,12 +6,12 @@ use Firebase\JWT\JWT;
 class JwtIssuer
 {
     private $CI;
-    private string $privateKey;
-    private string $algorithm;
-    private string $issuer;
-    private string $audience;
-    private int    $ttl;
-    private string $kid;
+    private $privateKey;
+    private $algorithm;
+    private $issuer;
+    private $audience;
+    private $ttl;
+    private $kid;
 
     public function __construct()
     {
@@ -39,7 +39,7 @@ class JwtIssuer
      * @param string $groupBpm  Nombre del grupo Bonita (empresa sin prefijo numérico)
      * @return string JWT firmado
      */
-    public function issue(array $userInfo, int $empr_id, string $groupBpm): string
+    public function issue(array $userInfo, $empr_id, $groupBpm)
     {
         $now = time();
 
@@ -48,11 +48,11 @@ class JwtIssuer
             'aud'       => $this->audience,
             'iat'       => $now,
             'exp'       => $now + $this->ttl,
-            'sub'       => $userInfo['usernick']  ?? '',
-            'email'     => $userInfo['email']     ?? '',
+            'sub'       => isset($userInfo['usernick'])  ? $userInfo['usernick']  : '',
+            'email'     => isset($userInfo['email'])     ? $userInfo['email']     : '',
             'empr_id'   => (string) $empr_id,
-            'role'      => $userInfo['role']      ?? '',
-            'userIdBpm' => $userInfo['userIdBpm'] ?? '',
+            'role'      => isset($userInfo['role'])      ? $userInfo['role']      : '',
+            'userIdBpm' => isset($userInfo['userIdBpm']) ? $userInfo['userIdBpm'] : '',
             'groupBpm'  => $groupBpm,
         ];
 

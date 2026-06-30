@@ -180,10 +180,10 @@ class Oauth extends CI_Controller
             'usernick'  => $userInfo->usernick,
             'email'     => $userInfo->email,
             'role'      => $userInfo->role,
-            'userIdBpm' => $row['useridbpm'] ?? '',
+            'userIdBpm' => isset($row['useridbpm']) ? $row['useridbpm'] : '',
         ];
 
-        $jwt = $this->jwtissuer->issue($userArray, (int) $row['empr_id'], $row['groupbpm'] ?? '');
+        $jwt = $this->jwtissuer->issue($userArray, (int) $row['empr_id'], isset($row['groupbpm']) ? $row['groupbpm'] : '');
 
         $this->output
             ->set_status_header(200)
@@ -287,7 +287,7 @@ class Oauth extends CI_Controller
     // Helpers privados
     // -----------------------------------------------------------------------
 
-    private function _issueCode(string $email, string $redirect_uri, string $code_challenge, ?string $state): void
+    private function _issueCode($email, $redirect_uri, $code_challenge, $state)
     {
         $empr_id  = (int) $this->session->userdata('empr_id');
         $groupBpm = (string) $this->session->userdata('groupBpm');
@@ -297,7 +297,7 @@ class Oauth extends CI_Controller
             return;
         }
 
-        $code      = bin2hex(random_bytes(32));
+        $code      = bin2hex(openssl_random_pseudo_bytes(32));
         $userIdBpm = (string) $this->session->userdata('userIdBpm');
 
         $this->load->model('OauthCode_model');
@@ -315,12 +315,12 @@ class Oauth extends CI_Controller
         redirect($redirect);
     }
 
-    private function _base64url_encode(string $data): string
+    private function _base64url_encode($data)
     {
         return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 
-    private function _jsonError(string $error, string $description, int $status = 400): void
+    private function _jsonError($error, $description, $status = 400)
     {
         $this->output
             ->set_status_header($status)

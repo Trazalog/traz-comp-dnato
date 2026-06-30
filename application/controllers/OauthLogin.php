@@ -43,11 +43,11 @@ class OauthLogin extends CI_Controller
 
         $this->session->set_userdata('oauth_pending', $pending);
 
-        $csrf = bin2hex(random_bytes(16));
+        $csrf = bin2hex(openssl_random_pseudo_bytes(16));
         $this->session->set_userdata('oauth_csrf', $csrf);
 
         $clients    = $this->config->item('oauth_clients', 'oauth_clients') ?: [];
-        $clientName = $clients[$pending['client_id']]['display_name'] ?? $pending['client_id'];
+        $clientName = isset($clients[$pending['client_id']]['display_name']) ? $clients[$pending['client_id']]['display_name'] : $pending['client_id'];
 
         $data = [
             'client_name'  => $clientName,
@@ -173,7 +173,7 @@ class OauthLogin extends CI_Controller
         if ($this->input->server('REQUEST_METHOD') === 'GET') {
             $memberships = $this->session->userdata('oauth_memberships') ?: [];
 
-            $csrf = bin2hex(random_bytes(16));
+            $csrf = bin2hex(openssl_random_pseudo_bytes(16));
             $this->session->set_userdata('oauth_csrf', $csrf);
 
             $data = [
@@ -276,7 +276,7 @@ class OauthLogin extends CI_Controller
             return false;
         }
 
-        $allowedUris = $clients[$clientId]['redirect_uris'] ?? [];
+        $allowedUris = isset($clients[$clientId]['redirect_uris']) ? $clients[$clientId]['redirect_uris'] : [];
         if (!in_array($redirectUri, $allowedUris, true)) {
             $this->_showError('redirect_uri no autorizado para este cliente.');
             return false;
@@ -295,7 +295,7 @@ class OauthLogin extends CI_Controller
      * Emite el authorization code y redirige al redirect_uri del cliente.
      * Limpia todos los datos temporales de sesión OAuth.
      */
-    private function _resolveCompany(array $membership): void
+    private function _resolveCompany(array $membership)
     {
         $pending    = $this->session->userdata('oauth_pending');
         $loginState = $this->session->userdata('oauth_login_state');
@@ -311,7 +311,7 @@ class OauthLogin extends CI_Controller
         $userIdBpm     = $loginState['userIdBpm'];
         $codeChallenge = $pending['code_challenge'];
         $redirectUri   = $pending['redirect_uri'];
-        $state         = $pending['state'] ?? '';
+        $state         = isset($pending['state']) ? $pending['state'] : '';
 
         // Limpiar datos OAuth temporales de sesión antes de redirigir
         $this->session->unset_userdata([
@@ -347,7 +347,7 @@ class OauthLogin extends CI_Controller
      * @param  string       $userIdBpm  ID del usuario en Bonita.
      * @return array|false  Lista de membresías parseadas, o false si hay error.
      */
-    private function _getMemberships(string $userIdBpm)
+    private function _getMemberships($userIdBpm)
     {
         $url    = REST_BPM . '/memberships/xUserid/' . rawurlencode($userIdBpm) . '/session/dd';
         $result = $this->rest->callAPI('GET', $url);
@@ -366,9 +366,9 @@ class OauthLogin extends CI_Controller
 
         $memberships = [];
         foreach ($decoded->payload as $m) {
-            $rawName = $m->name ?? '';
+            $rawName = isset($m->name) ? $m->name : '';
             if (strpos($rawName, '-') !== false) {
-                [$emprId, $groupBpm] = explode('-', $rawName, 2);
+                list($emprId, $groupBpm) = explode('-', $rawName, 2);
             } else {
                 $emprId   = $rawName;
                 $groupBpm = $rawName;
@@ -377,7 +377,7 @@ class OauthLogin extends CI_Controller
                 'key'         => $rawName,
                 'empr_id'     => trim($emprId),
                 'groupBpm'    => trim($groupBpm),
-                'displayName' => $m->displayName ?? $rawName,
+                'displayName' => isset($m->displayName) ? $m->displayName : $rawName,
             ];
         }
 
@@ -387,7 +387,7 @@ class OauthLogin extends CI_Controller
     /**
      * Verifica el CSRF token del formulario contra el almacenado en sesión.
      */
-    private function _checkCsrf(): bool
+    private function _checkCsrf()
     {
         $fromForm    = $this->input->post('oauth_csrf');
         $fromSession = $this->session->userdata('oauth_csrf');
@@ -398,7 +398,7 @@ class OauthLogin extends CI_Controller
     /**
      * Muestra la vista de error genérico (sin redirect).
      */
-    private function _showError(string $message): void
+    private function _showError($message)
     {
         $this->load->view('oauth/login_error', ['error_message' => $message]);
     }
@@ -406,7 +406,7 @@ class OauthLogin extends CI_Controller
     /**
      * Obtiene la URL del logo de empresa desde la tabla de configuraciones UI.
      */
-    private function _getLogo(): string
+    private function _getLogo()
     {
         try {
             $tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
