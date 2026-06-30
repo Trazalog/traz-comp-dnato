@@ -31,7 +31,10 @@ $config['jwt_private_key'] = is_file($private_key_path) ? file_get_contents($pri
 $config['jwt_public_key']  = is_file($public_key_path)  ? file_get_contents($public_key_path)  : null;
 
 $config['jwt_algorithm']   = 'RS256';
-$config['jwt_issuer']      = 'trazalog-dnato';
+// Identificador del AS. Debe ser una URI; debe coincidir con [[apim.jwt.issuer]] name
+// en deployment.toml del APIM y con el KM "Dnato" registrado en APIM Admin.
+// Para ngrok: exportar DNATO_ISSUER=https://<dominio-ngrok>/oauth antes de iniciar Apache.
+$config['jwt_issuer']      = getenv('DNATO_ISSUER') ?: 'http://localhost/oauth';
 $config['jwt_audience']    = 'trazalog-mcp';
 $config['jwt_ttl']         = 3600; // segundos — 1 hora para MVP
 

@@ -7,9 +7,10 @@ use Firebase\JWT\JWT;
  * Oauth — Authorization Server para el flujo OAuth 2.1 Authorization Code + PKCE.
  *
  * Endpoints:
- *   GET  /oauth/authorize          — Inicio del flujo, redirige a login si no autenticado
- *   POST /oauth/token              — Intercambio de code por JWT
- *   GET  /oauth/.well-known/jwks.json — Clave pública en formato JWKS
+ *   GET  /oauth/authorize                              — Inicio del flujo, redirige a login si no autenticado
+ *   POST /oauth/token                                  — Intercambio de code por JWT
+ *   GET  /oauth/.well-known/jwks.json                  — Clave pública en formato JWKS
+ *   GET  /oauth/.well-known/oauth-authorization-server — Metadata RFC 8414 (descubrimiento automático por clientes MCP)
  */
 class Oauth extends CI_Controller
 {
@@ -235,6 +236,51 @@ class Oauth extends CI_Controller
             ->set_status_header(200)
             ->set_content_type('application/json')
             ->set_output(json_encode(['keys' => [$jwk]]));
+    }
+
+    // -----------------------------------------------------------------------
+    // GET /oauth/.well-known/oauth-authorization-server
+    // -----------------------------------------------------------------------
+
+    /**
+     * Authorization Server Metadata — RFC 8414.
+     *
+     * Claude.ai (y cualquier cliente MCP) llega aquí después de leer el
+     * protected-resource metadata del APIM (RFC 9728). Este endpoint le dice
+     * al cliente dónde están los endpoints de autorización.
+     *
+     * La URL base se determina en este orden:
+     *   1. Variable de entorno DNATO_PUBLIC_URL  (recomendado para DEV con ngrok)
+     *   2. base_url() de CodeIgniter  (automático: usa HTTP_HOST del request)
+     *
+     * Configurar DNATO_PUBLIC_URL cuando las URLs del response deban ser
+     * distintas al host del request (p.ej. desde scripts CLI o APIM interno).
+     */
+    public function authorization_server_metadata()
+    {
+        if ($this->input->server('REQUEST_METHOD') !== 'GET') {
+            $this->_jsonError('method_not_allowed', 'Only GET is accepted', 405);
+            return;
+        }
+
+        // Base URL configurable: env var > CI base_url (que usa HTTP_HOST)
+        $base = rtrim(getenv('DNATO_PUBLIC_URL') ?: base_url(), '/');
+
+        $metadata = [
+            'issuer'                                => $base . '/oauth',
+            'authorization_endpoint'                => $base . '/oauth/authorize',
+            'token_endpoint'                        => $base . '/oauth/token',
+            'jwks_uri'                              => $base . '/oauth/.well-known/jwks.json',
+            'response_types_supported'              => ['code'],
+            'grant_types_supported'                 => ['authorization_code'],
+            'code_challenge_methods_supported'      => ['S256'],
+            'token_endpoint_auth_methods_supported' => ['none'],
+        ];
+
+        $this->output
+            ->set_status_header(200)
+            ->set_content_type('application/json')
+            ->set_output(json_encode($metadata));
     }
 
     // -----------------------------------------------------------------------

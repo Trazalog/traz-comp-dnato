@@ -58,9 +58,10 @@ $route['bulkload_separated'] = 'bulkload';
 $route['bulkload_separated/(:any)'] = 'bulkload/$1';
 
 // OAuth 2.1 endpoints — E9-IDENT-03
-$route['oauth/authorize']              = 'oauth/authorize';
-$route['oauth/token']                  = 'oauth/token';
-$route['oauth/.well-known/jwks.json']  = 'oauth/jwks';
+$route['oauth/authorize']                                    = 'oauth/authorize';
+$route['oauth/token']                                        = 'oauth/token';
+$route['oauth/.well-known/jwks.json']                        = 'oauth/jwks';
+$route['oauth/.well-known/oauth-authorization-server']       = 'oauth/authorization_server_metadata';
 
 // OAuth 2.1 login screen — E9-IDENT-04
 $route['oauth/login']                  = 'oauthlogin/index';
