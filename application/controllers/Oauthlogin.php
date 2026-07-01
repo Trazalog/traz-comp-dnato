@@ -303,20 +303,26 @@ class Oauthlogin extends CI_Controller
         }
 
         // El proxy expande group_id como objeto (d=group_id en la query Bonita).
-        // El nombre del grupo está en $m->group_id->name, formato: "{empr_id}-{groupBpm}".
+        // Solo se consideran grupos con formato "{empr_id_numerico}-{groupBpm}".
+        // Grupos sin prefijo numérico (legacy, pruebas, etc.) se ignoran.
+        // Se deduplica por empr_id: un usuario puede tener múltiples roles en el mismo grupo.
         $memberships = [];
+        $seen = [];
         foreach ($decoded->payload as $m) {
             $groupObj = isset($m->group_id) && is_object($m->group_id) ? $m->group_id : null;
             $rawName  = $groupObj ? (string) $groupObj->name : '';
-            if (strpos($rawName, '-') !== false) {
-                list($emprId, $groupBpm) = explode('-', $rawName, 2);
-            } else {
-                $emprId   = $rawName;
-                $groupBpm = $rawName;
+            if (!preg_match('/^(\d+)-(.+)$/', $rawName, $parts)) {
+                continue; // ignorar grupos sin formato {id}-{nombre}
             }
+            $emprId  = $parts[1];
+            $groupBpm = $parts[2];
+            if (isset($seen[$emprId])) {
+                continue; // deduplicar: ya registrada esta empresa
+            }
+            $seen[$emprId] = true;
             $memberships[] = [
                 'key'         => $rawName,
-                'empr_id'     => trim($emprId),
+                'empr_id'     => $emprId,
                 'groupBpm'    => trim($groupBpm),
                 'displayName' => $groupObj && isset($groupObj->displayName) ? $groupObj->displayName : $rawName,
             ];
