@@ -16,7 +16,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * No modifica Main::login() — los flujos web y OAuth coexisten de forma independiente.
  */
-class OauthLogin extends CI_Controller
+class Oauthlogin extends CI_Controller
 {
     public function __construct()
     {
