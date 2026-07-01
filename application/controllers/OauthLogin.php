@@ -21,6 +21,7 @@ class OauthLogin extends CI_Controller
         parent::__construct();
         $this->load->model('User_model', 'user_model');
         $this->load->model('OauthCode_model');
+        $this->load->model('Empresas');
         $this->load->model('Tablas');
         $this->load->config('oauth_clients', true);
     }
@@ -313,6 +314,16 @@ class OauthLogin extends CI_Controller
         $redirectUri   = $pending['redirect_uri'];
         $state         = isset($pending['state']) ? $pending['state'] : '';
 
+        // Resolver empr_id_mysql: id nativo en assetv2 (MySQL) para esta empresa.
+        // Necesario para que el JWT lleve el ID correcto en cada sistema.
+        $emprIdMysql = null;
+        $empresa = $this->Empresas->getEmpresaById($emprId);
+        if ($empresa && !empty($empresa->empr_id_mysql)) {
+            $emprIdMysql = (int) $empresa->empr_id_mysql;
+        } else {
+            log_message('WARN', '#OauthLogin|_resolveCompany >> empr_id_mysql no disponible para empr_id=' . $emprId . ' — empresa sin mapping asset');
+        }
+
         // Limpiar datos OAuth temporales de sesión antes de redirigir
         $this->session->unset_userdata([
             'oauth_pending',
@@ -322,7 +333,7 @@ class OauthLogin extends CI_Controller
         ]);
 
         $code   = bin2hex(random_bytes(32));
-        $stored = $this->OauthCode_model->store($code, $email, $emprId, $codeChallenge, $redirectUri, $userIdBpm, $groupBpm);
+        $stored = $this->OauthCode_model->store($code, $email, $emprId, $codeChallenge, $redirectUri, $userIdBpm, $groupBpm, $emprIdMysql);
 
         if (!$stored) {
             log_message('ERROR', '#OauthLogin|_resolveCompany >> OauthCode_model::store falló para email=' . $email);

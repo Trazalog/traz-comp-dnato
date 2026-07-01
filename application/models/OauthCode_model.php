@@ -23,12 +23,13 @@ class OauthCode_model extends CI_Model
      * @param string $groupbpm       Nombre del grupo Bonita
      * @return bool
      */
-    public function store($code, $email, $empr_id, $code_challenge, $redirect_uri, $useridbpm = '', $groupbpm = '')
+    public function store($code, $email, $empr_id, $code_challenge, $redirect_uri, $useridbpm = '', $groupbpm = '', $empr_id_mysql = null)
     {
         $data = [
             'id_code'        => $code,
             'email'          => $email,
             'empr_id'        => $empr_id,
+            'empr_id_mysql'  => $empr_id_mysql,
             'code_challenge' => $code_challenge,
             'redirect_uri'   => $redirect_uri,
             'useridbpm'      => $useridbpm,
