@@ -36,7 +36,16 @@ $config['jwt_algorithm']   = 'RS256';
 // Para ngrok: exportar DNATO_ISSUER=https://<dominio-ngrok>/oauth antes de iniciar Apache.
 $config['jwt_issuer']      = getenv('DNATO_ISSUER') ?: 'http://localhost/oauth';
 $config['jwt_audience']    = 'trazalog-mcp';
-$config['jwt_ttl']         = 3600; // segundos — 1 hora para MVP
+$config['jwt_ttl']         = 86400; // segundos — 24h en DEV para no expirar durante demos.
+                                    // El endpoint /oauth/token NO emite refresh_token todavía,
+                                    // así que un TTL corto deja al cliente (Claude) trabado al vencer:
+                                    // no renueva ni re-dispara login. TODO: implementar refresh_token.
 
 // key_id para el JWKS endpoint (permite rotar claves sin romper validadores)
 $config['jwt_kid'] = 'dnato-rs256-v1';
+
+// consumer_key del APIM Application subscrita a las MCP APIs.
+// APIM usa este valor (claim "azp") para validar la subscription del token.
+// Obtener desde: APIM DevPortal → Aplicaciones → TrazalogDnatoMCP → Keys → Consumer Key.
+// Configurable por entorno via variable de entorno JWT_AZP.
+$config['jwt_azp'] = getenv('JWT_AZP') ?: 'z_CtMHRzWPSgY8aXWYxFuzsOli4a';

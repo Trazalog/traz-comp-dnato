@@ -195,7 +195,7 @@ class Oauth extends CI_Controller
             ->set_output(json_encode([
                 'access_token' => $jwt,
                 'token_type'   => 'Bearer',
-                'expires_in'   => 3600,
+                'expires_in'   => (int) $this->config->item('jwt_ttl', 'jwt'),
             ]));
     }
 
@@ -349,8 +349,15 @@ class Oauth extends CI_Controller
         $code      = bin2hex(openssl_random_pseudo_bytes(32));
         $userIdBpm = (string) $this->session->userdata('userIdBpm');
 
+        $this->load->model('Empresas');
+        $emprIdMysql = null;
+        $empresa = $this->Empresas->getEmpresaById($empr_id);
+        if ($empresa && !empty($empresa->empr_id_mysql)) {
+            $emprIdMysql = (int) $empresa->empr_id_mysql;
+        }
+
         $this->load->model('OauthCode_model');
-        $stored = $this->OauthCode_model->store($code, $email, $empr_id, $code_challenge, $redirect_uri, $userIdBpm, $groupBpm);
+        $stored = $this->OauthCode_model->store($code, $email, $empr_id, $code_challenge, $redirect_uri, $userIdBpm, $groupBpm, $emprIdMysql);
 
         if (!$stored) {
             $this->_jsonError('server_error', 'No se pudo almacenar el authorization code', 500);
