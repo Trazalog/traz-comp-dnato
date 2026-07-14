@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ index.php/$1 [L]
+
+# Dnato OAuth 2.1 — ngrok session (actualizar cuando cambie la URL de ngrok)
+# Copiar este archivo a .htaccess y reemplazar los placeholders con los valores
+# reales de tu máquina. El .htaccess real está gitignored — nunca se commitea.
+SetEnv DNATO_PUBLIC_URL "https://TU-NGROK-AQUI.ngrok-free.app/traz-comp-dnato"
+SetEnv DNATO_ISSUER "https://TU-NGROK-AQUI.ngrok-free.app/traz-comp-dnato/oauth"
+SetEnv JWT_PRIVATE_KEY_PATH "/ruta/absoluta/a/traz-comp-dnato/application/config/keys/jwt_private.pem"
+SetEnv JWT_PUBLIC_KEY_PATH "/ruta/absoluta/a/traz-comp-dnato/application/config/keys/jwt_public.pem"

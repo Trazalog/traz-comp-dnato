@@ -12,3 +12,10 @@ vendor/
 composer.lock
 
 application/config/keys/
+
+# .htaccess real de cada dev (contiene URL de ngrok + paths locales).
+# Usar .htaccess.example como plantilla. Nunca commitear el real.
+.htaccess
+
+# Backups de CAR generados automáticamente por development/repack-toolsapi-car.sh
+development/*.car.bak.*

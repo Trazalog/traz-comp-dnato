@@ -26,9 +26,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 #$base = "http://" . $_SERVER['HTTP_HOST'];
 #$base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
 #$config['base_url'] = $base;
-$base = "http://" . $_SERVER['HTTP_HOST'];
-$base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
-$config['base_url'] = $base;
+// Cuando hay DNATO_PUBLIC_URL (ngrok DEV), usar ese como base_url para que
+// cookies de sesión y redirects del OAuth login queden en el mismo dominio.
+//
+// NOTA: soporte para exponer Dnato vía ngrok en entornos sin IP pública fija.
+// Uso actual: DEV y TEST (Sprint 2, mientras no existe VM TEST fija).
+// Uso futuro: solo DEV. Cuando TEST tenga IP/dominio propio, este bloque
+// puede quedar exclusivo de APP_ENV=development. Ver doc/identity/
+// oauth-discovery-flow.md para el contexto completo.
+$_dnato_pub = getenv('DNATO_PUBLIC_URL');
+if (!empty($_dnato_pub)) {
+    $config['base_url'] = rtrim($_dnato_pub, '/') . '/';
+} else {
+    $base = "http://" . $_SERVER['HTTP_HOST'];
+    $base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
+    $config['base_url'] = $base;
+}
 
 /*
 |--------------------------------------------------------------------------

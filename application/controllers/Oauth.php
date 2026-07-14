@@ -72,9 +72,12 @@ class Oauth extends CI_Controller
             return;
         }
 
-        // Sin sesión activa → redirigir al login OAuth (E9-IDENT-04)
-        $sessionEmail = $this->session->userdata('email');
-        if (empty($sessionEmail)) {
+        // Sin sesión activa (o sesión incompleta sin empr_id) → login OAuth (E9-IDENT-04)
+        $sessionEmail  = $this->session->userdata('email');
+        $sessionEmprId = (int) $this->session->userdata('empr_id');
+        if (empty($sessionEmail) || $sessionEmprId === 0) {
+            // Limpiar estado de sesión parcial para forzar login limpio
+            $this->session->unset_userdata(['email', 'empr_id', 'groupBpm', 'userIdBpm', 'oauth_email_tmp']);
             $this->session->set_userdata('oauth_pending', [
                 'client_id'             => $client_id,
                 'redirect_uri'          => $redirect_uri,
@@ -183,7 +186,8 @@ class Oauth extends CI_Controller
             'userIdBpm' => isset($row['useridbpm']) ? $row['useridbpm'] : '',
         ];
 
-        $jwt = $this->jwtissuer->issue($userArray, (int) $row['empr_id'], isset($row['groupbpm']) ? $row['groupbpm'] : '');
+        $emprIdMysql = isset($row['empr_id_mysql']) && $row['empr_id_mysql'] !== null ? (int) $row['empr_id_mysql'] : null;
+        $jwt = $this->jwtissuer->issue($userArray, (int) $row['empr_id'], isset($row['groupbpm']) ? $row['groupbpm'] : '', $emprIdMysql);
 
         $this->output
             ->set_status_header(200)
@@ -191,7 +195,7 @@ class Oauth extends CI_Controller
             ->set_output(json_encode([
                 'access_token' => $jwt,
                 'token_type'   => 'Bearer',
-                'expires_in'   => 3600,
+                'expires_in'   => (int) $this->config->item('jwt_ttl', 'jwt'),
             ]));
     }
 
@@ -271,6 +275,7 @@ class Oauth extends CI_Controller
             'authorization_endpoint'                => $base . '/oauth/authorize',
             'token_endpoint'                        => $base . '/oauth/token',
             'jwks_uri'                              => $base . '/oauth/.well-known/jwks.json',
+            'registration_endpoint'                 => $base . '/oauth/register',
             'response_types_supported'              => ['code'],
             'grant_types_supported'                 => ['authorization_code'],
             'code_challenge_methods_supported'      => ['S256'],
@@ -281,6 +286,50 @@ class Oauth extends CI_Controller
             ->set_status_header(200)
             ->set_content_type('application/json')
             ->set_output(json_encode($metadata));
+    }
+
+    // -----------------------------------------------------------------------
+    // POST /oauth/register  (RFC 7591 — Dynamic Client Registration)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Dynamic Client Registration — RFC 7591.
+     *
+     * Fase 1: cliente único fijo. Devuelve siempre ALLOWED_CLIENT_ID, sin
+     * persistencia en BD. authorize() y token() no requieren cambios porque
+     * ya validan contra ese client_id.
+     *
+     * La decisión de client_id fijo está documentada en doc/identity/oauth-discovery-flow.md §6.3.
+     * Evolucionar a DCR dinámico en la fase Connectors Directory.
+     */
+    public function register_client()
+    {
+        if ($this->input->server('REQUEST_METHOD') !== 'POST') {
+            $this->_jsonError('method_not_allowed', 'Only POST is accepted', 405);
+            return;
+        }
+
+        $raw  = $this->input->raw_input_stream;
+        $body = json_decode($raw, true);
+        if (!is_array($body)) {
+            $body = [];
+        }
+
+        $redirect_uris = isset($body['redirect_uris']) && is_array($body['redirect_uris'])
+            ? $body['redirect_uris']
+            : [];
+
+        $this->output
+            ->set_status_header(201)
+            ->set_content_type('application/json')
+            ->set_output(json_encode([
+                'client_id'                  => self::ALLOWED_CLIENT_ID,
+                'client_secret_expires_at'   => 0,
+                'redirect_uris'              => $redirect_uris,
+                'grant_types'                => ['authorization_code'],
+                'response_types'             => ['code'],
+                'token_endpoint_auth_method' => 'none',
+            ]));
     }
 
     // -----------------------------------------------------------------------
@@ -300,8 +349,15 @@ class Oauth extends CI_Controller
         $code      = bin2hex(openssl_random_pseudo_bytes(32));
         $userIdBpm = (string) $this->session->userdata('userIdBpm');
 
+        $this->load->model('Empresas');
+        $emprIdMysql = null;
+        $empresa = $this->Empresas->getEmpresaById($empr_id);
+        if ($empresa && !empty($empresa->empr_id_mysql)) {
+            $emprIdMysql = (int) $empresa->empr_id_mysql;
+        }
+
         $this->load->model('OauthCode_model');
-        $stored = $this->OauthCode_model->store($code, $email, $empr_id, $code_challenge, $redirect_uri, $userIdBpm, $groupBpm);
+        $stored = $this->OauthCode_model->store($code, $email, $empr_id, $code_challenge, $redirect_uri, $userIdBpm, $groupBpm, $emprIdMysql);
 
         if (!$stored) {
             $this->_jsonError('server_error', 'No se pudo almacenar el authorization code', 500);
