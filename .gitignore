@@ -17,5 +17,8 @@ application/config/keys/
 # Usar .htaccess.example como plantilla. Nunca commitear el real.
 .htaccess
 
+# CAR de WSO2 (artefacto de build). Se regenera local/CI; no se trackea.
+development/*.car
+
 # Backups de CAR generados automáticamente por development/repack-toolsapi-car.sh
 development/*.car.bak.*
