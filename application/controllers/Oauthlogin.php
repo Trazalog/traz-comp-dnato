@@ -4,23 +4,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * OauthLogin — Pantalla de login compatible con OAuth 2.1 + PKCE.
  *
- * Implementa el flujo de autenticación en dos pasos para que Claude pueda
- * obtener un authorization code mediante el flujo PKCE:
+ * Flujo de autenticación (TAD-IDENT-02: 1 empresa por usuario):
  *
- *   GET  /oauth/login                  — Paso 1: formulario de credenciales
- *   POST /oauth/login/credentials      — Valida email/password, consulta membresías
- *   GET  /oauth/login/select-company   — Paso 2: dropdown de empresa (si N > 1)
- *   POST /oauth/login/select-company   — Confirma empresa y emite el authorization code
+ *   GET  /oauth/login             — Formulario de credenciales
+ *   POST /oauth/login/credentials — Valida email/password, resuelve empresa y emite code
+ *
+ * Invariantes:
+ *   - Cada usuario debe tener exactamente 1 empresa asignada en Bonita.
+ *   - 0 empresas → error "sin empresa asignada".
+ *   - >1 empresas → error "múltiples empresas no soportado" (viola TAD-IDENT-02).
  *
  * No modifica Main::login() — los flujos web y OAuth coexisten de forma independiente.
  */
-class OauthLogin extends CI_Controller
+class Oauthlogin extends CI_Controller
 {
     public function __construct()
     {
         parent::__construct();
         $this->load->model('User_model', 'user_model');
         $this->load->model('OauthCode_model');
+        $this->load->model('Empresas');
         $this->load->model('Tablas');
         $this->load->config('oauth_clients', true);
     }
@@ -64,11 +67,8 @@ class OauthLogin extends CI_Controller
     // -----------------------------------------------------------------------
 
     /**
-     * Valida email + password con checkLogin(), luego consulta membresías vía
-     * el proxy WSO2 y bifurca según el número de membresías:
-     *   0  → error explícito
-     *   1  → autoselección → emite el authorization code
-     *   >1 → redirige a /oauth/login/select-company
+     * Valida email + password, resuelve la empresa única del usuario y emite el code.
+     * TAD-IDENT-02: un usuario → una empresa. Cero o más de una son errores de configuración.
      */
     public function credentials()
     {
@@ -131,11 +131,18 @@ class OauthLogin extends CI_Controller
         $count = count($memberships);
 
         if ($count === 0) {
-            $this->_showError('El usuario no tiene empresa asignada en el sistema.');
+            $this->_showError('El usuario no tiene empresa asignada en el sistema. Contacte al administrador.');
             return;
         }
 
-        // Guardar estado de login parcial (necesario para paso 2 o emisión directa)
+        // TAD-IDENT-02: MVP asume exactamente 1 empresa por usuario.
+        // Más de una es un error de configuración — el admin debe ajustar las membresías en Bonita.
+        if ($count > 1) {
+            log_message('ERROR', '#OauthLogin|credentials >> usuario con múltiples empresas no soportado (TAD-IDENT-02). email=' . $email . ' count=' . $count);
+            $this->_showError('Su cuenta tiene múltiples empresas asignadas. Contacte al administrador para corregir la configuración.');
+            return;
+        }
+
         $this->session->set_userdata('oauth_login_state', [
             'email'     => $userInfo->email,
             'usernick'  => $userInfo->usernick,
@@ -144,86 +151,7 @@ class OauthLogin extends CI_Controller
         ]);
         $this->session->set_userdata('oauth_memberships', $memberships);
 
-        if ($count === 1) {
-            $this->_resolveCompany($memberships[0]);
-        } else {
-            redirect(base_url('oauth/login/select-company'));
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // GET + POST /oauth/login/select-company
-    // -----------------------------------------------------------------------
-
-    /**
-     * Paso 2 — selección de empresa cuando el usuario tiene más de una membresía.
-     *
-     * GET:  muestra el dropdown de empresas.
-     * POST: valida la selección (contra la lista en sesión + chekEmpresa en DB)
-     *       y emite el authorization code.
-     */
-    public function select_company()
-    {
-        $loginState = $this->session->userdata('oauth_login_state');
-        if (empty($loginState)) {
-            redirect(base_url('oauth/login'));
-            return;
-        }
-
-        if ($this->input->server('REQUEST_METHOD') === 'GET') {
-            $memberships = $this->session->userdata('oauth_memberships') ?: [];
-
-            $csrf = bin2hex(openssl_random_pseudo_bytes(16));
-            $this->session->set_userdata('oauth_csrf', $csrf);
-
-            $data = [
-                'memberships'  => $memberships,
-                'csrf_token'   => $csrf,
-                'error'        => $this->session->flashdata('oauth_error'),
-                'logo_empresa' => $this->_getLogo(),
-            ];
-            $this->load->view('oauth/login_step2', $data);
-            return;
-        }
-
-        // POST
-        if (!$this->_checkCsrf()) {
-            $this->session->set_flashdata('oauth_error', 'Token de seguridad inválido.');
-            redirect(base_url('oauth/login/select-company'));
-            return;
-        }
-
-        $selectedKey = $this->security->xss_clean($this->input->post('empr_id'));
-        if (empty($selectedKey)) {
-            $this->session->set_flashdata('oauth_error', 'Debe seleccionar una empresa.');
-            redirect(base_url('oauth/login/select-company'));
-            return;
-        }
-
-        // Verificar que el key seleccionado está en la lista de sesión (anti-tampering)
-        $memberships = $this->session->userdata('oauth_memberships') ?: [];
-        $found = null;
-        foreach ($memberships as $m) {
-            if ($m['key'] === $selectedKey) {
-                $found = $m;
-                break;
-            }
-        }
-
-        if ($found === null) {
-            $this->session->set_flashdata('oauth_error', 'Empresa no válida. Seleccione una de la lista.');
-            redirect(base_url('oauth/login/select-company'));
-            return;
-        }
-
-        // Validación extra en BD (chekEmpresa confirma membresía real)
-        if (!$this->user_model->chekEmpresa($found['groupBpm'], $loginState['email'])) {
-            $this->session->set_flashdata('oauth_error', 'El usuario no corresponde a la empresa seleccionada.');
-            redirect(base_url('oauth/login/select-company'));
-            return;
-        }
-
-        $this->_resolveCompany($found);
+        $this->_resolveCompany($memberships[0]);
     }
 
     // -----------------------------------------------------------------------
@@ -313,6 +241,16 @@ class OauthLogin extends CI_Controller
         $redirectUri   = $pending['redirect_uri'];
         $state         = isset($pending['state']) ? $pending['state'] : '';
 
+        // Resolver empr_id_mysql: id nativo en assetv2 (MySQL) para esta empresa.
+        // Necesario para que el JWT lleve el ID correcto en cada sistema.
+        $emprIdMysql = null;
+        $empresa = $this->Empresas->getEmpresaById($emprId);
+        if ($empresa && !empty($empresa->empr_id_mysql)) {
+            $emprIdMysql = (int) $empresa->empr_id_mysql;
+        } else {
+            log_message('WARN', '#OauthLogin|_resolveCompany >> empr_id_mysql no disponible para empr_id=' . $emprId . ' — empresa sin mapping asset');
+        }
+
         // Limpiar datos OAuth temporales de sesión antes de redirigir
         $this->session->unset_userdata([
             'oauth_pending',
@@ -322,7 +260,7 @@ class OauthLogin extends CI_Controller
         ]);
 
         $code   = bin2hex(random_bytes(32));
-        $stored = $this->OauthCode_model->store($code, $email, $emprId, $codeChallenge, $redirectUri, $userIdBpm, $groupBpm);
+        $stored = $this->OauthCode_model->store($code, $email, $emprId, $codeChallenge, $redirectUri, $userIdBpm, $groupBpm, $emprIdMysql);
 
         if (!$stored) {
             log_message('ERROR', '#OauthLogin|_resolveCompany >> OauthCode_model::store falló para email=' . $email);
@@ -364,20 +302,29 @@ class OauthLogin extends CI_Controller
             return false;
         }
 
+        // El proxy expande group_id como objeto (d=group_id en la query Bonita).
+        // Solo se consideran grupos con formato "{empr_id_numerico}-{groupBpm}".
+        // Grupos sin prefijo numérico (legacy, pruebas, etc.) se ignoran.
+        // Se deduplica por empr_id: un usuario puede tener múltiples roles en el mismo grupo.
         $memberships = [];
+        $seen = [];
         foreach ($decoded->payload as $m) {
-            $rawName = isset($m->name) ? $m->name : '';
-            if (strpos($rawName, '-') !== false) {
-                list($emprId, $groupBpm) = explode('-', $rawName, 2);
-            } else {
-                $emprId   = $rawName;
-                $groupBpm = $rawName;
+            $groupObj = isset($m->group_id) && is_object($m->group_id) ? $m->group_id : null;
+            $rawName  = $groupObj ? (string) $groupObj->name : '';
+            if (!preg_match('/^(\d+)-(.+)$/', $rawName, $parts)) {
+                continue; // ignorar grupos sin formato {id}-{nombre}
             }
+            $emprId  = $parts[1];
+            $groupBpm = $parts[2];
+            if (isset($seen[$emprId])) {
+                continue; // deduplicar: ya registrada esta empresa
+            }
+            $seen[$emprId] = true;
             $memberships[] = [
                 'key'         => $rawName,
-                'empr_id'     => trim($emprId),
+                'empr_id'     => $emprId,
                 'groupBpm'    => trim($groupBpm),
-                'displayName' => isset($m->displayName) ? $m->displayName : $rawName,
+                'displayName' => $groupObj && isset($groupObj->displayName) ? $groupObj->displayName : $rawName,
             ];
         }
 

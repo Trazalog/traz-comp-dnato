@@ -13,5 +13,12 @@ composer.lock
 
 application/config/keys/
 
+# .htaccess real de cada dev (contiene URL de ngrok + paths locales).
+# Usar .htaccess.example como plantilla. Nunca commitear el real.
+.htaccess
+
 # CAR de WSO2 (artefacto de build). Se regenera local/CI; no se trackea.
 development/*.car
+
+# Backups de CAR generados automáticamente por development/repack-toolsapi-car.sh
+development/*.car.bak.*

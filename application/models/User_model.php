@@ -278,7 +278,52 @@ class User_model extends CI_Model {
         return $userInfo;
 		}
 
-		/**
+	    /**
+     * Resuelve empr_id numérico a partir del nombre de grupo BPM.
+     * La convención es group (memberships_users) = descripcion (core.empresas).
+     * @param string $group nombre del grupo BPM
+     * @return int empr_id, o 0 si no se encuentra
+     */
+    public function getEmprIdByGroup($group)
+    {
+        $norm = strtoupper(trim($group));
+        if ($norm === '') {
+            return 0;
+        }
+        $this->db->select('empr_id');
+        $this->db->from('core.empresas');
+        $this->db->where('eliminado', false);
+        $this->db->where('UPPER(TRIM(descripcion)) = ' . $this->db->escape($norm), null, false);
+        $this->db->limit(1);
+        $query = $this->db->get();
+        if ($query && $query->num_rows() > 0) {
+            return (int) $query->row()->empr_id;
+        }
+        return 0;
+    }
+
+    /**
+     * Verifica que el email tiene membresía en la empresa (por empr_id numérico).
+     * Reemplaza chekEmpresa() en el flujo OAuth donde solo se dispone del empr_id.
+     * @param int $empr_id
+     * @param string $email
+     * @return bool
+     */
+    public function chekEmpresaByEmprId($empr_id, $email)
+    {
+        $emailNorm = strtolower(trim($email));
+        $this->db->select('1');
+        $this->db->from('seg.memberships_users mu');
+        $this->db->join('core.empresas e', 'UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu.group))', 'inner');
+        $this->db->where('e.empr_id', $empr_id);
+        $this->db->where('e.eliminado', false);
+        $this->db->where('LOWER(TRIM(mu.email)) = ' . $this->db->escape($emailNorm), null, false);
+        $this->db->limit(1);
+        $query = $this->db->get();
+        return $query && $query->num_rows() > 0;
+    }
+
+	/**
 		* chequea si corresponde el usuario con la empresa elegida en el login
 		* @param int $empresa , varchar $email
 		* @return bool true o false
