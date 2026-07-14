@@ -12,3 +12,6 @@ vendor/
 composer.lock
 
 application/config/keys/
+
+# CAR de WSO2 (artefacto de build). Se regenera local/CI; no se trackea.
+development/*.car
