@@ -1,10 +1,10 @@
 <div class="container center-word">
     <div class="page-header">
-      <h1>Email Sent Successfully.</h1>
+      <h1>Correo enviado correctamente.</h1>
     </div>
     <div class="alert alert-info" role="alert">
-        Thank You! Please check your inbox.
+        ¡Gracias! Revisá tu bandeja de entrada.
         <br>
-        Login? <a href="<?php echo base_url().'main/login' ?>">login</a>
+        ¿Ya tenés cuenta? <a href="<?php echo base_url().'main/login' ?>">Iniciar sesión</a>
     </div>
 </div>

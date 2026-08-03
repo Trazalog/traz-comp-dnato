@@ -28,7 +28,7 @@ class Password {
 	function create_hash($password)
 	{
 		// format: algorithm:iterations:salt:hash
-		$salt = base64_encode(password_hash(self::PBKDF2_SALT_BYTE_SIZE, MCRYPT_DEV_URANDOM));
+		$salt = base64_encode($this->random_bytes_compat(self::PBKDF2_SALT_BYTE_SIZE));
 		return self::PBKDF2_HASH_ALGORITHM . ":" . self::PBKDF2_ITERATIONS . ":" .  $salt . ":" .
 			base64_encode($this->pbkdf2(
 				self::PBKDF2_HASH_ALGORITHM,
@@ -38,6 +38,61 @@ class Password {
 				self::PBKDF2_HASH_BYTE_SIZE,
 				true
 			));
+	}
+
+	/**
+	 * Genera bytes pseudo-aleatorios criptograficamente seguros.
+	 * Compatible con PHP 5.6 (sin random_bytes()) y PHP 7+.
+	 *
+	 * @param int $length Cantidad de bytes a generar.
+	 * @return string Cadena binaria de longitud $length.
+	 */
+	function random_bytes_compat($length)
+	{
+		$length = (int) $length;
+		if ($length < 1) {
+			throw new InvalidArgumentException('Length must be greater than 0.');
+		}
+
+		if (function_exists('random_bytes')) {
+			return random_bytes($length);
+		}
+
+		if (function_exists('openssl_random_pseudo_bytes')) {
+			$strong = false;
+			$bytes  = openssl_random_pseudo_bytes($length, $strong);
+			if ($bytes !== false && $strong === true) {
+				return $bytes;
+			}
+		}
+
+		if (function_exists('mcrypt_create_iv')) {
+			$bytes = mcrypt_create_iv($length, MCRYPT_DEV_URANDOM);
+			if ($bytes !== false && strlen($bytes) === $length) {
+				return $bytes;
+			}
+		}
+
+		if (@is_readable('/dev/urandom')) {
+			$fp = @fopen('/dev/urandom', 'rb');
+			if ($fp !== false) {
+				if (function_exists('stream_set_read_buffer')) {
+					stream_set_read_buffer($fp, 0);
+				}
+				$bytes = fread($fp, $length);
+				fclose($fp);
+				if ($bytes !== false && strlen($bytes) === $length) {
+					return $bytes;
+				}
+			}
+		}
+
+		// Ultimo recurso (no recomendado, pero evita romper la app).
+		$bytes = '';
+		for ($i = 0; $i < $length; $i++) {
+			$bytes .= chr(mt_rand(0, 255));
+		}
+		return $bytes;
 	}
 
 	function validate_password($password, $correct_hash)

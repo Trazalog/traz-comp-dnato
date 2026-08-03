@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><artifacts>
+    <artifact name="ToolsAPIProject" version="1.0.0" type="carbon/application">
+        <dependency artifact="toolsbpmAPI" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsCOREAPI" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsLogAPI" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsMANAPI" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="uri.var.usernick_by_email_url" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsCreateRole" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsBpmActorMembership" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsBpmActorGrupo" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="toolsFault" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="bpmAPICallTemplate" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="AssetPlannerDataSource" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="ToolsDataSource" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="ALMDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="COREDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="FRMDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="LOGDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="MANDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PANDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PINGDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PRDDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PRDEtapaDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PRDLoteDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PRDNoConsumiblesDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="PRODataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="ProduccionDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="QRDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="semaresiduosDS" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="semaresiduosDS2" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="TARDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="TareasSTD" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="TrazabilidadDataService" version="1.0.0" include="true" serverRole="EnterpriseServiceBus"/>
+        <dependency artifact="registry_conf_tools_apiconfig" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="registry_conf_tools_bpmconf" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="registry_conf_tools_armarSession" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="registry_conf_tools_setIdEnHijos" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="config" version="1.0.0" include="true" serverRole="EnterpriseIntegrator"/>
+        <dependency artifact="mi-connector-http" version="0.1.14" include="true" serverRole="EnterpriseIntegrator"/>
+    </artifact>
+</artifacts>

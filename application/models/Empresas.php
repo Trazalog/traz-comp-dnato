@@ -85,6 +85,33 @@ class Empresas extends CI_Model
         return $aux;
     }
 
+    /**
+     * Rollback: soft-delete de la empresa en core.empresas (eliminado=TRUE).
+     *
+     * Apunta directo al DataService (COREDataService) porque el API toolsCOREAPI
+     * sólo expone /empresa en método POST (el DELETE devuelve 405 Method Not Allowed).
+     * Mismo patrón que Establecimientos::eliminarEstablecimiento() y eliminarDeposito().
+     *
+     * @param string|int $emprId
+     * @return array retorno de REST::callAPI (status, data, code)
+     */
+    public function eliminarEmpresa($emprId)
+    {
+        $emprId = trim((string) $emprId);
+        if ($emprId === '') {
+            log_message('ERROR', '#TRAZA|EMPRESAS|eliminarEmpresa() >> empr_id vacío');
+            return array('status' => false, 'data' => '', 'code' => 0);
+        }
+        $post = array(
+            '_delete_empresa' => array(
+                'empr_id' => $emprId
+            )
+        );
+        $url = rtrim((string) REST_CORE, '/') . '/empresa';
+        log_message('INFO', '#TRAZA|EMPRESAS|eliminarEmpresa() >> DELETE ' . $url . ' empr_id=' . $emprId);
+        return $this->rest->callAPI('DELETE', $url, $post);
+    }
+
     //revisar que este duplicado el mail
     public function isDuplicate($email)
     {
