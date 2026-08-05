@@ -135,6 +135,7 @@ class Bulkloads extends CI_Model {
            
             /* harkode para usar en desarrollo - descomentar  $csv_filepath para probar y chekear que este el archivo en el server */
            // $csv_filepath= '/home/soportetrazalog24/bulkload_rodo.csv';
+           $csv_filepath= '/home/soportetrazalog24/ARTICULOSMASIVO.csv';
 
             log_message('info', 'Cargando base de datos...');
             // Cargar la base de datos
@@ -165,7 +166,11 @@ class Bulkloads extends CI_Model {
                 log_message('error', 'Error en consulta a base de datos');
                 log_message('error', 'Código de error: ' . $error['code']);
                 log_message('error', 'Mensaje de error: ' . $error['message']);
-                return false;
+                return array(
+                    'success' => false,
+                    'output' => 'ERROR: ' . $error['message'],
+                    'raw_response' => array('output' => $error['message'])
+                );
             }
             log_message('info', 'Consulta ejecutada exitosamente');
             
@@ -176,7 +181,11 @@ class Bulkloads extends CI_Model {
             if (!$result) {
                 log_message('error', 'No se obtuvo resultado del stored procedure');
                 log_message('debug', 'Número de filas afectadas: ' . $this->db->affected_rows());
-                return false;
+                return array(
+                    'success' => false,
+                    'output' => 'ERROR: No se obtuvo resultado del stored procedure',
+                    'raw_response' => array('output' => 'No result')
+                );
             }
             log_message('info', 'Resultado obtenido exitosamente');
             
@@ -261,18 +270,18 @@ class Bulkloads extends CI_Model {
                 } else {
                     $sotr_ids = [];
                 }
-
-                $response = array(
-                    'success' => $is_success,
-                    'output' => $output,
-                    'raw_response' => array('output' => $output)
-                );
-                
-                log_message('debug', 'Respuesta final preparada: ' . json_encode($response));
-                log_message('info', '=== FINALIZANDO enviarADataservice ===');
-                
-                return $response;
             }
+
+            $response = array(
+                'success' => $is_success,
+                'output' => $output,
+                'raw_response' => array('output' => $output)
+            );
+            
+            log_message('debug', 'Respuesta final preparada: ' . json_encode($response));
+            log_message('info', '=== FINALIZANDO enviarADataservice ===');
+            
+            return $response;
             
         } catch (Exception $e) {
             log_message('error', 'Exception en enviarADataservice: ' . $e->getMessage());

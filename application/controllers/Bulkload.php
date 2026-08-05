@@ -63,12 +63,12 @@ class Bulkload extends CI_Controller {
                     $entidades = array(
                         array(
                             'nombre' => 'Artículos',
-                            'stored_procedure' => 'sta.sp_carga_masiva_articulos',
+                            'stored_procedure' => 'sta.bulkload_articulos',
                             'template' => 'Template de prueba para artículos'
                         ),
                         array(
                             'nombre' => 'Herramientas',
-                            'stored_procedure' => 'sta.sp_carga_masiva_herramientas',
+                            'stored_procedure' => 'sta.bulkload_herramientas',
                             'template' => 'Template de prueba para herramientas'
                         )
                     );

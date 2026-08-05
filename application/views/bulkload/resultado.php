@@ -135,6 +135,22 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         
                         // Limpiar contenido
                         $message['content'] = trim($message['content']);
+
+                        // Formatear errores de BD a mensajes amigables para el usuario manteniendo el barcode si existe
+                        if ($message['level'] === 'ERROR') {
+                            // Si el mensaje NO especifica ya el artículo exacto (ej: "El artículo [XXX]..."), aplicamos la traducción limpia
+                            if (strpos($message['content'], 'El artículo [') === false) {
+                                if (strpos($message['content'], 'alm_articulos_unme_id_fk') !== false || strpos($message['content'], 'unme_id') !== false) {
+                                    $message['content'] = 'Uno o varios artículos del archivo no poseen una Unidad de Medida válida o registrada en el sistema.';
+                                } elseif (strpos($message['content'], 'alm_articulos_tiar_id_fk') !== false || strpos($message['content'], 'tiar_id') !== false) {
+                                    $message['content'] = 'Uno o varios artículos del archivo no poseen un Tipo de Artículo válido o registrado en el sistema.';
+                                } elseif (strpos($message['content'], 'violates unique constraint') !== false || strpos($message['content'], 'duplicate key') !== false) {
+                                    $message['content'] = 'Existen códigos o barcodes duplicados que ya se encuentran registrados en la base de datos.';
+                                } elseif (strpos($message['content'], 'violates not-null constraint') !== false) {
+                                    $message['content'] = 'Faltan campos obligatorios en algunos registros del archivo (Código, Descripción o Unidad de Medida).';
+                                }
+                            }
+                        }
                         
                         // Agregar emojis según el contenido
                         $content_lower = strtolower($message['content']);
