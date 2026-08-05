@@ -93,15 +93,15 @@ define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
 | Cada ambiente tiene su propio constants.php: en este (desa) usamos nuestro
 | WSO2 local. En otros ambientes, en su constants ponen su URL (ej. 10.142.0.13:8280).
 */
-$wso2_base = 'http://localhost:8290';
-define('REST_BPM', $wso2_base.'/tools/bpm');
+$wso2_base = 'http://10.142.0.13:8280';
+define('REST_BPM', $wso2_base . '/tools/bpm');
 define('API_CORE', $wso2_base . '/tools/core');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('FRM', 'traz-comp-formularios/');
 define('FORMULARIO_REGISTRO_ID', 72);
 define('REGISTER_TEMP_EMPR_ID', 9000);
-#define('TOOLS_ADMIN_USER','admin@gmail.com');
+
 define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');
 
@@ -115,14 +115,17 @@ define('BPM_USER_PASS', 'bpm');
 | Actualizar cuando expire la sesión.
 */
 $bpm_roles_session_base = 'X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;';
+
 define('BPM_ROLES_SESSION', '"' . $bpm_roles_session_base . '"');
 define('BPM_ROLES_SESSION_URL', rawurlencode($bpm_roles_session_base));
+//define('BPM_SESSION_FALLBACK', BPM_ROLES_SESSION);
+define('BPM_SESSION_FALLBACK', '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"');
 
-#SISTEMA A ENLAZAR
+# SISTEMA A ENLAZAR — URLs públicas de la app
 define('USUARIO_EXTERNO', 8);
-define('DE', 'http://traz-comp.local/traz-tools/');
-define('DS', 'http://traz-comp.local/traz-comp-dnato/main/login');
-define('DNATO', 'http://traz-comp.local/traz-comp-dnato/main/users');
+define('DE', 'http://localhost/traz-tools/');
+define('DS', 'http://localhost/traz-comp-dnato/main/login');
+define('DNATO', 'http://localhost/traz-comp-dnato/main/users');
 define('SIS_NAME', 'TOOLS');
 
 /*
@@ -152,8 +155,6 @@ define('WEBMAIL_DOMAINS', array(
     'tutanota.com', 'tuta.io', 'tutamail.com',
     'hey.com',
 ));
-
-// Fallback para ambientes PHP legacy donde define(..., array(...)) no sea soportado.
 define('WEBMAIL_DOMAINS_CSV', 'gmail.com,googlemail.com,hotmail.com,hotmail.es,hotmail.com.ar,hotmail.co.uk,outlook.com,outlook.es,outlook.com.ar,live.com,live.com.ar,live.com.mx,msn.com,yahoo.com,yahoo.es,yahoo.com.ar,yahoo.com.mx,ymail.com,rocketmail.com,aol.com,icloud.com,me.com,mac.com,protonmail.com,proton.me,pm.me,zoho.com,gmx.com,gmx.net,gmx.us,gmx.es,yandex.com,yandex.ru,mail.com,mail.ru,fastmail.com,tutanota.com,tuta.io,tutamail.com,hey.com');
 
 /*
@@ -165,9 +166,9 @@ define('WEBMAIL_DOMAINS_CSV', 'gmail.com,googlemail.com,hotmail.com,hotmail.es,h
 |
 */
 define('HOST', $wso2_base);
-define('REST_CORE', HOST.'/services/COREDataService');
-define('API_URL', HOST.'/tools/log');
-define('REST_RESI', HOST.'/services/semaresiduosDS');
+define('REST_CORE', HOST . '/services/COREDataService');
+define('API_URL', HOST . '/tools/log');
+define('REST_RESI', HOST . '/services/semaresiduosDS');
 
 #ERRORES DE BONITA
 define('ASP_100', 'Fallo Conexión BPM');
@@ -219,14 +220,11 @@ define('BULKLOAD_TIMEOUT', 60); // segundos
 |
 */
 define('REST_CORE_PAISES', REST_CORE . '/tablas/paises_registracion');
-
-// Campos adicionales para usuarios
 define('CAMPOS_USUARIO_ADICIONALES', array(
     'reg_pais_id',
-    'reg_razon_social', 
+    'reg_razon_social',
     'telefono'
 ));
-
 define('REGISTRACION_PASSWORD_DEFAULT', '12345');
 
 /*
@@ -255,7 +253,6 @@ define('REGISTRACION_USUARIOS_DEFAULT_JSON', '{'
     . '"mantenimiento":["Supervisor de Mantenimiento","Planificador de Mantenimiento"]'
 . '}');
 
-define('BPM_SESSION_FALLBACK', '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"');
 
 /*
  * Defaults para el alta automática de Establecimiento + Depósito que se crea al dar de alta una empresa
@@ -277,4 +274,3 @@ define('REGISTRACION_DEPOSITO_DEFAULT_ENCARGADO_ALIAS', 'almacen');
 || Configuración para el módulo de formularios dinámicos
 ||
 */
-
