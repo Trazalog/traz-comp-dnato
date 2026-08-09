@@ -55,19 +55,31 @@ class Cli extends CI_Controller
         }
 
         // Resolver empr_id y groupBpm según la cantidad de memberships (decisión P02)
+        // 'group' en seg.memberships_users es el nombre de la empresa (descripcion en
+        // core.empresas), sin prefijo numérico -- se resuelve por lookup, no por parseo.
         if (count($memberships) === 1) {
             // P02: un solo membership → autoselección
-            $group    = $memberships[0]['group'];
-            $parts    = explode('-', $group, 2);
-            $empr_id  = (int) $parts[0];
-            $groupBpm = $parts[1] ?? $group;
+            $groupBpm = $memberships[0]['group'];
+            $empresa  = $this->db->select('empr_id')
+                                  ->where('descripcion', $groupBpm)
+                                  ->get('core.empresas')
+                                  ->row();
+            if (!$empresa) {
+                fwrite(STDERR, "Error: no se encontró empr_id en core.empresas para descripcion='$groupBpm'\n");
+                exit(1);
+            }
+            $empr_id = (int) $empresa->empr_id;
         } else {
             // P02: múltiples memberships → empr_id debe pasarse explícitamente
             if ($empr_id === null) {
                 fwrite(STDERR, "Error: el usuario tiene múltiples empresas. Pasar empr_id explícito:\n");
                 foreach ($memberships as $m) {
-                    $parts = explode('-', $m['group'], 2);
-                    fwrite(STDERR, "  empr_id=" . $parts[0] . "  empresa=" . ($parts[1] ?? $m['group']) . "\n");
+                    $empresa = $this->db->select('empr_id')
+                                         ->where('descripcion', $m['group'])
+                                         ->get('core.empresas')
+                                         ->row();
+                    $eid = $empresa ? $empresa->empr_id : '?';
+                    fwrite(STDERR, "  empr_id=$eid  empresa=" . $m['group'] . "\n");
                 }
                 exit(1);
             }
@@ -75,9 +87,12 @@ class Cli extends CI_Controller
             $empr_id_int = (int) $empr_id;
             $groupBpm    = '';
             foreach ($memberships as $m) {
-                $parts = explode('-', $m['group'], 2);
-                if ((int) $parts[0] === $empr_id_int) {
-                    $groupBpm = $parts[1] ?? $m['group'];
+                $empresa = $this->db->select('empr_id')
+                                     ->where('descripcion', $m['group'])
+                                     ->get('core.empresas')
+                                     ->row();
+                if ($empresa && (int) $empresa->empr_id === $empr_id_int) {
+                    $groupBpm = $m['group'];
                     break;
                 }
             }
@@ -92,7 +107,7 @@ class Cli extends CI_Controller
         // Resolver userIdBpm desde Bonita
         $this->load->library('BPM');
         $infoUser  = $this->bpm->getUser($userInfo->usernick);
-        $userIdBpm = $infoUser['status'] ? ($infoUser['data']['id'] ?? '') : '';
+        $userIdBpm = $infoUser['status'] ? (isset($infoUser['data']['id']) ? $infoUser['data']['id'] : '') : '';
 
         $userArray = [
             'usernick'  => $userInfo->usernick,
