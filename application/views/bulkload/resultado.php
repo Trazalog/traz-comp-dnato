@@ -85,7 +85,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                     'warning' => 0,
                     'error' => 0
                 );
-                
+
+                // Rastreo genérico del último registro procesado (aplica a artículos, herramientas, etc.)
+                $ultimo_codigo_procesado = null;
+                $ultimo_entidad_label    = 'Registro'; // se actualiza según el prefijo del SP
+
+                // Mapa de prefijos de SP a nombre de entidad para el mensaje de error
+                $entidad_por_prefijo = array(
+                    'BULHERR' => 'Herramienta',
+                    'BULKART' => 'Artículo',
+                    'BULKSER' => 'Servicio',  // extender aquí cuando haya más SPs
+                );
+
                 if (isset($resultado['output']) && !empty($resultado['output'])) {
                     // Dividir por "|" y procesar cada mensaje
                     $raw_messages = explode('|', $resultado['output']);
@@ -136,18 +147,54 @@ defined('BASEPATH') OR exit('No direct script access allowed');
                         // Limpiar contenido
                         $message['content'] = trim($message['content']);
 
+                        // Rastrear el último registro procesado y la entidad
+                        // Los SPs emiten: INFO: BULHERR: Procesando registro CODIGO-...
+                        //                 INFO: BULKART: Procesando registro CODIGO-...
+                        if ($message['level'] === 'INFO' && stripos($message['content'], 'Procesando registro') !== false) {
+                            // Detectar prefijo del SP para saber qué entidad es
+                            foreach ($entidad_por_prefijo as $prefijo => $label) {
+                                if (stripos($message['content'], $prefijo . ':') !== false) {
+                                    $ultimo_entidad_label = $label;
+                                    break;
+                                }
+                            }
+                            // Extraer el código: primer token después de "Procesando registro "
+                            if (preg_match('/Procesando registro\s+([^\-\s]+)/i', $message['content'], $reg_match)) {
+                                $ultimo_codigo_procesado = trim($reg_match[1]);
+                            }
+                        }
+
                         // Formatear errores de BD a mensajes amigables para el usuario manteniendo el barcode si existe
                         if ($message['level'] === 'ERROR') {
+                            // Contexto del registro fallido (genérico: Herramienta, Artículo, etc.)
+                            $ctx_codigo = $ultimo_codigo_procesado
+                                ? ' [' . $ultimo_entidad_label . ': <strong>' . htmlspecialchars($ultimo_codigo_procesado) . '</strong>]'
+                                : '';
+
                             // Si el mensaje NO especifica ya el artículo exacto (ej: "El artículo [XXX]..."), aplicamos la traducción limpia
                             if (strpos($message['content'], 'El artículo [') === false) {
                                 if (strpos($message['content'], 'alm_articulos_unme_id_fk') !== false || strpos($message['content'], 'unme_id') !== false) {
-                                    $message['content'] = 'Uno o varios artículos del archivo no poseen una Unidad de Medida válida o registrada en el sistema.';
+                                    $message['content'] = 'Uno o varios artículos del archivo no poseen una Unidad de Medida válida o registrada en el sistema.' . $ctx_codigo;
                                 } elseif (strpos($message['content'], 'alm_articulos_tiar_id_fk') !== false || strpos($message['content'], 'tiar_id') !== false) {
-                                    $message['content'] = 'Uno o varios artículos del archivo no poseen un Tipo de Artículo válido o registrado en el sistema.';
+                                    $message['content'] = 'Uno o varios artículos del archivo no poseen un Tipo de Artículo válido o registrado en el sistema.' . $ctx_codigo;
                                 } elseif (strpos($message['content'], 'violates unique constraint') !== false || strpos($message['content'], 'duplicate key') !== false) {
-                                    $message['content'] = 'Existen códigos o barcodes duplicados que ya se encuentran registrados en la base de datos.';
+                                    $message['content'] = 'Existen códigos o barcodes duplicados que ya se encuentran registrados en la base de datos.' . $ctx_codigo;
                                 } elseif (strpos($message['content'], 'violates not-null constraint') !== false) {
-                                    $message['content'] = 'Faltan campos obligatorios en algunos registros del archivo (Código, Descripción o Unidad de Medida).';
+                                    // Detectar qué columna específica falló
+                                    if (preg_match('/column "([^"]+)"/', $message['content'], $col_match)) {
+                                        $col = $col_match[1];
+                                        $col_map = array(
+                                            'marca'       => 'Marca — el código de marca no existe en el sistema para esta empresa. Verifique la tabla de marcas de herramientas.',
+                                            'pano_id'     => 'Pañol — el nombre de pañol indicado no existe o no pertenece a esta empresa.',
+                                            'codigo'      => 'Código — hay registros sin código en el archivo.',
+                                            'descripcion' => 'Descripción — hay registros sin descripción en el archivo.',
+                                            'unme_id'     => 'Unidad de Medida — hay registros con unidad de medida no registrada en el sistema.',
+                                        );
+                                        $col_label = isset($col_map[$col]) ? $col_map[$col] : '"' . $col . '" — verifique que todos los valores requeridos estén completos.';
+                                        $message['content'] = 'Campo obligatorio faltante o inválido: ' . $col_label . $ctx_codigo;
+                                    } else {
+                                        $message['content'] = 'Faltan campos obligatorios en algunos registros del archivo. Verifique que todos los campos requeridos estén completos y sean válidos.' . $ctx_codigo;
+                                    }
                                 }
                             }
                         }

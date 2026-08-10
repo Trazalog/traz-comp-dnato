@@ -70,6 +70,11 @@ class Bulkload extends CI_Controller {
                             'nombre' => 'Herramientas',
                             'stored_procedure' => 'sta.bulkload_herramientas',
                             'template' => 'Template de prueba para herramientas'
+                        ),
+                        array(
+                            'nombre' => 'Stock',
+                            'stored_procedure' => 'sta.bulkload_alm_lotes',
+                            'template' => 'Template de prueba para stock'
                         )
                     );
                     $this->session->set_flashdata('warning_message', 'Usando datos de prueba. WSO2 no disponible.');
@@ -84,13 +89,18 @@ class Bulkload extends CI_Controller {
                 $entidades = array(
                     array(
                         'nombre' => 'Artículos',
-                        'stored_procedure' => 'sta.sp_carga_masiva_articulos',
+                        'stored_procedure' => 'sta.carga_masiva_articulos',
                         'template' => 'Template de prueba para artículos'
                     ),
                     array(
                         'nombre' => 'Herramientas',
-                        'stored_procedure' => 'sta.sp_carga_masiva_herramientas',
+                        'stored_procedure' => 'sta.carga_masiva_herramientas',
                         'template' => 'Template de prueba para herramientas'
+                    ),
+                    array(
+                        'nombre' => 'Stock',
+                        'stored_procedure' => 'sta.carga_masiva_stock',
+                        'template' => 'Template de prueba para stock'
                     )
                 );
                 $this->session->set_flashdata('warning_message', 'Usando datos de prueba. Error en WSO2: ' . $e->getMessage());

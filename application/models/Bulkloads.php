@@ -134,8 +134,8 @@ class Bulkloads extends CI_Model {
             log_message('debug', 'Tamaño del archivo: ' . filesize($csv_filepath) . ' bytes');
            
             /* harkode para usar en desarrollo - descomentar  $csv_filepath para probar y chekear que este el archivo en el server */
-           // $csv_filepath= '/home/soportetrazalog24/bulkload_rodo.csv';
-           $csv_filepath= '/home/soportetrazalog24/ARTICULOSMASIVO.csv';
+            $csv_filepath= '/home/soportetrazalog24/ALM-stock-articulos.csv';
+
 
             log_message('info', 'Cargando base de datos...');
             // Cargar la base de datos
