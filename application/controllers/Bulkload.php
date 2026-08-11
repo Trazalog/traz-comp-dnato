@@ -255,7 +255,18 @@ class Bulkload extends CI_Controller {
                     return;
                 }
                 
-                log_message('info', 'Excel converted to CSV: ' . $csv_filepath);
+                // Validar que el archivo CSV no esté vacío y contenga datos (más allá del encabezado)
+                $lineas_csv = file($csv_filepath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+                if (!$lineas_csv || count($lineas_csv) <= 1) {
+                    log_message('warning', 'El archivo cargado está vacío o solo contiene encabezados');
+                    $this->session->set_flashdata('error_message', 'El archivo seleccionado está vacío o no contiene filas de datos para procesar.');
+                    $this->session->set_userdata('selected_entidad', $entidad_negocio);
+                    $this->limpiarArchivosTemporales($filepath, $csv_filepath);
+                    redirect('bulkload');
+                    return;
+                }
+                
+                log_message('info', 'Excel converted to CSV: ' . $csv_filepath . ' con ' . count($lineas_csv) . ' líneas.');
             } catch (Exception $e) {
                 log_message('error', 'Error al convertir Excel a CSV: ' . $e->getMessage());
                 $this->session->set_flashdata('error_message', 'Error al convertir el archivo: ' . $e->getMessage());
