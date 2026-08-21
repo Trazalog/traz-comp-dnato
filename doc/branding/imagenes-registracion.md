@@ -35,15 +35,17 @@ Salir a producción es **uso comercial**. La mayoría de los planes gratuitos fa
 | **FLUX.1 [schnell]** / **FLUX.2 [klein]** | Sí | No | **Sí — Apache 2.0, explícito** | ✅ **recomendado** |
 | Qwen-Image | Sí | No | Sí — Apache 2.0 | ✅ alternativa |
 
-### 2.2 Recomendación: FLUX.1 [schnell]
+### 2.2 Recomendación: Qwen-Image (validado en la práctica)
 
-**Es la única opción realmente gratuita cuya licencia no deja lugar a interpretación.** Apache 2.0 significa que podés usar el modelo y las imágenes que genera con fines comerciales —material de marketing, la web de producto, lo que sea—, sin atribución, sin regalías y sin watermark. No es un "plan gratuito" con letra chica: es una licencia de software libre.
+> **Actualizado el 2026-08-21, después de la primera tanda real.** Este documento recomendaba originalmente FLUX.1 [schnell]. Se generaron las cinco con schnell y una con Qwen-Image, y **Qwen ganó por diferencia clara**. La recomendación cambia. Ver §3-bis para el análisis.
 
-**Dónde usarlo sin instalar nada:** en Hugging Face, con una cuenta gratuita, desde el Space oficial de Black Forest Labs (`huggingface.co/black-forest-labs/FLUX.1-schnell`, botón de demo). Cola compartida, así que en horario pico puede tardar.
+**Qwen-Image**, licencia **Apache 2.0** — las mismas garantías legales que FLUX (uso comercial explícito, sin atribución, sin regalías, sin watermark), pero bastante mejor resultado en este tipo de escena: paisaje andino, gente de espaldas, profundidad real, colores contenidos.
 
-> ⚠️ **Ojo con esto:** la licencia Apache 2.0 cubre **el modelo**. Si lo corrés en un sitio de terceros ("flux gratis online", Spaces de usuarios random), a la licencia del modelo **se le suman los términos de ese sitio**, que pueden reclamar derechos sobre lo que generás o reservar el uso comercial. Usá el Space oficial, o corré el modelo localmente. Si el sitio no te muestra sus términos, no lo uses para material de producción.
+**El problema de FLUX.1 [schnell] no es FLUX, es *schnell*.** Es la variante **destilada de 4 pasos**, hecha para velocidad, no para calidad: es la más débil de la familia. Las alternativas buenas de FLUX son de pago o de licencia no comercial, salvo **FLUX.2 [klein]** (también Apache 2.0), que vale la pena probar si Qwen no te convence en alguna escena puntual.
 
-**Alternativa — Qwen-Image** (también Apache 2.0): mejor si en algún momento necesitás **texto legible dentro de la imagen**. Para estas cinco no hace falta (el texto va en HTML, encima), pero anotalo para material de marketing futuro.
+**Dónde usarlos sin instalar nada:** ambos están en Hugging Face con cuenta gratuita, desde los Spaces oficiales de cada modelo.
+
+> ⚠️ **Ojo con esto:** la licencia Apache 2.0 cubre **el modelo**. Si lo corrés en un sitio de terceros ("generá gratis online", Spaces de usuarios random), a la licencia del modelo **se le suman los términos de ese sitio**, que pueden reclamar derechos sobre lo que generás o reservar el uso comercial. Usá el Space oficial, o corré el modelo localmente. Si el sitio no te muestra sus términos, no lo uses para material de producción.
 
 ### 2.3 La opción que no es gratis, y por qué te la menciono igual
 
@@ -69,6 +71,53 @@ Este caso de uso tiene trampas propias. Las cinco salen de qué le estás vendie
 
 ---
 
+## 3-bis. Por qué la primera tanda se nota que es IA
+
+Relevado el 2026-08-21 sobre las 6 imágenes generadas (5 con FLUX.1 [schnell], 1 con Qwen-Image). El diagnóstico es de tres capas, y **las tres se arreglan**.
+
+### a) El modelo
+
+`schnell` es la variante destilada de 4 pasos. Es la más rápida y la más floja de la familia FLUX. Qwen-Image, con la misma licencia Apache 2.0, dio en el primer intento un resultado mejor que las cinco de schnell. **Cambiar de modelo es la mitad de la mejora, sin tocar nada más.**
+
+### b) Los prompts de la v1 de este documento tenían tres fallas
+
+1. **La biblia visual estaba en una tabla y no dentro de cada prompt.** Consecuencia directa: donde el prompt no repetía "latinoamericanas", el modelo devolvió personas del norte de Europa. En los prompts v2 la biblia va **escrita adentro de cada uno**.
+2. **No se pedía imperfección.** Una foto parece foto por sus defectos: grano, polvo, ropa gastada, luz que no favorece, encuadre no perfecto. Los prompts v1 pedían lo contrario ("calm and composed", "muted earth palette") y el modelo devolvió el look de catálogo: naranjas fluo saturados, ropa recién comprada, cielo con degradado perfecto y bokeh de retrato de celular.
+3. **Nada frenaba el desenfoque de fondo.** El bokeh exagerado es una de las marcas más delatoras de la IA. Los v2 piden `deep focus, f/8`.
+
+### c) No hubo post-proceso
+
+Ninguna imagen generada sale lista. Grano + desaturación leve + bajar el contraste hace la otra mitad del trabajo. Ver §8.
+
+### El patrón que importa: qué encuadres funcionan
+
+Mirando las seis juntas aparece una regla que vale más que cualquier ajuste de prompt:
+
+| Funciona ✅ | Falla ❌ |
+|---|---|
+| Personas **de espaldas** o de perfil lejano | Caras frontales o en primer plano |
+| Una sola persona en el encuadre | Dos personas interactuando entre sí |
+| Manos vacías, o fuera del plano principal | **Manos sosteniendo o intercambiando objetos** |
+| Paisaje, infraestructura, objetos | Pantallas, carteles, papeles con texto |
+| Profundidad real (perspectiva, capas) | Fondo desenfocado con bokeh fuerte |
+
+Todos los defectos graves de la tanda 1 caen en la columna derecha: la oficina con dos ingenieros sobre un plano (manos deformes + texto garabateado en el plano), la entrega de la caja (cuatro manos y una caja con geometría imposible), la del celular (dedos mal). Las dos mejores —la de Qwen y la del depósito— tienen a la persona **de espaldas y sola**.
+
+**Conclusión operativa: no alcanza con mejorar el prompt, hay que reencuadrar el concepto.** Los prompts v2 de §6 bajan la cantidad de personas y sacan las manos del plano principal.
+
+### Veredicto imagen por imagen (tanda 1)
+
+| Imagen | Veredicto | Por qué |
+|---|---|---|
+| **Qwen — pit andino con dos operarios de espaldas** | ✅ **Se usa**, con retoque menor | Composición y escala correctas, colores contenidos, cordillera creíble. A corregir: la mano y la tablet del operario derecho, y su cara semi-visible. Se resuelve recortando un poco o con inpainting |
+| FLUX — depósito con racks en perspectiva | ✅ Rescatable | La mejor de schnell: perspectiva de un punto muy legible, persona sola y de espaldas. A corregir: los racks del fondo se degradan en ruido geométrico, cielo demasiado liso, luz de mediodía (no la media mañana pedida), guante rojo fuera de paleta |
+| FLUX — pit con operario al borde | ❌ Descartar | **La sombra del operario está desprendida del cuerpo**, proyectada lejos dentro del pit. Además naranja fluo irreal y —grave para tu caso— **el operario está parado al borde de un talud sin protección** |
+| FLUX — mujer con celular en el acceso | ⚠️ Sólo con retoque fuerte | El sujeto y el perfil están bien, pero los dedos que sostienen el teléfono están mal, las bandas reflectivas no cierran como prenda, hay texto fantasma en la manga y en el cartel del fondo, y es un celular común, no un equipo rugerizado |
+| FLUX — oficina con dos ingenieros y un plano | ❌ Descartar | Manos deformes en los dos, texto garabateado en el plano, dos cascos idénticos (uno gigante en primer plano), personas del norte de Europa, luz plana y muerta, y la oficina no parece un contenedor de obra |
+| FLUX — entrega de caja junto a la camioneta | ❌ Descartar | Cuatro manos y una caja con geometría imposible, bokeh de retrato de celular, sobresaturación dorada tipo filtro, y sonrisa de banco de imágenes — justo lo que había que evitar |
+
+---
+
 ## 4. Biblia visual — pegar en todos los prompts
 
 El error más común al generar imágenes de a una es que terminen pareciendo cinco sitios distintos. Se evita fijando de antemano hora del día, paleta, lente y vestuario, e incluyéndolos en **todos** los prompts.
@@ -83,10 +132,12 @@ El error más común al generar imágenes de a una es que terminen pareciendo ci
 | Personas | Latinoamericanas, 30-50 años, mezcla de géneros, concentradas y competentes — nunca sonriendo a cámara |
 | EPP | Casco, antiparras, ropa de alta visibilidad con bandas reflectivas, guantes, botas de seguridad |
 | Prohibido | Texto legible, logos, pantallas nítidas, primeros planos de manos, poses de banco de imágenes |
+| **Textura de foto real** | Grano de película fino, colores desaturados, contraste plano, **foco profundo a f/8** (nunca bokeh fuerte), ropa gastada y con polvo, cascos rayados, piel con textura visible, sin retoque |
+| **Encuadre** | Personas de espaldas o de perfil, **una sola por imagen**, manos vacías o fuera del plano principal (§3-bis) |
 
 El naranja y el azul marino no son decorativos: **el azul marino conversa con el `#3498db` de los botones de la interfaz**, así que las fotos y la UI van a verse de la misma familia.
 
-> **Nota técnica sobre FLUX.1 [schnell]:** corre destilado, con *guidance* fija — **los prompts negativos no le hacen efecto**. Todo lo que no querés hay que expresarlo en positivo dentro del prompt (por eso los de §6 dicen "pantalla apagada" en vez de "sin texto en pantalla"). Si más adelante usás otro modelo que sí acepta negativos, en §7 te dejo el negativo equivalente.
+> **Nota técnica sobre prompts negativos.** Qwen-Image **sí** los acepta y conviene usarlos (§7). FLUX.1 [schnell] **no**: corre destilado con *guidance* fija y los ignora, así que ahí todo lo que no querés hay que expresarlo en positivo dentro del prompt ("pantalla apagada" en vez de "sin texto en pantalla"). Los prompts de §6 están escritos para funcionar en los dos casos.
 
 ---
 
@@ -108,130 +159,146 @@ No todas se usan igual, y esto cambia el encuadre. Verificado leyendo cada vista
 
 ---
 
-## 6. Los prompts
+## 6. Los prompts (v2)
 
-Uno por pantalla. Están en inglés porque los modelos responden mejor, y en prosa continua porque FLUX prefiere prosa a listas de etiquetas. **Copiar y pegar completo, sin recortar el cierre de estilo.**
+> **v2, 2026-08-21.** Reescritos después de la tanda 1 (§3-bis). Tres cambios: la biblia visual va **dentro** de cada prompt (no en una tabla aparte), se pide **imperfección fotográfica** explícita, y **se reencuadró el concepto** de las dos escenas que fallaron para sacar manos y caras del plano principal.
 
-Generá **4 variantes de cada una** (misma prompt, distinta semilla) y elegí. Es gratis y la diferencia entre la primera y la mejor de cuatro es grande.
+En inglés, en prosa continua. **Copiar y pegar completo.** Generá **4 variantes de cada uno** (misma prompt, distinta semilla) y elegí — es gratis y la diferencia entre la primera y la mejor de cuatro es grande.
+
+Si usás Qwen-Image, sumale además el prompt negativo de §7.
 
 ---
 
 ### 6.1 `toolsregister.png` — pantalla de registro
 
-**Qué tiene que transmitir:** escala y seriedad. Es la primera impresión del visitante, junto al texto "Regístrese Gratis". La operación se ve grande y ordenada; las personas son parte del paisaje, no protagonistas.
+**Ya está resuelta.** La imagen de Qwen de la tanda 1 sirve (§3-bis). Este prompt queda por si querés más variantes o tenés que regenerarla.
+
+**Qué tiene que transmitir:** escala y seriedad. Es lo primero que ve un visitante, junto al texto "Regístrese Gratis".
 
 ```
-Wide documentary photograph of an open-pit mining operation high in the arid
-Andes mountains of Cuyo, Argentina, mid-morning, warm raking sunlight and long
-soft shadows. Ochre and grey rock terraces descend in wide benches toward the
-centre of the frame; a deep clear blue sky fills the upper third. Two workers in
-navy blue and high-visibility orange coveralls with reflective bands, hard hats
-and safety glasses stand small in the middle distance on a bench edge, seen from
-behind and slightly above, looking out over the pit; one holds a rugged tablet
-at his side, screen dark. Haul trucks are visible far below, tiny, giving scale.
-Clean high-altitude air, distant cordillera ridgeline on the horizon. Shot on
-35mm lens at f/4, natural light, corporate documentary photography, calm and
-composed, muted earth palette, subject centred with generous empty space around it.
+Editorial photograph for a mining industry trade magazine. An open-pit copper
+mine high in the arid Andes of San Juan, Argentina. Wide ochre and grey rock
+benches step down toward the centre of the frame; haul trucks far below are tiny,
+giving scale; a hazy cordillera ridgeline sits on the horizon under a pale blue
+sky with thin high cloud. Two Argentinian mine workers in their forties, seen
+from behind and slightly above, stand small on a bench edge looking out over the
+pit. Their navy blue coveralls are dusty and faded, the orange reflective bands
+worn and scuffed, hard hats scratched, boots caked in pale dust. Late morning,
+hard directional sunlight, shadows falling consistently to the left. Shot on a
+35mm lens at f/8, deep focus, everything sharp from foreground to horizon, fine
+35mm film grain, muted desaturated colours, slightly flat contrast, unposed
+candid documentary photojournalism, no retouching.
 ```
-
-**Variantes para probar:** cambiá `open-pit mining operation` por `oil and gas wellsite with a pumpjack` para una versión de O&G, o por `mineral processing plant with conveyor structures` para una tercera.
 
 ---
 
 ### 6.2 `toolschangepass.png` — activación de cuenta y contraseña
 
-**Qué tiene que transmitir:** seguridad y control de acceso. La pantalla dice "establecé tu contraseña"; la imagen debe hablar de identidad verificada y acceso autorizado, sin caer en el candado de stock.
+**Qué tiene que transmitir:** acceso autorizado, identidad verificada. **Reencuadrado**: la persona ahora está de espaldas y sin dispositivo en la mano — el fallo de la v1 fueron los dedos sobre el teléfono.
 
 ```
-Documentary photograph of a mining site access control point in the arid Andes
-of Cuyo, Argentina, mid-morning warm sunlight. A woman supervisor in her forties,
-wearing a navy blue and high-visibility orange work jacket with reflective bands,
-a white hard hat and clear safety glasses, stands at a site entrance gate in
-three-quarter profile, concentrated, checking a rugged handheld device held at
-chest height with its screen switched off and angled away from the camera. A
-clean unbranded steel gate and a modular site office are softly out of focus
-behind her, ochre mountain slopes beyond. Shot on 50mm lens at f/4, shallow
-depth of field, natural light, corporate documentary photography, muted earth
-palette with navy and orange accents, calm and professional, no text visible.
+Editorial photograph for a mining industry trade magazine. A vehicle access
+control point at a mining site in the arid Andes of San Juan, Argentina. A weath-
+ered steel boom gate crosses the frame; a small modular guard cabin with dusty
+windows stands to the right; pale ochre mountain slopes rise behind. An Argentin-
+ian site supervisor in her forties, seen from behind at medium distance, stands
+at the gate facing the cabin, hands at her sides, wearing dusty navy blue
+coveralls with worn orange reflective bands, a scratched white hard hat and a
+ponytail. Late morning, hard directional sunlight, long shadows falling
+consistently to the left, fine wind-blown dust in the air. Shot on a 35mm lens at
+f/8, deep focus, both the supervisor and the cabin sharp, fine 35mm film grain,
+muted desaturated colours, slightly flat contrast, unposed candid documentary
+photojournalism, no retouching, no signage.
 ```
 
 ---
 
 ### 6.3 `toolsform.png` — formulario de información adicional
 
-**Qué tiene que transmitir:** "contanos de tu operación". Colaboración y planificación: dos personas trabajando juntas sobre información.
+**Qué tiene que transmitir:** "contanos de tu operación" — planificación. **Reencuadrado por completo**: la v1 puso dos personas con las manos sobre un plano y falló en las dos cosas. Ahora es un **bodegón de escritorio sin personas**. Los objetos son mucho más fáciles que la gente, y la escena sigue contando lo mismo.
 
 ```
-Documentary photograph inside a modular site office at a mining operation in the
-arid Andes of Cuyo, Argentina, mid-morning light entering through a window from
-the left. Two engineers, a man and a woman in their thirties in navy blue and
-high-visibility orange work shirts with reflective bands, hard hats resting on
-the desk beside them, lean over a large printed site plan spread across a plain
-work table, discussing it, both looking down at the plan. A rugged laptop sits
-open to one side, its screen dark and out of focus. Plain unbranded walls, a
-shelf with folders, ochre mountains visible through the window. Shot on 35mm
-lens at f/4, natural light, corporate documentary photography, muted earth
-palette with navy and orange accents, collaborative and focused, no text visible.
+Editorial photograph for a mining industry trade magazine. The desk inside a
+modular site office at a mining operation in the arid Andes of San Juan,
+Argentina, photographed from above at a slight angle, no people in frame. A
+scratched white hard hat rests beside a large folded paper site plan, a scuffed
+two-way radio, a pair of worn leather work gloves, a metal thermos and a mug
+leaving a ring on the paper. A rugged laptop sits open at the edge of the frame,
+its screen switched off and dark. The desk surface is scratched and dusty. Warm
+late morning daylight enters from a window on the left, falling across the desk
+in a hard band, the far side of the desk in shadow. Shot on a 35mm lens at f/8,
+deep focus, fine 35mm film grain, muted desaturated colours, slightly flat
+contrast, unposed candid documentary photojournalism, no retouching, no readable
+text or logos anywhere.
 ```
 
 ---
 
 ### 6.4 `toolscreaempr.png` — alta de empresa ⚠️ es la que falta hoy
 
-**Qué tiene que transmitir:** poner la operación en marcha. Infraestructura organizada, todo en su lugar — es la metáfora visual de dar de alta la empresa con su establecimiento y su depósito.
+**Qué tiene que transmitir:** infraestructura ordenada, todo en su lugar. Es la escena que mejor salió en la tanda 1 (la del depósito), así que el prompt conserva la composición y corrige lo que falló: los racks que se degradaban al fondo, el cielo demasiado liso y la luz de mediodía.
 
 ```
-Documentary photograph of a well organised mining logistics yard in the arid
-Andes of Cuyo, Argentina, mid-morning, warm raking sunlight and long soft
-shadows. Neat rows of steel storage racks and stacked unbranded material
-containers fill the middle ground, a modular warehouse building behind them,
-a service truck parked to one side. A worker in navy blue and high-visibility
-orange coveralls with reflective bands, hard hat, safety glasses and gloves
-walks between the racks carrying a clipboard, seen from behind at a distance,
-small in the frame. Ochre mountain slopes and a deep clear blue sky beyond.
-Shot on 35mm lens at f/4, natural light, corporate documentary photography,
-muted earth palette with navy and orange accents, orderly and calm, no text
-visible.
+Editorial photograph for a mining industry trade magazine. A supply yard at a
+mining operation in the arid Andes of San Juan, Argentina. Two rows of steel
+storage racks recede toward a corrugated warehouse building, forming a strong
+one-point perspective down a dirt lane; the racks hold stacked steel pipe and
+plain unmarked wooden crates and are clearly built and lit at the far end, not
+fading into blur. A single Argentinian storekeeper in dusty navy blue coveralls
+with worn orange reflective bands, a scratched hard hat and grey work gloves
+walks away from the camera down the lane, small in the frame, seen from behind.
+Ochre mountain slopes rise behind the warehouse under a pale blue sky with thin
+scattered high cloud. Late morning, hard directional sunlight, rack shadows
+falling consistently across the lane. Shot on a 35mm lens at f/8, deep focus,
+sharp from foreground to background, fine 35mm film grain, muted desaturated
+colours, slightly flat contrast, unposed candid documentary photojournalism, no
+retouching, no readable text or logos.
 ```
 
 ---
 
 ### 6.5 `toolsbienvenida.png` — bienvenida
 
-**Qué tiene que transmitir:** el beneficio, ya conseguido. Es la última pantalla del flujo: la operación funcionando sin fricción, gente que trabaja tranquila porque tiene la información. Es la única de las cinco que puede permitirse calidez.
+**Qué tiene que transmitir:** el beneficio ya conseguido, la operación fluyendo. **Reencuadrado**: la v1 pedía dos personas intercambiando una caja — cuatro manos y un objeto entre ellas, la peor combinación posible. Ahora es **una sola persona, de perfil, cargando**, con la caja apoyada en el antebrazo.
 
 ```
-Documentary photograph of a materials handover at a mining operation in the arid
-Andes of Cuyo, Argentina, late morning, warm golden sunlight. A storekeeper in
-navy blue and high-visibility orange coveralls with reflective bands and a hard
-hat hands a sealed unbranded parts box to a maintenance technician beside a
-service pickup truck; both are relaxed and mid-conversation, seen in three-
-quarter profile, quietly satisfied rather than posed. A rugged tablet rests on
-the open tailgate, screen dark. A modular warehouse and ochre mountain slopes
-are softly out of focus behind them. Shot on 50mm lens at f/4, shallow depth of
-field, natural light, corporate documentary photography, warm earth palette with
-navy and orange accents, human and grounded, no text visible.
-```
-
----
-
-## 7. Si usás otro modelo que sí acepta prompt negativo
-
-FLUX.1 [schnell] los ignora (§4). Si probás con Qwen-Image, SDXL o cualquier otro con *guidance* real, agregá este negativo a los cinco:
-
-```
-text, letters, watermark, logo, brand names, signage, extra fingers, deformed
-hands, close-up hands, bright screen, visible user interface, cartoon, 3d render,
-illustration, oversaturated, HDR, plastic skin, posed smiling at camera, stock
-photo look, lush vegetation, desert cactus, snow
+Editorial photograph for a mining industry trade magazine. A supply pickup truck
+parked outside a corrugated warehouse at a mining operation in the arid Andes of
+San Juan, Argentina, its tailgate down. A single Argentinian storekeeper in his
+fifties, sun-weathered face with visible skin texture, seen in profile at medium
+distance, lifts a plain sealed cardboard box resting against his forearm onto the
+open tailgate, looking down at what he is doing, calm and unhurried. He wears
+dusty navy blue coveralls with worn orange reflective bands, a scratched hard hat
+and grey work gloves. Ochre mountain slopes and a pale blue sky behind. Late
+morning, warm hard directional sunlight, shadows falling consistently to the
+left, fine dust in the air. Shot on a 50mm lens at f/8, deep focus, the warehouse
+and mountains behind him still legible and sharp, fine 35mm film grain, muted
+desaturated colours, slightly flat contrast, unposed candid documentary
+photojournalism, no retouching, no readable text or logos.
 ```
 
 ---
+
+## 7. Prompt negativo
+
+**Qwen-Image lo acepta y conviene usarlo.** FLUX.1 [schnell] lo ignora (§4), así que ahí no suma ni resta. Pegalo tal cual en el campo de negativo, para los cinco:
+
+```
+text, letters, watermark, logo, brand names, signage, readable screen, user
+interface, extra fingers, deformed hands, close-up hands, hands holding objects,
+smiling at camera, posed, stock photo look, glossy, oversaturated, neon orange,
+HDR, heavy bokeh, blurred background, plastic skin, airbrushed, 3d render,
+illustration, cartoon, brand-new clean clothing, lush vegetation, cactus, snow,
+detached shadow, floating shadow
+```
+
+Los dos últimos son específicos: `detached shadow` / `floating shadow` apuntan al defecto que arruinó una de las imágenes de la tanda 1, donde la sombra del operario quedó desprendida del cuerpo.
 
 ## 8. Antes de subirlas: post-producción y checklist
 
 **Post-producción (5 minutos, cualquier editor):**
 
+0. **Sacarle el brillo de IA** — es el paso que más rinde y lleva dos minutos. En cualquier editor (GIMP, Photopea en el navegador, incluso Snapseed): bajá la **saturación** un 10-15 %, bajá un poco el **contraste**, y agregá **grano** fino (ruido monocromático suave). Si quedó un naranja fluo, bajale la saturación **sólo a ese rango de color**. Una foto real casi nunca tiene los colores tan limpios como los que devuelve un generador.
 1. **Escalar** la del registro a 1536×1536 (§5).
 2. **Comprimir.** Objetivo: **≤ 400 KB** la del registro, **≤ 250 KB** las otras cuatro. Con eso pasás de 8 MB totales a menos de 1,4 MB. Squoosh (`squoosh.app`) lo hace en el navegador y es gratis.
 3. **Formato:** dejalas en **PNG** — los nombres de archivo están cableados en `constants.php` con extensión `.png` y cambiar a WebP obliga a tocar código en cinco lugares. Un PNG bien comprimido entra holgado en el presupuesto de arriba.
@@ -242,6 +309,9 @@ photo look, lush vegetation, desert cactus, snow
 - [ ] El EPP es correcto para esa tarea y ese lugar — **aprobado por alguien que conozca la operación real**, no por vos ni por mí
 - [ ] No hay texto, ni logos, ni marcas legibles en ninguna parte
 - [ ] Las manos tienen cinco dedos y se ven naturales
+- [ ] **Cada sombra sale del pie de quien la proyecta**, y todas caen para el mismo lado
+- [ ] La ropa se ve usada, no recién comprada; nada de naranja fluo irreal
+- [ ] Nadie está parado al borde de un talud, en altura ni en posición insegura
 - [ ] Ninguna cara se parece a una persona identificable
 - [ ] El paisaje es de montaña andina árida, no desierto americano ni bosque
 - [ ] Las cinco parecen de la misma sesión: misma luz, misma paleta, mismo vestuario
