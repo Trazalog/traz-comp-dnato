@@ -15,6 +15,8 @@
 
 **Chequeo de staleness (hacer antes de cualquier tarea):** si tenés `traz-tools` clonado también, corré `ls ../traz-tools/doc/adr/` y compará contra el "último ADR" del encabezado. Si no tenés acceso a `traz-tools` en esta sesión, asumí que este resumen podría estar desactualizado y preguntá a Rodolfo si hay ADRs posteriores a ADR-009.
 
+> ⚠️ **Staleness detectada (2026-08-12, por agente, sin evaluar relevancia — no es una decisión de arquitectura, solo el hallazgo del chequeo de arriba):** `traz-tools/doc/adr/` tiene 3 ADR posteriores a ADR-009 no reflejados en la sección 2: **ADR-011** (topología de despliegue GCP, 2026-07-16), **ADR-012** (almacenes: aislamiento multi-tenant y alcance de tools MCP, 2026-07-28), **ADR-013** (unificación MCP: fachada única toolsMCPAPI, 2026-07-31). ADR-012 en particular menciona aislamiento multi-tenant, que podría tocar la "regla de oro" de `empr_id` de la sección 3 — falta confirmar. Alguien con contexto de arquitectura (Rodolfo / Claude Web) debería revisar si aplican a Dnato y actualizar la sección 2 y el encabezado.
+
 ---
 
 ## 1. Qué es este proyecto y su objetivo de negocio
@@ -68,6 +70,8 @@ Usuario → login en Dnato (OauthLogin.php, 2 pasos: credenciales → selección
 | Flujo de login OAuth / PKCE | `doc/identity/oauth-login-flow.md`, `OauthLogin.php` |
 | Discovery OAuth (RFC 8414) | `application/controllers/Oauth.php` (método `jwks()` y endpoint `.well-known`) |
 | Cómo el APIM consume estos tokens | `traz-tools/doc/adr/ADR-008-*.md`, `ADR-009-*.md` (repo distinto) |
+| Defectos conocidos de identidad (OAuth/JWT) | `doc/v3/hallazgos-identidad-para-mcp.md` — 5 hallazgos + deriva de docs, sin corregir |
+| Registración freemium / alta de empresa / dependencias con `traz-tools` | `doc/PROCESO_REGISTRACION.md` (`doc/registracion.md` está OBSOLETO) |
 | Modelo de negocio / tiers | `TRAZALOG_v3_PRICING_STRATEGY` en `traz-tools/doc/v3/` (verificar path; repo distinto) |
 
 ## 7. Dónde está cada cosa (mapa de directorios clave)

@@ -1,5 +1,13 @@
 # Registración de usuarios (frontend) – Trazalog Tools
 
+> ## ⛔ DOCUMENTO OBSOLETO — no usar
+>
+> **Objetivo (histórico):** describía el flujo de auto-registro tal como existía en **marzo de 2025**. Se conserva sólo como referencia de cómo era entonces; **no describe el sistema actual** y seguirlo lleva a conclusiones equivocadas.
+>
+> **El documento vigente es [`doc/PROCESO_REGISTRACION.md`](PROCESO_REGISTRACION.md).**
+>
+> Lo que este archivo afirma y hoy es falso: que no hay formulario dinámico después de establecer la contraseña, que no se crea nada en BPM ni en AssetPlanner, y que el campo empresa no se persiste. Hoy el registro crea la empresa en las tres plataformas, 5 usuarios, 16 roles, un establecimiento y un depósito.
+
 **Audiencia:** Equipo de desarrollo (perfil funcional y técnico).  
 **Stack:** PHP 5, CodeIgniter 3.1.5.  
 **Última actualización:** Marzo 2025.
