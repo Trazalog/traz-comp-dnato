@@ -21,53 +21,14 @@
          echo form_open(base_url().'main/login/', $fattr); ?>
 
 
-    <div class="form-group">
-      <?php
-          // groups de BPM
-          $opciones= array('' => 'Seleccione Empresa...');
-          foreach ($empresas as $empresa) {
-
-            if(strpos($empresa->name,'-') !== false){
-              // Explode con - 
-              list($id_empresa, $empresa_name) = explode ("-",$empresa->name);
-            
-              if($id_empresa && $empresa_name){
-                $key = $empresa->name;
-                if(!in_array($key, $opciones)){                  
-                  $opciones[$key] = $empresa->displayName;  
-                }
-              }
-            }elseif(strpos($empresa->name,' ') !== false){
-              // Explode con espacios 
-              list($id_empresa, $name_empresa) = explode (" ",$empresa->name);
-              if($id_empresa && $empresa_name){
-                $key = $empresa->name;
-                if(!in_array($key, $opciones)){                  
-                  $opciones[$key] = $empresa->displayName;  
-                }
-              }
-
-            }else{
-              
-              if(!in_array($empresa->name, $opciones)){
-                $key = $empresa->name;
-                $opciones[$key] = $empresa->displayName;
-              }
-            }
-
-
-            // $nom = explode("-", $value->name);
-            // $empr_id = $nom[0];
-            // $key = $empr_id;
-            //$key = $value->name;
-            //$opciones[$key] = $value->displayName;
-          }
-
-          $empr_id = 'empr_id';
-          echo form_dropdown($empr_id, $opciones, set_value($empr_id),'class = "form-control" id="empr_id"');
-          //echo form_dropdown('name', 'opciones', 'opcion seleccionada', 'atributos del select(id,onChange, etc')
-      ?>
-    </div>
+    <?php
+      /* El selector de empresa se eliminó de esta pantalla.
+         Antes se llenaba con Roles::getBpmGroups(), es decir listaba todas las
+         empresas del sistema a cualquiera que abriera el login sin sesión.
+         Ahora la empresa se resuelve del lado del servidor a partir de las
+         membresías del usuario ya autenticado; si tiene más de una, el login
+         continúa en main/seleccionar_empresa. */
+    ?>
 
     <div class="form-group">
       <?php echo form_input(array(

@@ -303,6 +303,107 @@ class User_model extends CI_Model {
     }
 
     /**
+     * Devuelve las empresas a las que pertenece un usuario, con los datos que
+     * necesita la pantalla de selección de empresa del login (nombre + logo).
+     *
+     * Fuente: seg.memberships_users (membresías del usuario) unida a core.empresas
+     * por la convención group = descripcion, la misma que ya usan getEmprIdByGroup()
+     * y chekEmpresaByEmprId(). Se deduplica por empr_id porque un usuario puede
+     * tener varios roles dentro de la misma empresa.
+     *
+     * IMPORTANTE: una membresía cuyo group no tenga empresa equivalente en
+     * core.empresas NO se devuelve — sin empr_id no se puede armar la sesión.
+     * Esos casos se detectan con gruposSinEmpresa() y se registran en el log.
+     *
+     * @param  string $email
+     * @return array  Lista de objetos con empr_id, descripcion, nombre, image,
+     *                imagepath y grupo. Array vacío si no tiene ninguna.
+     */
+    public function getEmpresasDeUsuario($email)
+    {
+        $emailNorm = strtolower(trim((string) $email));
+        if ($emailNorm === '') {
+            return array();
+        }
+
+        $sql = 'SELECT DISTINCT ON (e.empr_id)
+                       e.empr_id, e.descripcion, e.nombre, e.image, e.imagepath,
+                       mu."group" AS grupo
+                  FROM seg.memberships_users mu
+                  INNER JOIN core.empresas e
+                          ON UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))
+                 WHERE LOWER(TRIM(mu.email)) = ?
+                   AND e.eliminado = false
+                 ORDER BY e.empr_id';
+
+        $query = $this->db->query($sql, array($emailNorm));
+        if (!$query) {
+            log_message('ERROR', '#TRAZA|USER_MODEL|getEmpresasDeUsuario() >> la consulta falló para email=' . $emailNorm);
+            return array();
+        }
+
+        $empresas = $query->result();
+
+        // Ordenar por nombre visible, que es como se muestran en pantalla.
+        usort($empresas, array($this, '_compararEmpresasPorNombre'));
+
+        return $empresas;
+    }
+
+    /**
+     * Comparador de empresas por el nombre que se muestra en pantalla.
+     * Método propio en vez de closure para no depender de sort estable.
+     *
+     * @param  object $a
+     * @param  object $b
+     * @return int
+     */
+    public function _compararEmpresasPorNombre($a, $b)
+    {
+        $na = isset($a->descripcion) ? (string) $a->descripcion : '';
+        $nb = isset($b->descripcion) ? (string) $b->descripcion : '';
+        return strcasecmp($na, $nb);
+    }
+
+    /**
+     * Devuelve los nombres de grupo de las membresías del usuario que NO tienen
+     * empresa equivalente en core.empresas. Sirve para dejar registro de datos
+     * inconsistentes: el usuario tiene la membresía pero la empresa no resuelve,
+     * así que no se le puede ofrecer en el login.
+     *
+     * @param  string $email
+     * @return array  Lista de nombres de grupo huérfanos.
+     */
+    public function gruposSinEmpresa($email)
+    {
+        $emailNorm = strtolower(trim((string) $email));
+        if ($emailNorm === '') {
+            return array();
+        }
+
+        $sql = 'SELECT DISTINCT mu."group" AS grupo
+                  FROM seg.memberships_users mu
+                 WHERE LOWER(TRIM(mu.email)) = ?
+                   AND NOT EXISTS (
+                       SELECT 1
+                         FROM core.empresas e
+                        WHERE UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))
+                          AND e.eliminado = false
+                   )';
+
+        $query = $this->db->query($sql, array($emailNorm));
+        if (!$query) {
+            return array();
+        }
+
+        $out = array();
+        foreach ($query->result() as $row) {
+            $out[] = (string) $row->grupo;
+        }
+        return $out;
+    }
+
+    /**
      * Verifica que el email tiene membresía en la empresa (por empr_id numérico).
      * Reemplaza chekEmpresa() en el flujo OAuth donde solo se dispone del empr_id.
      * @param int $empr_id
