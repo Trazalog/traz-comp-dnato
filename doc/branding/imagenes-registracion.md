@@ -8,6 +8,27 @@ Es el instructivo para **reemplazar las imágenes provisorias del flujo de regis
 
 ---
 
+## 0. Estado — dónde quedó esto (leer primero al retomar)
+
+> **Frente PAUSADO el 2026-08-27** a pedido del PM, para retomar más adelante. No está cerrado.
+
+| Imagen | Estado |
+|---|---|
+| `toolsregister.png` | ✅ **Resuelta.** Sirve la generada con Qwen-Image (pit andino, dos operarios de espaldas), 1024×1024. Falta el retoque menor de §8 y corregir la mano/tablet del operario derecho |
+| `toolschangepass.png` | ⏳ Falta generar — prompt v2 en §6.2 |
+| `toolsform.png` | ⏳ Falta generar — prompt v2 en §6.3 (reencuadrado a bodegón sin personas) |
+| `toolscreaempr.png` | ⏳ Falta generar — prompt v2 en §6.4. **Es la que hoy da 404** |
+| `toolsbienvenida.png` | ⏳ Falta generar — prompt v2 en §6.5 (reencuadrado a una sola persona) |
+
+**Material de la tanda 1** (5 de FLUX schnell + 1 de Qwen): `/mnt/win/dev/Trazalog/dnato/`. El veredicto imagen por imagen está en §3-bis; de las de FLUX sólo se rescata la del depósito.
+
+**Decisión de fondo pendiente, que conviene tomar antes de seguir generando:** si "que no se note que es IA" es requisito duro para producción, la IA fotorrealista de **personas** todavía no llega del todo — la de paisajes e infraestructura sí. Dos caminos alternativos sobre la mesa, ninguno descartado:
+
+1. **Híbrido**: banco de fotos con licencia comercial (Pexels, Unsplash) para las escenas con gente, IA para los ambientes.
+2. **Fotos propias en un cliente minero real**: media jornada de producción da material auténtico, irrepetible y, de paso, un caso de éxito. Ninguna IA da eso.
+
+---
+
 ## 1. Estado actual — tres cosas que conviene saber antes de empezar
 
 Verificado sobre `develop-v3` el 2026-08-21:
