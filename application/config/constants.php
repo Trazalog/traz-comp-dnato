@@ -235,13 +235,31 @@ define('REGISTRACION_PASSWORD_DEFAULT', '12345');
 |--------------------------------------------------------------------------
 */
 define('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png');
-define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.png');
-define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.png');
-define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.png');
-define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.png');
-define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.png');
+define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.jpg');
+define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.jpg');
+define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.jpg');
+define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.jpg');
+define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.jpg');
 define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
 define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
+
+/*
+| Imagen del panel derecho del login (split-screen). Se muestra a sangre, con
+| background-size: cover. Por defecto es la misma del registro, para que las
+| dos pantallas de entrada al sistema hablen el mismo idioma visual.
+*/
+define('LOGIN_IMG_BACKGROUND', 'public/img/toolslogin.jpg');
+
+/*
+| Banner de autoregistro (freemium) en la pantalla de login.
+|
+| TRUE  → se muestra el banner "Crear cuenta gratis", que lleva a main/register.
+| FALSE → el login no ofrece ninguna vía de alta; el registro sigue accesible
+|         por URL directa, esto sólo controla si se promociona en el login.
+|
+| Ponerlo en FALSE cuando el alta freemium se cierre o se pase a alta asistida.
+*/
+define('LOGIN_MOSTRAR_REGISTRO', TRUE);
 
 /*
  * Configuracion unica (JSON) para usuarios por defecto de registracion.

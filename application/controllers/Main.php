@@ -1180,9 +1180,10 @@ class Main extends CI_Controller {
 			
 			$this->load->view('header', $data);
 			// No cargar container.php para evitar contenedores Bootstrap con fondo azul
+			// El cierre del HTML lo hace la vista, no un echo: CodeIgniter
+			// bufferea las vistas pero echo escribe directo al output, así que
+			// el </body></html> saldría ANTES del doctype.
 			$this->load->view('register', $data);
-			// No cargar footer.php para evitar contenedores Bootstrap
-			echo '</body></html>';
 		} else {
 			log_message('INFO', '#TRAZA|MAIN|register() >> Procesando datos de registro');
 			
@@ -1324,7 +1325,6 @@ class Main extends CI_Controller {
 							'usuario' => array(
 								'email' => $userInfo->email,
 								'password' => $plainPassword,
-								'password_md5' => md5($plainPassword),
 								'firstname' => $userInfo->first_name,
 								'lastname' => $userInfo->last_name,
 								'usernick' => $usernick
@@ -1359,117 +1359,303 @@ class Main extends CI_Controller {
 	}
 
 	//check login failed or success
+	/**
+	 * Login web — Paso 1: credenciales.
+	 *
+	 * El usuario ingresa SOLO email y contraseña. La empresa ya no se elige en
+	 * este formulario: se resuelve del lado del servidor a partir de las
+	 * membresías del usuario YA autenticado.
+	 *
+	 *   0 empresas  → error explícito, no se abre sesión.
+	 *   1 empresa   → autoselección, entra directo.
+	 *   >1 empresas → Paso 2 (main/seleccionar_empresa).
+	 *
+	 * Por qué cambió: el combo anterior se llenaba con Roles::getBpmGroups(), es
+	 * decir listaba TODAS las empresas del sistema a cualquiera que abriera el
+	 * login sin sesión; y chekEmpresa() se evaluaba ANTES de validar la
+	 * contraseña, lo que permitía averiguar si un correo pertenecía a una empresa
+	 * sin tener credenciales. Además el empr_id llegaba desde el POST del cliente,
+	 * contra la regla de que el empr_id se resuelve siempre server-side.
+	 */
 	public function login()
 	{
 			$data = $this->session->userdata();
-			log_message('DEBUG','#Main/login | '.json_encode($data));
-			
+
 			/* Si hay email en sesión, el usuario ya está autenticado en esta app */
 			if (!empty($data['email'])) {
 				log_message('DEBUG','#Main/login Sesion Existente');
 				redirect(DE);
-			} else {
-					$this->load->library('curl');
-					$this->load->library('recaptcha');
-					$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
-					$this->form_validation->set_rules('password', 'Contraseña', 'required');
+				return;
+			}
 
-					$data['title'] = "Trazalog Tools!";
+			$this->load->library('curl');
+			$this->load->library('recaptcha');
+			$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
+			$this->form_validation->set_rules('password', 'Contraseña', 'required');
 
-					//logo de login configurable en core tablas
-					$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
-					$data['logoEmpresa'] = $tabla[0]['valor'];
+			$data['title'] = "Trazalog Tools!";
 
-					//copyright footer de login configurable en core tablas
-					$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
-					$data['copyright'] = $tabla[0]['valor'];
+			//logo de login configurable en core tablas
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+			$data['logoEmpresa'] = $tabla[0]['valor'];
 
-					// si esan vacios los campos, carga pantalla login
-					if($this->form_validation->run() == FALSE) {
+			//copyright footer de login configurable en core tablas
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
+			$data['copyright'] = $tabla[0]['valor'];
 
-							//log_message('DEBUG','#Main/login | Carga Login |'. json_encode($this->form_validation->run()) . '| '.json_encode($this->input->post()));
-							// traigo los groups de BPM para lleba
-							$data['empresas'] = $this->Roles->getBpmGroups();
+			// La vista consulta $recaptcha; sin sesión nunca viene de userdata().
+			// Se define explícitamente para no depender de una variable indefinida.
+			if (!isset($data['recaptcha'])) {
+				$data['recaptcha'] = '';
+			}
 
-							log_message('DEBUG','#TRAZA|MAIN|changelevel() DATOS DE USUARIO TRATADO  ->$data[empresas]: >> '.json_encode($data['empresas']));
-							
-							$this->load->view('header', $data);
-							$this->load->view('container');
-							$this->load->view('login', $data);
-							$this->load->view('footer');
-					}else{
+			// Banner de autoregistro freemium. Antes el enlace a main/register
+			// estaba fijo en la vista; ahora se controla desde constants.php.
+			$data['mostrar_registro'] = defined('LOGIN_MOSTRAR_REGISTRO') ? (bool) LOGIN_MOSTRAR_REGISTRO : TRUE;
 
-							// toma los datos del form loguin y los procesa
-							$post = $this->input->post();
-							$clean = $this->security->xss_clean($post);
-							// tomo empr_id y nombre
-							$nom = explode("-", $clean['empr_id']);
-							$empr_id = $nom[0];
-							$empresa = $nom[1];
-							$email = $clean['email'];
+			// si están vacíos los campos, carga pantalla login
+			if($this->form_validation->run() == FALSE) {
+					// El login usa layout a sangre (split-screen), así que no se
+					// cargan container.php ni footer.php: la vista renderiza sus
+					// propios mensajes de sesión, el pie y el cierre del HTML.
+					// El </body></html> va DENTRO de la vista y no con un echo acá:
+					// CodeIgniter bufferea las vistas pero echo escribe directo al
+					// output, así que el cierre saldría ANTES del doctype.
+					$this->load->view('header', $data);
+					$this->load->view('login', $data);
+					return;
+			}
 
-							// chequea si pertence el usuario a la empresa
-							$logEmpresa = $this->user_model->chekEmpresa($empresa, $email);
-							if(!$logEmpresa)
-							{
-								//log_message('ERROR','#Main/login | El usuario no corresponde a la empresa .');
-								$this->session->set_flashdata('flash_message', 'El usuario no corresponde a la empresa seleccionada.');
-								redirect(base_url().'main/login');
-							}
+			// toma los datos del form login y los procesa
+			$post  = $this->input->post();
+			$clean = $this->security->xss_clean($post);
 
-							// guardo info de usuario
-							$userInfo = $this->user_model->checkLogin($clean);
-							//log_message('DEBUG','#Main/login | userInfo: '.json_encode($userInfo));
-							//email o contraseña erroneo
-							if(!$userInfo)
-							{
-									//log_message('ERROR','#Main/login | Email o contraseña erroneo.');
-									$this->session->set_flashdata('flash_message', 'Correo o contraseña incorrectos.');
-									redirect(base_url().'main/login');
-							}
-							// usuario baneado o no
-							elseif($userInfo->banned_users == "ban")
-							{
-									//log_message('ERROR','MAIN|LOGIN >> USUARIO BANEADO EN EL SISTEMA');
-									$this->session->set_flashdata('danger_message', 'Ud se encuentra temporalmente inhabilitado para este Sistema...');
-									redirect(base_url().'main/login');
-							}
-							// correcto el usuario y no esta baneado
-							elseif($userInfo && $userInfo->banned_users == "unban") //recaptcha check, success login, ban or unban
-							{		// guardo id de empresa para agregar a la variable de sesion
-									$userInfo->empr_id = $empr_id;
-									$usernick = $userInfo->usernick;
-									// Trae id de usr en BPM a partir de Nick
-									$infoUser = $this->bpm->getUser($usernick);
-									$userbpm = $infoUser['data']['id'];
-									$groupbpm = $empresa;
+			// 1) Credenciales PRIMERO. Nada se revela antes de esto.
+			$userInfo = $this->user_model->checkLogin($clean);
+			if(!$userInfo)
+			{
+					$this->session->set_flashdata('flash_message', 'Correo o contraseña incorrectos.');
+					redirect(base_url().'main/login');
+					return;
+			}
 
-									if ($userbpm) {
-										$userInfo->userIdBpm = $userbpm;
-										$userInfo->groupBpm = $groupbpm;
-									} else {
-										//log_message('ERROR','#TRAZA|MAIN|LOGIN|NO HAY USUARIO EN BPM CON EL NICK >> '.$usernick);
-										$this->session->set_flashdata('flash_message', 'Error de inicio de sesión en BPM.');
-										redirect(base_url().'main/login/');
-									}
-									
-									// guardo info en variable de sesion
-									foreach($userInfo as $key=>$val){
-											$this->session->set_userdata($key, $val);
-									}
-									//log_message('DEBUG','#Main/checkLoginUser/');
-									redirect(DE);
-							}
-							else
-							{
-									//log_message('ERROR','Something Error!');
-									//log_message('ERROR','#MAIN|LOGIN | .');
-									$this->session->set_flashdata('flash_message', 'Ocurrió un error inesperado.');
-									redirect(base_url().'main/login/');
-									exit;
-							}
+			if($userInfo->banned_users == "ban")
+			{
+					$this->session->set_flashdata('danger_message', 'Ud se encuentra temporalmente inhabilitado para este Sistema...');
+					redirect(base_url().'main/login');
+					return;
+			}
+
+			// 2) Empresas del usuario, resueltas server-side.
+			$empresas = $this->user_model->getEmpresasDeUsuario($userInfo->email);
+			$this->_logGruposHuerfanos($userInfo->email);
+
+			$cantidad = count($empresas);
+
+			if ($cantidad === 0) {
+					log_message('ERROR', '#TRAZA|MAIN|login() >> usuario sin empresa resoluble. email=' . $userInfo->email);
+					$this->session->set_flashdata('flash_message', 'Tu usuario no tiene ninguna empresa asignada en el sistema. Contactá al administrador de tu empresa.');
+					redirect(base_url().'main/login');
+					return;
+			}
+
+			if ($cantidad === 1) {
+					// Una sola empresa: no se muestra el paso 2.
+					$this->_finalizarLogin($userInfo, $empresas[0]);
+					return;
+			}
+
+			// 3) Más de una: paso 2. Se guarda el mínimo indispensable en sesión.
+			$this->session->set_userdata('login_pending', array(
+					'user_id' => $userInfo->id,
+					'email'   => $userInfo->email,
+			));
+			$this->session->set_userdata('login_csrf', bin2hex(openssl_random_pseudo_bytes(16)));
+
+			log_message('INFO', '#TRAZA|MAIN|login() >> usuario con ' . $cantidad . ' empresas, va a selección. email=' . $userInfo->email);
+			redirect(base_url().'main/seleccionar_empresa');
+	}
+
+	/**
+	 * Login web — Paso 2: selección de empresa.
+	 *
+	 * Sólo accesible con un login_pending válido en sesión, es decir después de
+	 * haber validado las credenciales en el Paso 1. No abre sesión por sí mismo.
+	 *
+	 * GET  → muestra la grilla de empresas del usuario.
+	 * POST → valida CSRF, revalida la pertenencia contra la BD y arma la sesión.
+	 */
+	public function seleccionar_empresa()
+	{
+			$pending = $this->session->userdata('login_pending');
+			if (empty($pending) || empty($pending['email'])) {
+					$this->session->set_flashdata('flash_message', 'Tu sesión expiró. Ingresá nuevamente.');
+					redirect(base_url().'main/login');
+					return;
+			}
+
+			$email    = $pending['email'];
+			$empresas = $this->user_model->getEmpresasDeUsuario($email);
+
+			if (count($empresas) === 0) {
+					$this->_abortarSeleccion('Tu usuario no tiene ninguna empresa asignada en el sistema. Contactá al administrador de tu empresa.');
+					return;
+			}
+
+			if ($this->input->server('REQUEST_METHOD') === 'POST') {
+					$this->_confirmarEmpresa($pending, $empresas);
+					return;
+			}
+
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+
+			$data = array(
+					'title'        => 'Seleccioná tu empresa',
+					'logoEmpresa'  => $tabla[0]['valor'],
+					'empresas'     => $empresas,
+					'csrf_token'   => (string) $this->session->userdata('login_csrf'),
+			);
+
+			// Mismo layout a sangre que el login, para que las dos pantallas de
+			// entrada se vean como una sola secuencia. El cierre del HTML lo hace
+			// la vista (ver comentario en login()).
+			$this->load->view('header', $data);
+			$this->load->view('login_empresa', $data);
+	}
+
+	/**
+	 * Procesa el POST del Paso 2: verifica CSRF, que el empr_id elegido sea uno
+	 * de los del usuario, y recién ahí arma la sesión.
+	 *
+	 * @param array $pending  login_pending de sesión
+	 * @param array $empresas empresas del usuario (ya resueltas)
+	 */
+	private function _confirmarEmpresa($pending, $empresas)
+	{
+			$fromForm    = $this->input->post('login_csrf');
+			$fromSession = $this->session->userdata('login_csrf');
+			if (empty($fromForm) || empty($fromSession) || !hash_equals((string) $fromSession, (string) $fromForm)) {
+					log_message('ERROR', '#TRAZA|MAIN|_confirmarEmpresa() >> CSRF inválido. email=' . $pending['email']);
+					$this->_abortarSeleccion('Token de seguridad inválido. Ingresá nuevamente.');
+					return;
+			}
+
+			$emprIdElegida = (int) $this->input->post('empr_id');
+			if ($emprIdElegida === 0) {
+					$this->session->set_flashdata('flash_message', 'Elegí una empresa para continuar.');
+					redirect(base_url().'main/seleccionar_empresa');
+					return;
+			}
+
+			// La empresa elegida tiene que ser una de las del usuario. Se busca en la
+			// lista ya resuelta (no se confía en nada que venga del formulario).
+			$empresaElegida = null;
+			foreach ($empresas as $empresa) {
+					if ((int) $empresa->empr_id === $emprIdElegida) {
+							$empresaElegida = $empresa;
+							break;
 					}
-		}
+			}
+
+			// Doble validación contra la BD, igual que hace el flujo OAuth.
+			if ($empresaElegida === null || !$this->user_model->chekEmpresaByEmprId($emprIdElegida, $pending['email'])) {
+					log_message('ERROR', '#TRAZA|MAIN|_confirmarEmpresa() >> empr_id ajeno al usuario. email=' . $pending['email'] . ' empr_id=' . $emprIdElegida);
+					$this->_abortarSeleccion('La empresa seleccionada no corresponde a tu usuario. Ingresá nuevamente.');
+					return;
+			}
+
+			$userInfo = $this->user_model->getUserInfoByEmail($pending['email']);
+			if (!$userInfo) {
+					$this->_abortarSeleccion('No pudimos recuperar tus datos de usuario. Ingresá nuevamente.');
+					return;
+			}
+			// checkLogin() lo quita al autenticar; acá se relee de la BD, así que
+			// hay que sacarlo de nuevo antes de que llegue a la sesión.
+			unset($userInfo->password);
+
+			if ($userInfo->banned_users == 'ban') {
+					$this->_abortarSeleccion('Ud se encuentra temporalmente inhabilitado para este Sistema...');
+					return;
+			}
+
+			$this->_finalizarLogin($userInfo, $empresaElegida);
+	}
+
+	/**
+	 * Cierra el estado intermedio de login y vuelve al Paso 1 con un mensaje.
+	 * Se usa ante cualquier condición anómala del Paso 2: nunca se deja al
+	 * usuario a mitad de camino con estado colgado en sesión.
+	 *
+	 * @param string $mensaje
+	 */
+	private function _abortarSeleccion($mensaje)
+	{
+			$this->session->unset_userdata('login_pending');
+			$this->session->unset_userdata('login_csrf');
+			$this->session->set_flashdata('flash_message', $mensaje);
+			redirect(base_url().'main/login');
+	}
+
+	/**
+	 * Arma la sesión del usuario para la empresa resuelta y lo manda al sistema.
+	 * Es el único punto donde se abre sesión en el login web — lo comparten el
+	 * camino de una sola empresa y el de selección.
+	 *
+	 * @param object $userInfo fila de seg.users, sin password
+	 * @param object $empresa  fila de getEmpresasDeUsuario()
+	 */
+	private function _finalizarLogin($userInfo, $empresa)
+	{
+			$usernick = $userInfo->usernick;
+
+			// Trae id de usr en BPM a partir del nick
+			$infoUser  = $this->bpm->getUser($usernick);
+			$userbpm   = (isset($infoUser['data']['id'])) ? $infoUser['data']['id'] : null;
+
+			if (!$userbpm) {
+					log_message('ERROR','#TRAZA|MAIN|_finalizarLogin() >> NO HAY USUARIO EN BPM CON EL NICK >> '.$usernick);
+					$this->session->unset_userdata('login_pending');
+					$this->session->unset_userdata('login_csrf');
+					$this->session->set_flashdata('flash_message', 'Error de inicio de sesión en BPM.');
+					redirect(base_url().'main/login/');
+					return;
+			}
+
+			$userInfo->empr_id   = $empresa->empr_id;
+			$userInfo->userIdBpm = $userbpm;
+			// groupBpm es el nombre del grupo de la membresía, igual que antes.
+			$userInfo->groupBpm  = $empresa->grupo;
+
+			// El logo es un BLOB pesado y no tiene por qué viajar en la sesión.
+			unset($empresa->image);
+
+			// guardo info en variable de sesion
+			foreach($userInfo as $key=>$val){
+					$this->session->set_userdata($key, $val);
+			}
+
+			$this->session->unset_userdata('login_pending');
+			$this->session->unset_userdata('login_csrf');
+
+			log_message('INFO', '#TRAZA|MAIN|_finalizarLogin() >> sesión abierta. email=' . $userInfo->email . ' empr_id=' . $empresa->empr_id);
+			redirect(DE);
+	}
+
+	/**
+	 * Deja registro de las membresías del usuario que no resuelven a ninguna
+	 * empresa de core.empresas. No interrumpe el login: esas empresas
+	 * simplemente no se le pueden ofrecer, pero el dato tiene que quedar
+	 * visible para poder corregirlo.
+	 *
+	 * @param string $email
+	 */
+	private function _logGruposHuerfanos($email)
+	{
+			$huerfanos = $this->user_model->gruposSinEmpresa($email);
+			if (!empty($huerfanos)) {
+					log_message('ERROR', '#TRAZA|MAIN|login() >> membresías sin empresa en core.empresas (no se ofrecen al usuario). email='
+							. $email . ' grupos=' . implode(' | ', $huerfanos));
+			}
 	}
 
 	//Logout
@@ -1492,11 +1678,17 @@ class Main extends CI_Controller {
 			$sTl = $result->site_title;
 			$data['recaptcha'] = $result->recaptcha;
 
+			//logo y copyright configurables en core tablas, igual que el login
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
+			$data['copyright'] = $tabla[0]['valor'];
+
 			if($this->form_validation->run() == FALSE) {
+					// Mismo layout a sangre que el login: sin container.php ni
+					// footer.php; la vista cierra el HTML (ver comentario en login()).
 					$this->load->view('header', $data);
-					$this->load->view('container');
-					$this->load->view('forgot');
-					$this->load->view('footer');
+					$this->load->view('forgot', $data);
 			}else{
 					$email = $this->input->post('email');
 					$clean = $this->security->xss_clean($email);

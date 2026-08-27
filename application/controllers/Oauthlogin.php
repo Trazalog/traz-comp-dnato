@@ -259,7 +259,18 @@ class Oauthlogin extends CI_Controller
             'oauth_csrf',
         ]);
 
-        $code   = bin2hex(random_bytes(32));
+        // PHP 5.6 no tiene random_bytes(). Este es el authorization code de OAuth:
+        // si fuera predecible, se pueden robar sesiones, asi que no sirve uniqid()
+        // ni mt_rand(). openssl_random_pseudo_bytes es seguro SOLO si $strong vuelve
+        // true, por eso la validacion no es opcional.
+        $strong  = false;
+        $rawCode = openssl_random_pseudo_bytes(32, $strong);
+        if ($rawCode === false || !$strong) {
+            log_message('ERROR', '#OauthLogin|_resolveCompany >> generacion insegura del authorization code');
+            $this->_showError('Error interno al generar el codigo de autorizacion. Intente nuevamente.');
+            return;
+        }
+        $code   = bin2hex($rawCode);
         $stored = $this->OauthCode_model->store($code, $email, $emprId, $codeChallenge, $redirectUri, $userIdBpm, $groupBpm, $emprIdMysql);
 
         if (!$stored) {
@@ -292,7 +303,7 @@ class Oauthlogin extends CI_Controller
 
         if (!$result || !$result['status'] || empty($result['data'])) {
             log_message('ERROR', '#OauthLogin|_getMemberships >> callAPI falló. userIdBpm=' . $userIdBpm
-                . ' code=' . ($result['code'] ?? 'N/A'));
+                . ' code=' . (isset($result['code']) ? $result['code'] : 'N/A'));
             return false;
         }
 
@@ -357,7 +368,7 @@ class Oauthlogin extends CI_Controller
     {
         try {
             $tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
-            return $tabla[0]['valor'] ?? '';
+            return isset($tabla[0]['valor']) ? $tabla[0]['valor'] : '';
         } catch (Exception $e) {
             return '';
         }

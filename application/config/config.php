@@ -175,8 +175,10 @@ $config['composer_autoload'] = FCPATH . 'vendor/autoload.php';
 |
 | DO NOT CHANGE THIS UNLESS YOU FULLY UNDERSTAND THE REPERCUSSIONS!!
 |
+| '@' agregado [E9-IDENT-03]: Cli::issue_test_token recibe un email como argumento
+| de CLI, y CI3 filtra los argumentos de consola con esta misma regla.
 */
-$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-';
+$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-@';
 
 /*
 |--------------------------------------------------------------------------
