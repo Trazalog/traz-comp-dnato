@@ -10,14 +10,14 @@ Es el instructivo para **producir las 6 imágenes definitivas de las pantallas d
 
 ## 0. Estado
 
-| Imagen | Estado |
-|---|---|
-| `toolslogin.png` | ⏳ **Nueva.** Login, recuperar contraseña y fondo de selección de empresa — §6.1 |
-| `toolsregister.png` | ⏳ Rehacer con el tratamiento nuevo — §6.2 |
-| `toolschangepass.png` | ⏳ Falta — §6.3 |
-| `toolsform.png` | ⏳ Falta — §6.4 |
-| `toolscreaempr.png` | ⏳ Falta — §6.5. **Es la que hoy da 404** |
-| `toolsbienvenida.png` | ⏳ Falta — §6.6 |
+| Imagen | Sector | Estado |
+|---|---|---|
+| `toolslogin.png` | ⛏️ Minería | ⏳ **Nueva.** Login, recuperar contraseña y fondo de selección de empresa — §6.1 |
+| `toolsregister.png` | 🛢️ **Petróleo y gas** | ⏳ Rehacer — §6.2 |
+| `toolschangepass.png` | ⛏️ Minería | ⏳ Falta — §6.3 |
+| `toolsform.png` | — neutro | ⏳ Falta — §6.4 |
+| `toolscreaempr.png` | ⚡ **Energía** | ⏳ Falta — §6.5. **Es la que hoy da 404** |
+| `toolsbienvenida.png` | ⛏️ Minería | ⏳ Falta — §6.6 |
 
 **Historia corta:** la primera tanda (5 con FLUX.1 [schnell] + 1 con Qwen-Image) se descartó casi entera porque *se notaba que era IA*. El diagnóstico está en §1 y motivó el cambio de enfoque de este documento: **ya no se busca fotorrealismo, se busca una foto tratada**. El material viejo sigue en `/mnt/win/dev/Trazalog/dnato/` y la mejor de esa tanda —el pit andino de Qwen— sirve como base para §6.2 si se le aplica el tratamiento.
 
@@ -181,6 +181,9 @@ Tres cosas cambiaron respecto de la versión anterior, y las tres importan:
 1. **Piden una foto plana y fácil de tratar**, no una foto "linda": luz pareja, colores contenidos, buen rango tonal. El carácter se lo da el tratamiento de §4, no el prompt. Una imagen ya dramática y saturada se arruina al aplicarle el duotono.
 2. **La biblia visual va escrita adentro de cada prompt** — región, hora, vestuario, origen de las personas. Cuando estaba en una tabla aparte, el modelo devolvió gente del norte de Europa.
 3. **Los encuadres evitan lo que la IA hace mal.** Regla verificada sobre la primera tanda: funcionan las personas de espaldas o de perfil lejano, una sola por imagen, manos vacías y foco profundo; fallan las caras frontales, dos personas interactuando, **las manos sosteniendo objetos**, el texto y el bokeh fuerte.
+4. **No todas son de minería.** El producto no se vende sólo a mineras, y seis imágenes del mismo pit lo hacen parecer un software de un solo rubro. La secuencia queda: minería → **petróleo y gas** → minería → neutro → **energía** → minería. La primera y la última se mantienen en minería porque son las que enmarcan el flujo (§6.1 y §6.6), y la del escritorio (§6.4) no muestra sector.
+
+**Dos regiones, un solo tratamiento.** Las de minería transcurren en la cordillera de San Juan (roca ocre) y las de petróleo y energía en la estepa de Neuquén (grava pálida, arbustos bajos, horizonte llano). Son paisajes distintos a propósito, y el duotono de §4 los unifica igual: ése es justamente el beneficio de tratar todas las imágenes con las mismas capas.
 
 Generá **4 variantes de cada uno** y elegí antes de tratar.
 
@@ -207,20 +210,23 @@ candid documentary photojournalism, no retouching.
 
 ---
 
-### 6.2 `toolsregister.png` — registro
+### 6.2 `toolsregister.png` — registro · 🛢️ **petróleo y gas, Vaca Muerta**
 
-Escala y ambición: quien mira todavía no es cliente. Más abierta y más "paisaje productivo" que la del login, para que las dos no se confundan.
+Escala y ambición: quien mira todavía no es cliente. Es la pantalla que muestra que Trazalog no es sólo para minería, así que cambia de cuenca y de paisaje — estepa patagónica en vez de cordillera.
 
 ```
-Editorial photograph for a mining industry trade magazine. A mineral processing
-plant in the arid Andes of San Juan, Argentina, seen from a distance in the early
-morning. Conveyor structures and silos stand against bare ochre mountain slopes;
-service roads cut across the terrain; a haul truck far below gives scale. No
-people in the frame. Soft even morning light with long gentle shadows, pale
-uniform sky, fine airborne dust softening the far ridgeline. Shot on a 35mm lens
-at f/8, deep focus, everything sharp, fine film grain, restrained natural colour,
-flat contrast, orderly and calm, unposed documentary photojournalism, no
-retouching, no readable text or logos.
+Editorial photograph for an energy industry trade magazine. A shale oil and gas
+drilling pad in the Vaca Muerta formation, Neuquén, Argentine Patagonia, seen
+from a low rise in the early morning. A steel drilling rig derrick stands against
+a wide flat horizon of arid Patagonian steppe — pale gravel ground, sparse low
+scrub, no trees; storage tanks, pipe racks and a gravel access road spread around
+the pad; a service truck parked to one side gives scale. Two Argentinian field
+workers in navy blue coveralls with worn orange reflective bands and hard hats
+stand small in the middle distance beside the tanks, seen from behind. Soft even
+morning light with long gentle shadows, pale uniform sky, thin wind-blown dust.
+Shot on a 35mm lens at f/8, deep focus, everything sharp, fine film grain,
+restrained natural colour, flat contrast, orderly and calm, unposed documentary
+photojournalism, no retouching, no readable text or logos.
 ```
 
 ---
@@ -264,22 +270,25 @@ readable text or logos anywhere.
 
 ---
 
-### 6.5 `toolscreaempr.png` — alta de empresa ⚠️ es la que hoy falta
+### 6.5 `toolscreaempr.png` — alta de empresa · ⚡ **energía, tendido eléctrico** ⚠️ es la que hoy falta
 
-Infraestructura ordenada, todo en su lugar: es la metáfora de dar de alta la empresa con su establecimiento y su depósito. La composición en perspectiva de un punto fue lo mejor de la primera tanda; se conserva y se corrigen sus fallas.
+Poner la operación en marcha: infraestructura levantándose y una cuadrilla trabajando. La perspectiva en fuga de las torres cumple la misma función que la del depósito anterior —orden, cosas en su lugar— pero en otro sector.
+
+**Sobre la seguridad, que acá pesa más que en las otras:** el trabajo en altura sin arnés es el error que un cliente detecta al instante. El prompt pide el arnés explícitamente y ubica a la cuadrilla a media distancia, donde además las manos y las caras dejan de ser un problema para el modelo.
 
 ```
-Editorial photograph for a mining industry trade magazine. A supply yard at a
-mining operation in the arid Andes of San Juan, Argentina. Two rows of steel
-storage racks recede toward a corrugated warehouse building, forming a strong
-one-point perspective down a dirt lane; the racks hold stacked steel pipe and
-plain unmarked wooden crates, and are clearly built and evenly lit all the way
-to the far end, never fading into blur. A single Argentinian storekeeper in dusty
-navy blue coveralls with worn orange reflective bands, a scratched hard hat and
-grey work gloves walks away from the camera down the lane, small in the frame,
-seen from behind. Ochre slopes rise behind the warehouse under a pale even sky.
-Soft morning light, rack shadows falling consistently across the lane. Shot on a
-35mm lens at f/8, deep focus, sharp from foreground to background, fine film
+Editorial photograph for an energy industry trade magazine. A high-voltage
+transmission line under maintenance on open arid plains in Neuquén, Argentine
+Patagonia. A row of steel lattice transmission towers recedes toward the horizon
+in strong perspective, conductors sweeping between them against a pale even sky;
+pale gravel ground with sparse low scrub, no trees. At the base of the nearest
+tower a utility truck with a raised insulated boom lift is parked; one Argentinian
+line worker stands in the elevated basket wearing a full safety harness clipped
+to the basket, a hard hat and navy blue coveralls with worn orange reflective
+bands, working at the crossarm; two more workers in the same gear stand on the
+ground beside the truck, seen from behind at medium distance, looking up. Soft
+even morning light, tower shadows falling consistently across the ground. Shot on
+a 35mm lens at f/8, deep focus, sharp from the truck to the far towers, fine film
 grain, restrained natural colour, flat contrast, unposed candid documentary
 photojournalism, no retouching, no readable text or logos.
 ```
@@ -341,7 +350,8 @@ Las últimas tres son nuevas: el tratamiento de §4 necesita una imagen de parti
 - [ ] **Cada sombra sale del pie de quien la proyecta**, y todas caen para el mismo lado
 - [ ] La ropa se ve usada, no recién comprada
 - [ ] Ninguna cara se parece a una persona identificable
-- [ ] El paisaje es de montaña andina árida, no desierto americano ni bosque
+- [ ] El paisaje corresponde a la región de esa imagen: montaña andina árida (§6.1, 6.3, 6.6) o estepa patagónica llana (§6.2, 6.5). En ningún caso desierto americano, cactus ni bosque
+- [ ] En la de energía (§6.5): quien trabaja en altura **lleva arnés y está amarrado**
 - [ ] **Las seis pasaron por el mismo tratamiento, con el mismo valor de opacidad**
 - [ ] Las dos grandes se ven bien recortadas a 1:1, probadas en pantalla ancha y en notebook
 - [ ] Peso dentro del objetivo
@@ -380,4 +390,4 @@ Si el navegador sigue mostrando las viejas, es caché: `Ctrl+F5`.
 - Black Forest Labs: `huggingface.co/black-forest-labs`
 - Photopea (editor en el navegador): `photopea.com`
 - Squoosh (compresión): `squoosh.app`
-- Material de la primera tanda: `/mnt/win/dev/Trazalog/dnato/`
+- Material de la primera tanda (todo minería, previo al cambio de sectores): `/mnt/win/dev/Trazalog/dnato/`
