@@ -244,6 +244,24 @@ define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
 define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
 
 /*
+| Imagen del panel derecho del login (split-screen). Se muestra a sangre, con
+| background-size: cover. Por defecto es la misma del registro, para que las
+| dos pantallas de entrada al sistema hablen el mismo idioma visual.
+*/
+define('LOGIN_IMG_BACKGROUND', 'public/img/toolsregister.png');
+
+/*
+| Banner de autoregistro (freemium) en la pantalla de login.
+|
+| TRUE  → se muestra el banner "Crear cuenta gratis", que lleva a main/register.
+| FALSE → el login no ofrece ninguna vía de alta; el registro sigue accesible
+|         por URL directa, esto sólo controla si se promociona en el login.
+|
+| Ponerlo en FALSE cuando el alta freemium se cierre o se pase a alta asistida.
+*/
+define('LOGIN_MOSTRAR_REGISTRO', TRUE);
+
+/*
  * Configuracion unica (JSON) para usuarios por defecto de registracion.
  * Se usa JSON para compatibilidad total con PHP 5.6+ y superiores.
  */

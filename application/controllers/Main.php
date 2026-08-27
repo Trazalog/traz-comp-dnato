@@ -1409,12 +1409,18 @@ class Main extends CI_Controller {
 				$data['recaptcha'] = '';
 			}
 
+			// Banner de autoregistro freemium. Antes el enlace a main/register
+			// estaba fijo en la vista; ahora se controla desde constants.php.
+			$data['mostrar_registro'] = defined('LOGIN_MOSTRAR_REGISTRO') ? (bool) LOGIN_MOSTRAR_REGISTRO : TRUE;
+
 			// si están vacíos los campos, carga pantalla login
 			if($this->form_validation->run() == FALSE) {
+					// El login usa layout a sangre (split-screen), así que no se
+					// cargan container.php ni footer.php: la vista renderiza sus
+					// propios mensajes de sesión y el pie. Mismo criterio que register().
 					$this->load->view('header', $data);
-					$this->load->view('container');
 					$this->load->view('login', $data);
-					$this->load->view('footer');
+					echo '</body></html>';
 					return;
 			}
 
@@ -1508,10 +1514,11 @@ class Main extends CI_Controller {
 					'csrf_token'   => (string) $this->session->userdata('login_csrf'),
 			);
 
+			// Mismo layout a sangre que el login, para que las dos pantallas de
+			// entrada se vean como una sola secuencia.
 			$this->load->view('header', $data);
-			$this->load->view('container');
 			$this->load->view('login_empresa', $data);
-			$this->load->view('footer');
+			echo '</body></html>';
 	}
 
 	/**
