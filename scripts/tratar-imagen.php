@@ -27,6 +27,20 @@
  *                 valor del documento y el que hay que usar en las seis.
  *   GRANO=6       cantidad de grano, 0-30. 0 lo desactiva.
  *   CONTRASTE=12  cuánto se aplana el contraste, 0-40.
+ *   TAMANO=0      si es > 0, recorta la imagen a un cuadrado y la escala a ese
+ *                 lado en píxeles. Las pantallas de entrada piden 1536 (login y
+ *                 registro) o 1024 (las otras cuatro). 0 = no tocar el encuadre.
+ *   RECORTE_X=50  de dónde se toma el cuadrado, 0-100 sobre el ancho original.
+ *                 50 es centrado; bajalo para conservar lo de la izquierda,
+ *                 subilo para lo de la derecha. Sólo se usa si TAMANO > 0.
+ *   RECORTE_Y=50  ídem en vertical.
+ *   PALETA=256    reduce a esa cantidad de colores al guardar un PNG, lo que
+ *                 baja su peso. En una imagen con duotono la pérdida es
+ *                 imperceptible. 0 lo desactiva. No aplica al guardar JPEG.
+ *   CALIDAD=82    calidad del JPEG, 1-100. Sólo se usa si la salida termina en
+ *                 .jpg o .jpeg. Para fotografías conviene JPEG antes que PNG:
+ *                 el grano es ruido incompresible y hace que un PNG pese
+ *                 varias veces más, sin ninguna ganancia visible.
  *
  * Ejemplo con opciones:
  *   FUERZA=80 GRANO=8 php scripts/tratar-imagen.php foto.png prueba-80.png
@@ -45,6 +59,11 @@ $LUZ    = array(0xe9, 0xdf, 0xcd); // #e9dfcd arena cálido
 $fuerza    = _leerEntorno('FUERZA',    70, 0, 100) / 100.0;
 $grano     = _leerEntorno('GRANO',      6, 0,  30);
 $contraste = _leerEntorno('CONTRASTE', 12, 0,  40) / 100.0;
+$tamano    = _leerEntorno('TAMANO',      0, 0, 4096);
+$recorteX  = _leerEntorno('RECORTE_X',  50, 0, 100) / 100.0;
+$recorteY  = _leerEntorno('RECORTE_Y',  50, 0, 100) / 100.0;
+$paleta    = _leerEntorno('PALETA',    256, 0, 256);
+$calidad   = _leerEntorno('CALIDAD',    82, 1, 100);
 
 // --- Argumentos ------------------------------------------------------------
 if (!extension_loaded('gd')) {
@@ -77,6 +96,26 @@ if ($img === false) {
 $ancho = imagesx($img);
 $alto  = imagesy($img);
 echo 'Entrada : ' . $entrada . ' (' . $ancho . 'x' . $alto . ")\n";
+
+// --- Recorte a cuadrado + escala ------------------------------------------
+// Los generadores devuelven imágenes apaisadas, pero los paneles donde se usan
+// son casi cuadrados y recortan con background-size: cover. Recortar acá, a
+// mano y eligiendo la zona, evita que el navegador se coma lo importante.
+if ($tamano > 0) {
+    $lado = min($ancho, $alto);
+    $x0   = (int) round(($ancho - $lado) * $recorteX);
+    $y0   = (int) round(($alto  - $lado) * $recorteY);
+
+    $cuadrado = imagecreatetruecolor($tamano, $tamano);
+    imagecopyresampled($cuadrado, $img, 0, 0, $x0, $y0, $tamano, $tamano, $lado, $lado);
+    imagedestroy($img);
+    $img   = $cuadrado;
+    $ancho = $tamano;
+    $alto  = $tamano;
+
+    echo 'Encuadre: recorte ' . $lado . 'x' . $lado . ' desde (' . $x0 . ',' . $y0
+       . ') → ' . $tamano . 'x' . $tamano . "\n";
+}
 echo 'Ajustes : duotono ' . round($fuerza * 100) . '% · grano ' . $grano
    . ' · contraste -' . round($contraste * 100) . "%\n";
 
@@ -162,7 +201,19 @@ $dirSalida = dirname($salida);
 if (!is_dir($dirSalida)) {
     _salir('No existe el directorio de salida: ' . $dirSalida);
 }
-if (!imagepng($destino, $salida, 9)) {
+// El formato de salida sale de la extensión del archivo.
+$ext = strtolower(pathinfo($salida, PATHINFO_EXTENSION));
+if ($ext === 'jpg' || $ext === 'jpeg') {
+    // Para fotografías, JPEG. El grano es ruido incompresible: en PNG hace que
+    // el archivo pese varias veces más sin ninguna ganancia visible.
+    $ok = imagejpeg($destino, $salida, $calidad);
+} else {
+    if ($paleta > 0) {
+        imagetruecolortopalette($destino, true, $paleta);
+    }
+    $ok = imagepng($destino, $salida, 9);
+}
+if (!$ok) {
     _salir('No pude escribir: ' . $salida);
 }
 
@@ -172,8 +223,9 @@ imagedestroy($destino);
 $segundos = round(microtime(true) - $inicio, 1);
 $peso     = round(filesize($salida) / 1024);
 echo 'Salida  : ' . $salida . ' (' . $peso . ' KB, ' . $segundos . " s)\n";
-if ($peso > 400) {
-    echo "Aviso   : pasa los 400 KB. Comprimila en squoosh.app antes de subirla.\n";
+$limite = ($ancho >= 1400) ? 400 : 250;
+if ($peso > $limite) {
+    echo 'Aviso   : pasa los ' . $limite . " KB. Comprimila en squoosh.app antes de subirla.\n";
 }
 echo "Listo.\n";
 exit(0);
