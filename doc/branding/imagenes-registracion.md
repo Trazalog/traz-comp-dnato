@@ -75,8 +75,13 @@ Licencia **Apache 2.0**: uso comercial explícito, sin atribución, sin regalía
 1. Entrá a **`huggingface.co/Qwen`** — es la organización oficial de Alibaba Cloud.
 2. En la solapa **Spaces**, abrí **`Qwen-Image`** (generar desde texto).
 3. Creá una cuenta gratuita de Hugging Face si no tenés (basta un correo). Sin cuenta la cola es más lenta.
-4. Pegá el prompt, elegí la proporción (§5) y generá.
-5. Repetí 4 veces con el mismo prompt: cada corrida da un resultado distinto y la diferencia entre la primera y la mejor de cuatro es grande.
+4. Abrí **Advanced Settings** y dejá:
+   - **Aspect ratio: `1:1`** — es lo que necesitan las seis (§5).
+   - **Prompt Enhance: DESTILDADO.** ⚠️ Si queda tildado, el Space **reescribe tu prompt** antes de generar, y se pierde todo el trabajo de encuadre, vestuario y luz. Es el error más fácil de cometer.
+   - *Randomize seed*: tildado, para que cada corrida dé algo distinto.
+   - `guidance_scale` y `num_inference_steps`: dejalos como vienen.
+5. Pegá el prompt y generá.
+6. Repetí 4 veces: cada corrida da un resultado distinto y la diferencia entre la primera y la mejor de cuatro es grande.
 
 **El Space hermano que ahora importa:** en la misma organización está **`Qwen-Image-Edit`**, que **edita una imagen existente con instrucciones en lenguaje natural**. Es uno de los tres caminos para aplicar el tratamiento de color (§4.2) sin abrir un editor.
 
@@ -107,11 +112,43 @@ Buscar "generar imágenes gratis con Qwen" devuelve decenas de sitios que hostea
 
 ## 4. Cómo se aplica el tratamiento
 
-Tres caminos para lo mismo. Elegí uno; el 4.1 es el que da más control.
+Tres caminos para lo mismo. **El 4.0 es el más simple y el recomendado**: no hay que aprender a usar nada.
 
-### 4.1 Photopea — en el navegador, gratis, sin instalar (recomendado)
+### 4.0 El script del repo — un comando por imagen ⭐
 
-`photopea.com`. Es un editor tipo Photoshop que corre en el navegador.
+`scripts/tratar-imagen.php` hace las tres capas de ajuste de una, con los valores exactos del documento. Su ventaja sobre hacerlo a mano no es la comodidad: es que **las seis imágenes salen con exactamente los mismos números**, que es lo que las hace parecer una sola sesión de fotos.
+
+Desde una terminal, parado en la raíz del repo:
+
+```bash
+# una imagen
+php scripts/tratar-imagen.php ~/Descargas/foto.png
+
+# → escribe ~/Descargas/foto-tratada.png
+
+# indicando el destino final
+php scripts/tratar-imagen.php ~/Descargas/foto.webp public/img/toolslogin.png
+
+# una carpeta entera
+for f in ~/Descargas/tanda/*.png; do php scripts/tratar-imagen.php "$f"; done
+```
+
+Acepta PNG, JPG y WebP, y **nunca toca el archivo de entrada**. Tarda unos 2 segundos por imagen de 1024×1024.
+
+**Si querés probar otras intensidades** antes de decidir:
+
+```bash
+FUERZA=55 php scripts/tratar-imagen.php foto.png prueba-55.png   # más suave
+FUERZA=85 php scripts/tratar-imagen.php foto.png prueba-85.png   # más marcado
+```
+
+`FUERZA` es la opacidad del duotono, de 0 a 100. Por debajo de 60 casi no se nota; por encima de 85 empieza a verse como afiche. **70 es el valor del documento** y el que hay que usar en las seis una vez elegido. También acepta `GRANO` (0-30, por defecto 6) y `CONTRASTE` (0-40, por defecto 12).
+
+> ⚠️ **El grano encarece mucho el PNG.** El ruido rompe la compresión: una imagen tratada puede pasar de 190 KB a 1,6 MB. Es esperable — por eso el paso de comprimir en `squoosh.app` (§8) no es opcional, es obligatorio. El script avisa cuando el resultado pasa los 400 KB.
+
+### 4.1 Photopea — a mano, en el navegador
+
+`photopea.com`. Es un editor tipo Photoshop que corre en el navegador. Sirve si querés ver el efecto capa por capa o ajustar una imagen en particular; para las seis, el 4.0 es más rápido y más consistente.
 
 1. **Archivo → Abrir** y subí la imagen generada.
 2. **Capa → Nueva capa de ajuste → Mapa de degradado.**
@@ -316,9 +353,24 @@ photojournalism, no retouching, no readable text or logos.
 
 ---
 
-## 7. Prompt negativo
+## 7. El prompt negativo — leer antes de buscarlo
 
-Qwen-Image lo acepta y conviene usarlo. Pegalo tal cual en el campo de negativo, para los seis:
+**El Space oficial de Qwen-Image NO tiene campo de prompt negativo.** Se lo sacaron de la interfaz: en el código está fijo como `text, watermark, copyright, blurry, low resolution` y no se puede editar desde la pantalla. Si lo estuviste buscando, no está.
+
+No es un problema, por dos razones:
+
+**1. Los prompts de §6 ya vienen escritos sin necesitar negativo.** Cada exclusión está expresada en afirmativo dentro del propio prompt: dice "pantalla apagada" en lugar de "sin texto en pantalla", "manos a los costados" en lugar de "sin manos sosteniendo objetos", "luz pareja" en lugar de "sin luz dramática". Se escribieron así a propósito, justamente para no depender de un campo que no siempre existe.
+
+**2. Si aun así querés reforzar**, pegá esta cola al final de cualquier prompt de §6, en la misma caja de texto:
+
+```
+The scene contains no lettering, no signage and no logos anywhere; every screen
+is switched off; every person is seen from behind or in profile with their hands
+empty and at their sides; the workwear is worn and dusty rather than new; the
+light is soft and even, never dramatic; the whole frame is in focus.
+```
+
+**Sólo si el sitio que usás sí tiene campo de negativo** (algunos frontends de terceros lo exponen, con la advertencia de licencia de §3.3), pegá esto ahí:
 
 ```
 text, letters, watermark, logo, brand names, signage, readable screen, user
@@ -329,7 +381,7 @@ illustration, cartoon, brand-new clean clothing, lush vegetation, cactus, snow,
 detached shadow, floating shadow, dramatic lighting, golden hour, lens flare
 ```
 
-Las últimas tres son nuevas: el tratamiento de §4 necesita una imagen de partida **plana**, y una foto ya dramática se arruina al aplicarle el duotono.
+Las tres últimas importan más que antes: el tratamiento de §4 necesita una imagen de partida **plana**, y una foto ya dramática y saturada se arruina al aplicarle el duotono.
 
 ---
 
@@ -389,5 +441,6 @@ Si el navegador sigue mostrando las viejas, es caché: `Ctrl+F5`.
 - Qwen (organización oficial): `huggingface.co/Qwen` — Spaces `Qwen-Image` y `Qwen-Image-Edit`
 - Black Forest Labs: `huggingface.co/black-forest-labs`
 - Photopea (editor en el navegador): `photopea.com`
-- Squoosh (compresión): `squoosh.app`
+- Squoosh (compresión, **obligatoria** después del tratamiento): `squoosh.app`
+- `scripts/tratar-imagen.php` — el tratamiento automatizado (§4.0)
 - Material de la primera tanda (todo minería, previo al cambio de sectores): `/mnt/win/dev/Trazalog/dnato/`
