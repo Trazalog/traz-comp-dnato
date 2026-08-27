@@ -1180,9 +1180,10 @@ class Main extends CI_Controller {
 			
 			$this->load->view('header', $data);
 			// No cargar container.php para evitar contenedores Bootstrap con fondo azul
+			// El cierre del HTML lo hace la vista, no un echo: CodeIgniter
+			// bufferea las vistas pero echo escribe directo al output, así que
+			// el </body></html> saldría ANTES del doctype.
 			$this->load->view('register', $data);
-			// No cargar footer.php para evitar contenedores Bootstrap
-			echo '</body></html>';
 		} else {
 			log_message('INFO', '#TRAZA|MAIN|register() >> Procesando datos de registro');
 			
@@ -1678,11 +1679,17 @@ class Main extends CI_Controller {
 			$sTl = $result->site_title;
 			$data['recaptcha'] = $result->recaptcha;
 
+			//logo y copyright configurables en core tablas, igual que el login
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
+			$data['copyright'] = $tabla[0]['valor'];
+
 			if($this->form_validation->run() == FALSE) {
+					// Mismo layout a sangre que el login: sin container.php ni
+					// footer.php; la vista cierra el HTML (ver comentario en login()).
 					$this->load->view('header', $data);
-					$this->load->view('container');
-					$this->load->view('forgot');
-					$this->load->view('footer');
+					$this->load->view('forgot', $data);
 			}else{
 					$email = $this->input->post('email');
 					$clean = $this->security->xss_clean($email);

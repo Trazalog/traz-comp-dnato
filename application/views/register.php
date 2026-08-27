@@ -213,6 +213,66 @@
     .form-container.hidden {
         display: none !important;
     }
+
+    /* ------------------------------------------------------------------
+       Centrado del panel, alineado con el login (views/login.php).
+       Antes la columna quedaba pegada al borde izquierdo: el panel medía
+       40% con min-width 500px y cada elemento traía margin-left: 20px.
+       ------------------------------------------------------------------ */
+    .register-left {
+        width: 46% !important;
+        max-width: 46% !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        overflow-y: auto !important;
+        padding: 40px 8% !important;
+    }
+
+    .register-right {
+        width: 54% !important;
+        flex: 1 1 54% !important;
+    }
+
+    .register-inner {
+        width: 100% !important;
+        max-width: 440px !important;
+        margin: 0 auto !important;
+    }
+
+    /* Los margin-left de cada elemento sobran con la columna ya centrada */
+    .register-inner .logo-container,
+    .register-inner .register-title,
+    .register-inner .register-subtitle,
+    .register-inner .form-group,
+    .register-inner .btn-register,
+    .register-inner .warning-text,
+    .register-inner .terms-text,
+    .register-inner .error-message,
+    .register-inner .server-error-message {
+        margin-left: 0 !important;
+    }
+
+    /* Que todo ocupe el ancho de la columna centrada, no 400px fijos */
+    .register-inner .form-control,
+    .register-inner .btn-register,
+    .register-inner .error-message,
+    .register-inner .server-error-message {
+        max-width: 100% !important;
+    }
+
+    .register-inner .logo-container { margin-top: 0 !important; }
+
+    /* En pantallas chicas la imagen se oculta, igual que en el login */
+    @media (max-width: 991px) {
+        .register-right { display: none !important; }
+        .register-left {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 40px 24px !important;
+        }
+    }
 </style>
 
     <?php 
@@ -235,6 +295,8 @@ if (!empty($arr['danger_message'])) {
 
 <div class="register-container">
     <div class="register-left">
+    <!-- register-inner: centra la columna dentro del panel, igual que el login -->
+    <div class="register-inner">
         <div class="logo-container">
             <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
@@ -298,6 +360,7 @@ if (!empty($arr['danger_message'])) {
     </div>
     </div>
     
+    </div><!-- /register-inner -->
     <div class="register-right">
         <!-- Imagen de fondo -->
     </div>
@@ -406,3 +469,5 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Todas las validaciones configuradas');
 });
 </script>
+</body>
+</html>
