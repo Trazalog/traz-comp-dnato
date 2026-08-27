@@ -1324,7 +1324,6 @@ class Main extends CI_Controller {
 							'usuario' => array(
 								'email' => $userInfo->email,
 								'password' => $plainPassword,
-								'password_md5' => md5($plainPassword),
 								'firstname' => $userInfo->first_name,
 								'lastname' => $userInfo->last_name,
 								'usernick' => $usernick

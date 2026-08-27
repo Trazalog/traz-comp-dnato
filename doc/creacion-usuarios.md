@@ -373,6 +373,12 @@ if($usr_id) {
 - Opción B: Verificar qué formato espera AssetPlanner y adaptar
 - Opción C: Si AssetPlanner debe usar el mismo hash, verificar compatibilidad
 
+> **Nota (2026-08-26)**: esto describe `addUserAsset()`, que hoy está marcado `@deprecated` y
+> **no tiene ningún llamador** — es código muerto. Desde el fix de #489 la query `setUserAsset`
+> aplica `MD5(:pass)`, así que la respuesta a este dilema es la **Opción A**: hay que mandar la
+> contraseña original. Si alguien reactiva este método pasándole un bcrypt, quedaría
+> `MD5(bcrypt)` y el usuario tampoco podría entrar.
+
 #### 3. **Falta de Validación de Respuesta**
 ```php
 // En User_model.php línea 695-699
@@ -661,8 +667,8 @@ sequenceDiagram
             API->>C: Error 500
         else BPM éxito
             BPM-->>API: OK
-            API->>DS: POST /assetuser/add (password_md5)
-            DS->>MySQL: INSERT INTO sisusers (password hasheado MD5)
+            API->>DS: POST /assetuser/add (password en claro)
+            DS->>MySQL: INSERT INTO sisusers (la query aplica MD5)
             alt AssetPlanner falla
                 MySQL-->>DS: Error
                 DS-->>API: Error
@@ -910,51 +916,35 @@ La nueva API valida el código HTTP pero no valida la estructura de la respuesta
 </filter>
 ```
 
-#### 2. **Hashear Password en MD5 para AssetPlanner** ⚠️ **CRÍTICO**
+#### 2. **Hashear Password en MD5 para AssetPlanner** ✅ **RESUELTO (2026-08-26)**
 
-**Problema actual**: La nueva API envía el password en texto plano a AssetPlanner (línea 399 de `toolsCOREApi.xml`), pero la tabla `sisusers` en MySQL requiere el password hasheado en MD5.
+> Se aplicó la **Opción B** que esta misma sección recomendaba. Queda documentado acá porque
+> el diagnóstico original era correcto y tardó en implementarse: ver issue #489 (hallazgo
+> H-049) y los PR #492 / #493 de `traz-tools`.
 
-**Solución propuesta - Opción A: Hashear en la API (recomendado)**:
-```xml
-<!-- Propuesta: Agregar script mediator para hashear en MD5 antes de enviar a AssetPlanner -->
-<!-- Ubicación: Después de línea 390, antes del payloadFactory de AssetPlanner -->
-<script language="js">
-    <![CDATA[
-        var password = mc.getProperty('usr_password');
-        // Usar librería Apache Commons Codec (debe estar disponible en WSO2)
-        var md5Hash = Packages.org.apache.commons.codec.digest.DigestUtils.md5Hex(password);
-        mc.setProperty('usr_password_md5', md5Hash);
-    ]]>
-</script>
-<!-- Luego modificar el payloadFactory para usar usr_password_md5 -->
-<payloadFactory media-type="json" description="crear usuario en Asset Planner">
-    <format>{     "_post_assetuser_add":{        "nick":"$1",        "name":"$2",        "lastName":"$3",        "pass":"$4",        "image":"$5"     }  }</format>
-    <args>
-        <arg evaluator="xml" expression="get-property('usr_nick')"/>
-        <arg evaluator="xml" expression="get-property('usr_firstname')"/>
-        <arg evaluator="xml" expression="get-property('usr_lastname')"/>
-        <arg evaluator="xml" expression="get-property('usr_password_md5')"/>  <!-- Cambiar aquí -->
-        <arg evaluator="xml" expression="get-property('usr_image')"/>
-    </args>
-</payloadFactory>
-```
+**Qué pasaba**: `POST /usuario` mandaba el password en texto plano a AssetPlanner, pero
+`sisusers` guarda MD5 — `Apps::sessionStart_()` compara contra `md5($pass)` desde 2018. Ningún
+usuario creado por ese camino podía entrar. Afectaba a los cinco usuarios por defecto de cada
+empresa y al alta manual de usuarios.
 
-**Solución propuesta - Opción B: Hashear en el DataService**:
-Modificar el query `setUserAsset` en `COREDataService.xml` para hashear el password antes de insertar:
+**Qué se hizo**: hashear en el DataService, para que el hash quede en el único punto por el que
+pasan los tres caminos que escriben en `sisusers`:
+
 ```xml
 <query id="setUserAsset" useConfig="AssetPlannerDataSource">
-    <sql>INSERT into sisusers(usrNick, usrName, usrLastName, usrPassword, usrimag) 
+    <sql>INSERT into sisusers(usrNick, usrName, usrLastName, usrPassword, usrimag)
     values (:nick, :name, :lastName, MD5(:pass), :image)</sql>
-    <!-- Usar función MD5() de MySQL para hashear -->
-    <param name="nick" sqlType="STRING"/>
-    <param name="name" sqlType="STRING"/>
-    <param name="lastName" sqlType="STRING"/>
-    <param name="pass" sqlType="STRING"/>
-    <param name="image" sqlType="STRING"/>
-</query>
 ```
 
-**Recomendación**: Usar Opción B (hashear en el DataService) es más simple y seguro, ya que el password nunca se transmite hasheado por la red y se hashea directamente en la base de datos.
+**Consecuencia en este repo**: `Main::complete()` ya **no** calcula `md5($plainPassword)` ni lo
+manda en el payload. Como ahora hashea la base, mandar el MD5 desde acá dejaría la contraseña
+hasheada dos veces y rompería el ingreso del administrador —que es, justamente, el único camino
+que funcionaba antes del fix. Los tres llamadores mandan la contraseña en claro y la query la
+transforma.
+
+**Corrección de datos**: las filas que ya quedaron en texto plano se arreglan con
+`_backend/database/scripts/asset-sisusers-hashear-passwords.sql` del repo `traz-tools`, que se
+corre **después** de desplegar el CAR.
 
 #### 3. **Agregar Manejo de Imagen**
 ```xml
