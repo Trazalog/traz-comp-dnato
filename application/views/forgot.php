@@ -67,22 +67,22 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
         padding: 48px 8% 32px 8%;
     }
 
-    .tz-login__inner { width: 100%; max-width: 400px; margin: auto; }
+    .tz-login__inner { width: 100%; max-width: 440px; margin: auto; }
 
-    .tz-login__logo { max-width: 190px; height: auto; margin-bottom: 40px; }
+    .tz-login__logo { max-width: 250px; height: auto; margin-bottom: 44px; }
 
     .tz-login__title {
-        font-size: 30px;
+        font-size: 36px;
         font-weight: 700;
         color: #1b2733;
-        margin: 0 0 8px 0;
-        letter-spacing: -0.4px;
+        margin: 0 0 10px 0;
+        letter-spacing: -0.5px;
     }
 
     .tz-login__subtitle {
-        font-size: 15px;
+        font-size: 17px;
         color: #6b7a8c;
-        margin: 0 0 30px 0;
+        margin: 0 0 32px 0;
         line-height: 1.5;
     }
 
@@ -98,33 +98,33 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
     .tz-alert--warning { background: #fef5e7; color: #8a6116; border-left-color: #f39c12; }
     .tz-alert--success { background: #eafaf1; color: #1d6f42; border-left-color: #27ae60; }
 
-    .tz-field { margin-bottom: 20px; }
+    .tz-field { margin-bottom: 22px; }
 
     .tz-field__label {
         display: block;
-        font-size: 13px;
+        font-size: 14.5px;
         font-weight: 600;
         color: #44546a;
-        margin-bottom: 7px;
+        margin-bottom: 8px;
     }
 
     .tz-field__box { position: relative; }
 
     .tz-field__icon {
         position: absolute;
-        left: 15px;
+        left: 17px;
         top: 50%;
-        margin-top: -8px;
+        margin-top: -9px;
         color: #a3b1c2;
-        font-size: 15px;
+        font-size: 17px;
         line-height: 1;
     }
 
     .tz-field__input {
         width: 100%;
-        height: 48px;
-        padding: 0 16px 0 42px;
-        font-size: 15px;
+        height: 54px;
+        padding: 0 18px 0 46px;
+        font-size: 16.5px;
         color: #1b2733;
         background: #f7f9fb;
         border: 1.5px solid #e1e8ef;
@@ -149,12 +149,12 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
     .tz-btn {
         display: block;
         width: 100%;
-        height: 50px;
+        height: 56px;
         border: 0;
         border-radius: 9px;
         background: #3498db;
         color: #ffffff;
-        font-size: 16px;
+        font-size: 17.5px;
         font-weight: 600;
         cursor: pointer;
         -webkit-transition: background 0.15s ease, box-shadow 0.15s ease, -webkit-transform 0.15s ease;
@@ -168,7 +168,7 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
     }
     .tz-btn:active { -webkit-transform: translateY(0); transform: translateY(0); }
 
-    .tz-login__links { margin-top: 22px; font-size: 14px; text-align: center; }
+    .tz-login__links { margin-top: 24px; font-size: 15.5px; text-align: center; }
     .tz-login__links a { color: #3498db; text-decoration: none; }
     .tz-login__links a:hover { text-decoration: underline; }
 
