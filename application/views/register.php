@@ -213,6 +213,84 @@
     .form-container.hidden {
         display: none !important;
     }
+
+    /* ------------------------------------------------------------------
+       Centrado del panel, alineado con el login (views/login.php).
+       Antes la columna quedaba pegada al borde izquierdo: el panel medía
+       40% con min-width 500px y cada elemento traía margin-left: 20px.
+       ------------------------------------------------------------------ */
+    .register-left {
+        width: 46% !important;
+        max-width: 46% !important;
+        min-width: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow-y: auto !important;
+        padding: 40px 8% !important;
+    }
+
+    .register-right {
+        width: 54% !important;
+        flex: 1 1 54% !important;
+    }
+
+    /* margin:auto — NO justify-content:center — para centrar vertical y
+       horizontalmente sin romper el scroll. Con justify-content, el contenido
+       que desborda se corta y no se puede alcanzar; el formulario de registro
+       es largo y así quedaba inaccesible el enlace de volver al login. */
+    .register-inner {
+        width: 100% !important;
+        max-width: 440px !important;
+        margin: auto !important;
+    }
+
+    .register-version {
+        margin-top: 26px !important;
+        font-size: 12px !important;
+        color: #bdbdbd !important;
+        text-align: left !important;
+    }
+
+    .volver-login {
+        margin-top: 24px !important;
+        padding-bottom: 6px !important;
+        font-size: 14px !important;
+        color: #e4e4e4 !important;
+        text-align: left !important;
+    }
+
+    /* Los margin-left de cada elemento sobran con la columna ya centrada */
+    .register-inner .logo-container,
+    .register-inner .register-title,
+    .register-inner .register-subtitle,
+    .register-inner .form-group,
+    .register-inner .btn-register,
+    .register-inner .warning-text,
+    .register-inner .terms-text,
+    .register-inner .error-message,
+    .register-inner .server-error-message {
+        margin-left: 0 !important;
+    }
+
+    /* Que todo ocupe el ancho de la columna centrada, no 400px fijos */
+    .register-inner .form-control,
+    .register-inner .btn-register,
+    .register-inner .error-message,
+    .register-inner .server-error-message {
+        max-width: 100% !important;
+    }
+
+    .register-inner .logo-container { margin-top: 0 !important; }
+
+    /* En pantallas chicas la imagen se oculta, igual que en el login */
+    @media (max-width: 991px) {
+        .register-right { display: none !important; }
+        .register-left {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 40px 24px !important;
+        }
+    }
 </style>
 
     <?php 
@@ -235,6 +313,8 @@ if (!empty($arr['danger_message'])) {
 
 <div class="register-container">
     <div class="register-left">
+    <!-- register-inner: centra la columna dentro del panel, igual que el login -->
+    <div class="register-inner">
         <div class="logo-container">
             <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
         </div>
@@ -290,14 +370,21 @@ if (!empty($arr['danger_message'])) {
             Al registrarme, acepto los Términos y Condiciones y las Políticas de Privacidad de Trazalog.
         </div>
         
-        <div class="terms-text">
-            ¿Ya es usuario? <a href="<?php echo base_url(); ?>main/login" class="login-link">Acceda aquí</a>
-        </div>
         
         <?php echo form_close(); ?>
+    </div><!-- /form-container -->
+
+    <!-- Fuera de .form-container: ese bloque se oculta tras un alta exitosa,
+         y el usuario tiene que poder volver al login igual. -->
+    <div class="volver-login">
+        ¿Ya es usuario? <a href="<?php echo base_url(); ?>main/login" class="login-link">Iniciar sesión</a>
     </div>
-    </div>
-    
+
+    <div class="register-version"><?php echo html_escape(ApplicationVersion::getVersion()); ?></div>
+
+    </div><!-- /register-inner -->
+    </div><!-- /register-left -->
+
     <div class="register-right">
         <!-- Imagen de fondo -->
     </div>
@@ -406,3 +493,5 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Todas las validaciones configuradas');
 });
 </script>
+</body>
+</html>

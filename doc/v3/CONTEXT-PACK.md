@@ -68,6 +68,7 @@ Usuario → login en Dnato (OauthLogin.php, 2 pasos: credenciales → selección
 |---|---|
 | Emisión de JWT / claims | `doc/identity/token-issuance.md`, `JwtIssuer.php` |
 | Flujo de login OAuth / PKCE | `doc/identity/oauth-login-flow.md`, `OauthLogin.php` |
+| Login web (usuario en el navegador) | `Main::login()` + `Main::seleccionar_empresa()`. Pide sólo email y contraseña; la empresa se resuelve server-side desde `seg.memberships_users` × `core.empresas` y, si hay más de una, se elige en `views/login_empresa.php`. **No comparte código con el login OAuth**, que sigue rechazando usuarios multi-empresa (TAD-IDENT-02). Las dos vistas usan layout a sangre: no cargan `container.php` ni `footer.php`. El banner freemium se enciende y apaga con `LOGIN_MOSTRAR_REGISTRO` en `constants.php` |
 | Discovery OAuth (RFC 8414) | `application/controllers/Oauth.php` (método `jwks()` y endpoint `.well-known`) |
 | Cómo el APIM consume estos tokens | `traz-tools/doc/adr/ADR-008-*.md`, `ADR-009-*.md` (repo distinto) |
 | Defectos conocidos de identidad (OAuth/JWT) | `doc/v3/hallazgos-identidad-para-mcp.md` — 5 hallazgos + deriva de docs, sin corregir |

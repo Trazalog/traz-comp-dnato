@@ -624,6 +624,8 @@ class Register extends CI_Controller {
             $this->session->set_flashdata('welcome_registro', array(
                 'domain' => strtolower($companyDomain),
                 'company_name' => trim(isset($user_data->reg_razon_social) ? $user_data->reg_razon_social : ''),
+                // El correo verificado durante el registro: es a donde va la bienvenida.
+                'email' => isset($user_data->email) ? $user_data->email : '',
             ));
             redirect(base_url() . 'register/registro_completo');
 
@@ -806,6 +808,23 @@ class Register extends CI_Controller {
         $data['welcome_usuarios'] = $this->listaUsuariosDefaultParaBienvenida($domain);
         $data['welcome_password_hint'] = defined('REGISTRACION_PASSWORD_DEFAULT') ? REGISTRACION_PASSWORD_DEFAULT : '123456';
         $data['provisioning_warnings'] = is_array($provisioningWarnings) ? $provisioningWarnings : array();
+
+        /* Correo de bienvenida al mismo buzón que se verificó en el registro.
+         * Va acá y no en guardarEmpresa() porque los datos que resume son los
+         * mismos que arma esta pantalla. Depende de $welcome, que viene por
+         * flashdata y se consume una sola vez: si el usuario recarga, no hay
+         * flashdata y el correo no se reenvía. */
+        if (!empty($welcome)) {
+            $destino = isset($welcome['email']) && $welcome['email'] !== ''
+                ? $welcome['email']
+                : (string) $this->session->userdata('email');
+            $this->enviarCorreoBienvenida(
+                $destino,
+                isset($welcome['company_name']) ? $welcome['company_name'] : '',
+                $data['welcome_usuarios'],
+                $data['welcome_password_hint']
+            );
+        }
 
         /* Tras crear la empresa el usuario seguía con sesión de registración (email, id, etc.).
          * Main::login() interpreta eso como "ya logueado" y redirige a DE (traz-tools) sin mostrar el formulario.
@@ -1409,5 +1428,71 @@ class Register extends CI_Controller {
 
         return BPM_SESSION_FALLBACK;
     }
-}
 
+    /**
+     * Envía el correo de bienvenida del alta de empresa.
+     *
+     * Nunca interrumpe el flujo: si el envío falla, se registra en el log y el
+     * usuario igual ve la pantalla de bienvenida con los mismos datos. La
+     * empresa ya está creada; un correo que no sale no es motivo para mostrarle
+     * un error a esta altura.
+     *
+     * @param string $destino  correo verificado durante el registro
+     * @param string $empresa  razón social
+     * @param array  $usuarios lista de array('email','roles_label')
+     * @param string $password contraseña temporal
+     * @return bool
+     */
+    private function enviarCorreoBienvenida($destino, $empresa, $usuarios, $password)
+    {
+        $destino = trim((string) $destino);
+        if ($destino === '' || !filter_var($destino, FILTER_VALIDATE_EMAIL)) {
+            log_message('ERROR', '#TRAZA|REGISTER|enviarCorreoBienvenida() >> sin destinatario válido | valor=' . $destino);
+            return false;
+        }
+
+        try {
+            $this->load->library('email');
+            $this->load->library('sendmail');
+
+            $sitio = defined('SIS_NAME') ? 'Trazalog ' . SIS_NAME : 'Trazalog';
+            $logo  = base_url() . (defined('REGISTER_IMG_EMAIL_LOGO') ? REGISTER_IMG_EMAIL_LOGO : 'public/img/logotzl.png');
+            $login = defined('DS') ? DS : base_url() . 'main/login';
+
+            $cuerpo = $this->sendmail->sendBienvenidaEmpresa(
+                $usuarios,
+                $password,
+                $empresa,
+                $login,
+                $logo,
+                $sitio
+            );
+
+            $remitente = $this->config->item('register');
+            if (!$remitente) {
+                $remitente = 'register@trazalog.com';
+            }
+
+            $this->email->clear(true);
+            $this->email->set_mailtype('html');
+            $this->email->from($remitente, $sitio);
+            $this->email->to($destino);
+            $this->email->subject('Tu empresa ya está activa en ' . $sitio);
+            $this->email->message($cuerpo);
+
+            if (!$this->email->send(false)) {
+                log_message('ERROR', '#TRAZA|REGISTER|enviarCorreoBienvenida() >> falló el envío a ' . $destino
+                    . ' | ' . $this->email->print_debugger(array('headers')));
+                return false;
+            }
+
+            log_message('INFO', '#TRAZA|REGISTER|enviarCorreoBienvenida() >> enviado a ' . $destino
+                . ' | empresa=' . $empresa . ' | usuarios=' . count($usuarios));
+            return true;
+
+        } catch (Exception $e) {
+            log_message('ERROR', '#TRAZA|REGISTER|enviarCorreoBienvenida() >> excepción: ' . $e->getMessage());
+            return false;
+        }
+    }
+}

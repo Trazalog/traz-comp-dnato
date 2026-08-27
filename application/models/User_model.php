@@ -280,7 +280,12 @@ class User_model extends CI_Model {
 
 	    /**
      * Resuelve empr_id numérico a partir del nombre de grupo BPM.
-     * La convención es group (memberships_users) = descripcion (core.empresas).
+     * OJO: este método asume group (memberships_users) = descripcion (core.empresas),
+     * y esa convención NO se cumple en los datos reales — hay empresas donde el
+     * grupo coincide con `nombre` y la descripción es texto libre ('correa' →
+     * 'transporte'). Verificado contra la base de desarrollo. El criterio correcto
+     * es el de getEmpresasDeUsuario(): nombre O descripcion.
+     * Este método hoy no lo llama nadie; si se vuelve a usar, corregirlo antes.
      * @param string $group nombre del grupo BPM
      * @return int empr_id, o 0 si no se encuentra
      */
@@ -303,6 +308,129 @@ class User_model extends CI_Model {
     }
 
     /**
+     * Devuelve las empresas a las que pertenece un usuario, con los datos que
+     * necesita la pantalla de selección de empresa del login (nombre + logo).
+     *
+     * Fuente: seg.memberships_users (membresías del usuario) unida a core.empresas.
+     * Se deduplica por empr_id porque un usuario puede tener varios roles dentro
+     * de la misma empresa.
+     *
+     * EL MATCH VA CONTRA nombre O descripcion, y eso NO es redundante: verificado
+     * contra la base de desarrollo, cada empresa usa una u otra según cómo fue
+     * creada. Con 58 grupos distintos, el criterio deja sin resolver 9 usuarios si
+     * se mira sólo `descripcion` y 40 si se mira sólo `nombre`; mirando las dos,
+     * 7. El docblock de getEmprIdByGroup() afirma que la convención es
+     * `group = descripcion` — es incorrecto, hay empresas donde el grupo coincide
+     * con `nombre` y la descripción es texto libre ('correa' → 'transporte').
+     * Se excluyen las cadenas vacías para no unir todo contra una descripción en
+     * blanco.
+     *
+     * IMPORTANTE: una membresía cuyo group no tenga empresa equivalente en
+     * core.empresas NO se devuelve — sin empr_id no se puede armar la sesión.
+     * Esos casos se detectan con gruposSinEmpresa() y se registran en el log.
+     *
+     * @param  string $email
+     * @return array  Lista de objetos con empr_id, descripcion, nombre, image,
+     *                imagepath y grupo. Array vacío si no tiene ninguna.
+     */
+    public function getEmpresasDeUsuario($email)
+    {
+        $emailNorm = strtolower(trim((string) $email));
+        if ($emailNorm === '') {
+            return array();
+        }
+
+        // NOWDOC: el SQL lleva comillas simples y dobles, así se escribe tal cual.
+        $sql = <<<'SQL'
+SELECT DISTINCT ON (e.empr_id)
+       e.empr_id, e.descripcion, e.nombre, e.image, e.imagepath,
+       mu."group" AS grupo
+  FROM seg.memberships_users mu
+  INNER JOIN core.empresas e
+          ON (
+               (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+            OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group")))
+             )
+ WHERE LOWER(TRIM(mu.email)) = ?
+   AND TRIM(mu."group") <> ''
+   AND e.eliminado = false
+ ORDER BY e.empr_id
+SQL;
+
+        $query = $this->db->query($sql, array($emailNorm));
+        if (!$query) {
+            log_message('ERROR', '#TRAZA|USER_MODEL|getEmpresasDeUsuario() >> la consulta falló para email=' . $emailNorm);
+            return array();
+        }
+
+        $empresas = $query->result();
+
+        // Ordenar por nombre visible, que es como se muestran en pantalla.
+        usort($empresas, array($this, '_compararEmpresasPorNombre'));
+
+        return $empresas;
+    }
+
+    /**
+     * Comparador de empresas por el nombre que se muestra en pantalla.
+     * Método propio en vez de closure para no depender de sort estable.
+     *
+     * @param  object $a
+     * @param  object $b
+     * @return int
+     */
+    public function _compararEmpresasPorNombre($a, $b)
+    {
+        $na = isset($a->descripcion) ? (string) $a->descripcion : '';
+        $nb = isset($b->descripcion) ? (string) $b->descripcion : '';
+        return strcasecmp($na, $nb);
+    }
+
+    /**
+     * Devuelve los nombres de grupo de las membresías del usuario que NO tienen
+     * empresa equivalente en core.empresas. Sirve para dejar registro de datos
+     * inconsistentes: el usuario tiene la membresía pero la empresa no resuelve,
+     * así que no se le puede ofrecer en el login.
+     *
+     * @param  string $email
+     * @return array  Lista de nombres de grupo huérfanos.
+     */
+    public function gruposSinEmpresa($email)
+    {
+        $emailNorm = strtolower(trim((string) $email));
+        if ($emailNorm === '') {
+            return array();
+        }
+
+        $sql = <<<'SQL'
+SELECT DISTINCT mu."group" AS grupo
+  FROM seg.memberships_users mu
+ WHERE LOWER(TRIM(mu.email)) = ?
+   AND TRIM(mu."group") <> ''
+   AND NOT EXISTS (
+       SELECT 1
+         FROM core.empresas e
+        WHERE (
+                (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+             OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group")))
+              )
+          AND e.eliminado = false
+   )
+SQL;
+
+        $query = $this->db->query($sql, array($emailNorm));
+        if (!$query) {
+            return array();
+        }
+
+        $out = array();
+        foreach ($query->result() as $row) {
+            $out[] = (string) $row->grupo;
+        }
+        return $out;
+    }
+
+    /**
      * Verifica que el email tiene membresía en la empresa (por empr_id numérico).
      * Reemplaza chekEmpresa() en el flujo OAuth donde solo se dispone del empr_id.
      * @param int $empr_id
@@ -312,14 +440,27 @@ class User_model extends CI_Model {
     public function chekEmpresaByEmprId($empr_id, $email)
     {
         $emailNorm = strtolower(trim($email));
-        $this->db->select('1');
-        $this->db->from('seg.memberships_users mu');
-        $this->db->join('core.empresas e', 'UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu.group))', 'inner');
-        $this->db->where('e.empr_id', $empr_id);
-        $this->db->where('e.eliminado', false);
-        $this->db->where('LOWER(TRIM(mu.email)) = ' . $this->db->escape($emailNorm), null, false);
-        $this->db->limit(1);
-        $query = $this->db->get();
+
+        // Mismo criterio de match que getEmpresasDeUsuario(): nombre O descripcion.
+        // Si acá se mirara sólo descripcion, una empresa que el usuario ve en la
+        // pantalla de selección porque matcheó por nombre sería rechazada al
+        // confirmarla, y el usuario no podría entrar.
+        $sql = <<<'SQL'
+SELECT 1
+  FROM seg.memberships_users mu
+  INNER JOIN core.empresas e
+          ON (
+               (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+            OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group")))
+             )
+ WHERE e.empr_id = ?
+   AND e.eliminado = false
+   AND LOWER(TRIM(mu.email)) = ?
+   AND TRIM(mu."group") <> ''
+ LIMIT 1
+SQL;
+
+        $query = $this->db->query($sql, array((int) $empr_id, $emailNorm));
         return $query && $query->num_rows() > 0;
     }
 
