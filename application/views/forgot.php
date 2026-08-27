@@ -180,6 +180,11 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
     }
     .tz-login__foot a { color: #9aa8b8; }
 
+    .tz-login__version {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+    }
+
     .tz-recaptcha { margin-bottom: 20px; text-align: center; }
     .tz-recaptcha > div { display: inline-block; }
 
@@ -260,11 +265,13 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
                 <a href="<?php echo site_url(); ?>main/login">Volver a iniciar sesión</a>
             </div>
 
-            <?php if (isset($copyright) && $copyright == 'true'): ?>
-                <div class="tz-login__foot">
+            <div class="tz-login__foot">
+                <?php if (isset($copyright) && $copyright == 'true'): ?>
                     Copyright &middot; <a href="http://trazalog.com/" target="_blank" rel="noopener">TRAZALOG</a>
-                </div>
-            <?php endif; ?>
+                    &middot;
+                <?php endif; ?>
+                <span class="tz-login__version"><?php echo html_escape(ApplicationVersion::getVersion()); ?></span>
+            </div>
 
         </div>
     </div>

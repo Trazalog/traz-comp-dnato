@@ -244,6 +244,13 @@
         margin: auto !important;
     }
 
+    .register-version {
+        margin-top: 26px !important;
+        font-size: 12px !important;
+        color: #bdbdbd !important;
+        text-align: left !important;
+    }
+
     .volver-login {
         margin-top: 24px !important;
         padding-bottom: 6px !important;
@@ -372,6 +379,8 @@ if (!empty($arr['danger_message'])) {
     <div class="volver-login">
         ¿Ya es usuario? <a href="<?php echo base_url(); ?>main/login" class="login-link">Iniciar sesión</a>
     </div>
+
+    <div class="register-version"><?php echo html_escape(ApplicationVersion::getVersion()); ?></div>
 
     </div><!-- /register-inner -->
     </div><!-- /register-left -->
