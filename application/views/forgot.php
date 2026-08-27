@@ -60,13 +60,14 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
         -webkit-box-direction: normal;
         -ms-flex-direction: column;
                 flex-direction: column;
-        -webkit-box-pack: center;
-        -ms-flex-pack: center;
-                justify-content: center;
+        /* Sin justify-content: con overflow, el contenido que desborda se
+           corta y no se puede alcanzar. El centrado lo hace margin:auto
+           en .tz-login__inner, que sí convive con el scroll. */
+        overflow-y: auto;
         padding: 48px 8% 32px 8%;
     }
 
-    .tz-login__inner { width: 100%; max-width: 400px; margin: 0 auto; }
+    .tz-login__inner { width: 100%; max-width: 400px; margin: auto; }
 
     .tz-login__logo { max-width: 190px; height: auto; margin-bottom: 40px; }
 

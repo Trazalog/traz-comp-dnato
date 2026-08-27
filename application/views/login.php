@@ -67,16 +67,17 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
         -webkit-box-direction: normal;
         -ms-flex-direction: column;
                 flex-direction: column;
-        -webkit-box-pack: center;
-        -ms-flex-pack: center;
-                justify-content: center;
+        /* Sin justify-content: con overflow, el contenido que desborda se
+           corta y no se puede alcanzar. El centrado lo hace margin:auto
+           en .tz-login__inner, que sí convive con el scroll. */
+        overflow-y: auto;
         padding: 48px 8% 32px 8%;
     }
 
     .tz-login__inner {
         width: 100%;
         max-width: 400px;
-        margin: 0 auto;
+        margin: auto;
     }
 
     .tz-login__logo {

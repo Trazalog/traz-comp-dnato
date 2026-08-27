@@ -225,7 +225,6 @@
         min-width: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: center !important;
         overflow-y: auto !important;
         padding: 40px 8% !important;
     }
@@ -235,10 +234,22 @@
         flex: 1 1 54% !important;
     }
 
+    /* margin:auto — NO justify-content:center — para centrar vertical y
+       horizontalmente sin romper el scroll. Con justify-content, el contenido
+       que desborda se corta y no se puede alcanzar; el formulario de registro
+       es largo y así quedaba inaccesible el enlace de volver al login. */
     .register-inner {
         width: 100% !important;
         max-width: 440px !important;
-        margin: 0 auto !important;
+        margin: auto !important;
+    }
+
+    .volver-login {
+        margin-top: 24px !important;
+        padding-bottom: 6px !important;
+        font-size: 14px !important;
+        color: #e4e4e4 !important;
+        text-align: left !important;
     }
 
     /* Los margin-left de cada elemento sobran con la columna ya centrada */
@@ -352,15 +363,19 @@ if (!empty($arr['danger_message'])) {
             Al registrarme, acepto los Términos y Condiciones y las Políticas de Privacidad de Trazalog.
         </div>
         
-        <div class="terms-text">
-            ¿Ya es usuario? <a href="<?php echo base_url(); ?>main/login" class="login-link">Acceda aquí</a>
-        </div>
         
         <?php echo form_close(); ?>
+    </div><!-- /form-container -->
+
+    <!-- Fuera de .form-container: ese bloque se oculta tras un alta exitosa,
+         y el usuario tiene que poder volver al login igual. -->
+    <div class="volver-login">
+        ¿Ya es usuario? <a href="<?php echo base_url(); ?>main/login" class="login-link">Iniciar sesión</a>
     </div>
-    </div>
-    
+
     </div><!-- /register-inner -->
+    </div><!-- /register-left -->
+
     <div class="register-right">
         <!-- Imagen de fondo -->
     </div>
