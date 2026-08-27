@@ -12,12 +12,14 @@ Es el instructivo para **producir las 6 imágenes definitivas de las pantallas d
 
 | Imagen | Sector | Estado |
 |---|---|---|
-| `toolslogin.png` | ⛏️ Minería | ⏳ **Nueva.** Login, recuperar contraseña y fondo de selección de empresa — §6.1 |
-| `toolsregister.png` | 🛢️ **Petróleo y gas** | ⏳ Rehacer — §6.2 |
-| `toolschangepass.png` | ⛏️ Minería | ⏳ Falta — §6.3 |
-| `toolsform.png` | — neutro | ⏳ Falta — §6.4 |
-| `toolscreaempr.png` | ⚡ **Energía** | ⏳ Falta — §6.5. **Es la que hoy da 404** |
-| `toolsbienvenida.png` | ⛏️ Minería | ⏳ Falta — §6.6 |
+| `toolslogin.jpg` | ⛏️ Minería | ✅ **Instalada** |
+| `toolsregister.jpg` | 🛢️ Petróleo y gas | ✅ **Instalada** |
+| `toolschangepass.jpg` | ⛏️ Minería | ✅ **Instalada** |
+| `toolsform.jpg` | — neutro | ✅ **Instalada** |
+| `toolscreaempr.jpg` | ⚡ Energía | ✅ **Instalada** — resuelve el 404 que arrastraba esa pantalla |
+| `toolsbienvenida.jpg` | ⛏️ Minería | ✅ **Instalada** |
+
+> **Las seis están hechas e instaladas** (PR #26), generadas con Qwen-Image y tratadas con `scripts/tratar-imagen.php`. **Son `.jpg`, no `.png`**: medido sobre estas mismas seis, PNG pesaba 5,0 MB contra 1,3 MB en JPEG con la misma apariencia — el grano es ruido incompresible y en PNG multiplica el peso sin ganancia. Las seis constantes de `constants.php` apuntan a la extensión nueva.
 
 **Historia corta:** la primera tanda (5 con FLUX.1 [schnell] + 1 con Qwen-Image) se descartó casi entera porque *se notaba que era IA*. El diagnóstico está en §1 y motivó el cambio de enfoque de este documento: **ya no se busca fotorrealismo, se busca una foto tratada**. El material viejo sigue en `/mnt/win/dev/Trazalog/dnato/` y la mejor de esa tanda —el pit andino de Qwen— sirve como base para §6.2 si se le aplica el tratamiento.
 
@@ -220,6 +222,8 @@ Tres cosas cambiaron respecto de la versión anterior, y las tres importan:
 3. **Los encuadres evitan lo que la IA hace mal.** Regla verificada sobre la primera tanda: funcionan las personas de espaldas o de perfil lejano, una sola por imagen, manos vacías y foco profundo; fallan las caras frontales, dos personas interactuando, **las manos sosteniendo objetos**, el texto y el bokeh fuerte.
 4. **No todas son de minería.** El producto no se vende sólo a mineras, y seis imágenes del mismo pit lo hacen parecer un software de un solo rubro. La secuencia queda: minería → **petróleo y gas** → minería → neutro → **energía** → minería. La primera y la última se mantienen en minería porque son las que enmarcan el flujo (§6.1 y §6.6), y la del escritorio (§6.4) no muestra sector.
 
+5. **La ropa de trabajo va limpia.** La primera versión de estos prompts pedía ropa "dusty and faded" y bandas reflectivas gastadas, buscando realismo documental. Revisado con el cliente: **la ropa sucia se lee como desprolijidad y molesta**. Una operación minera quiere mostrarse cuidada, y el estado del EPP es justamente una de las señales que miran. El polvo va en el suelo y en el aire, no en la gente.
+
 **Dos regiones, un solo tratamiento.** Las de minería transcurren en la cordillera de San Juan (roca ocre) y las de petróleo y energía en la estepa de Neuquén (grava pálida, arbustos bajos, horizonte llano). Son paisajes distintos a propósito, y el duotono de §4 los unifica igual: ése es justamente el beneficio de tratar todas las imágenes con las mismas capas.
 
 Generá **4 variantes de cada uno** y elegí antes de tratar.
@@ -237,9 +241,9 @@ ochre and grey rock benches step down toward the middle of the frame; a hazy
 cordillera ridgeline closes the horizon under a pale, even sky. A single
 Argentinian mine worker in his forties stands small in the middle distance on a
 bench edge, seen from behind, looking out over the pit, hands at his sides. His
-navy blue coveralls are dusty and faded, the orange reflective bands worn, his
-hard hat scratched, his boots caked in pale dust. Soft even morning light, no
-harsh highlights, shadows falling consistently to the left. Shot on a 35mm lens
+navy blue coveralls are clean and well kept, the orange reflective bands bright
+and intact, his hard hat clean, his boots dusty from the ground. Soft even morning
+light, no harsh highlights, shadows falling consistently to the left. Shot on a 35mm lens
 at f/8, deep focus, sharp from foreground to horizon, fine film grain, restrained
 natural colour, flat contrast, plenty of empty space around the subject, unposed
 candid documentary photojournalism, no retouching.
@@ -258,8 +262,9 @@ from a low rise in the early morning. A steel drilling rig derrick stands agains
 a wide flat horizon of arid Patagonian steppe — pale gravel ground, sparse low
 scrub, no trees; storage tanks, pipe racks and a gravel access road spread around
 the pad; a service truck parked to one side gives scale. Two Argentinian field
-workers in navy blue coveralls with worn orange reflective bands and hard hats
-stand small in the middle distance beside the tanks, seen from behind. Soft even
+workers in clean navy blue coveralls with bright orange reflective bands and clean
+hard hats stand small in the middle distance beside the tanks, seen from behind.
+Soft even
 morning light with long gentle shadows, pale uniform sky, thin wind-blown dust.
 Shot on a 35mm lens at f/8, deep focus, everything sharp, fine film grain,
 restrained natural colour, flat contrast, orderly and calm, unposed documentary
@@ -278,8 +283,8 @@ control point at a mining site in the arid Andes of San Juan, Argentina. A
 weathered steel boom gate crosses the frame; a small modular guard cabin with
 dusty windows stands to the right; pale ochre slopes rise behind. An Argentinian
 site supervisor in her forties, seen from behind at medium distance, stands at
-the gate facing the cabin, hands at her sides, wearing dusty navy blue coveralls
-with worn orange reflective bands, a scratched white hard hat and a ponytail.
+the gate facing the cabin, hands at her sides, wearing clean navy blue coveralls
+with bright orange reflective bands, a clean white hard hat and a ponytail.
 Soft even morning light, shadows falling consistently to the left, fine dust in
 the air. Shot on a 35mm lens at f/8, deep focus, both the supervisor and the
 cabin sharp, fine film grain, restrained natural colour, flat contrast, unposed
@@ -296,7 +301,7 @@ candid documentary photojournalism, no retouching, no signage.
 Editorial photograph for a mining industry trade magazine. The desk inside a
 modular site office at a mining operation in the arid Andes of San Juan,
 Argentina, photographed from above at a slight angle, no people in frame. A
-scratched white hard hat rests beside a large folded paper site plan, a scuffed
+clean white hard hat rests beside a large folded paper site plan, a scuffed
 two-way radio, a pair of worn leather work gloves, a metal thermos and a mug
 leaving a ring on the paper. The desk surface is scratched and dusty. Soft
 daylight enters from a window on the left and falls evenly across the desk. Shot
@@ -321,9 +326,9 @@ in strong perspective, conductors sweeping between them against a pale even sky;
 pale gravel ground with sparse low scrub, no trees. At the base of the nearest
 tower a utility truck with a raised insulated boom lift is parked; one Argentinian
 line worker stands in the elevated basket wearing a full safety harness clipped
-to the basket, a hard hat and navy blue coveralls with worn orange reflective
-bands, working at the crossarm; two more workers in the same gear stand on the
-ground beside the truck, seen from behind at medium distance, looking up. Soft
+to the basket, a clean hard hat and clean navy blue coveralls with bright orange
+reflective bands, working at the crossarm; two more workers in the same gear
+stand on the ground beside the truck, seen from behind at medium distance, looking up. Soft
 even morning light, tower shadows falling consistently across the ground. Shot on
 a 35mm lens at f/8, deep focus, sharp from the truck to the far towers, fine film
 grain, restrained natural colour, flat contrast, unposed candid documentary
@@ -343,7 +348,7 @@ San Juan, Argentina, its tailgate down. A single Argentinian storekeeper in his
 fifties, sun-weathered face with visible skin texture, seen in profile at medium
 distance, lifts a plain sealed cardboard box resting against his forearm onto the
 open tailgate, looking down at what he is doing, calm and unhurried. He wears
-dusty navy blue coveralls with worn orange reflective bands, a scratched hard hat
+clean navy blue coveralls with bright orange reflective bands, a clean hard hat
 and grey work gloves. Ochre slopes and a pale even sky behind. Soft late morning
 light, shadows falling consistently to the left. Shot on a 50mm lens at f/8, deep
 focus, the warehouse and slopes behind him still legible and sharp, fine film
@@ -366,8 +371,8 @@ No es un problema, por dos razones:
 ```
 The scene contains no lettering, no signage and no logos anywhere; every screen
 is switched off; every person is seen from behind or in profile with their hands
-empty and at their sides; the workwear is worn and dusty rather than new; the
-light is soft and even, never dramatic; the whole frame is in focus.
+empty and at their sides; the workwear is clean and well kept; the light is soft
+and even, never dramatic; the whole frame is in focus.
 ```
 
 **Sólo si el sitio que usás sí tiene campo de negativo** (algunos frontends de terceros lo exponen, con la advertencia de licencia de §3.3), pegá esto ahí:
@@ -377,7 +382,7 @@ text, letters, watermark, logo, brand names, signage, readable screen, user
 interface, extra fingers, deformed hands, close-up hands, hands holding objects,
 smiling at camera, posed, stock photo look, glossy, oversaturated, neon orange,
 HDR, heavy bokeh, blurred background, plastic skin, airbrushed, 3d render,
-illustration, cartoon, brand-new clean clothing, lush vegetation, cactus, snow,
+illustration, cartoon, lush vegetation, cactus, snow,
 detached shadow, floating shadow, dramatic lighting, golden hour, lens flare
 ```
 
@@ -391,7 +396,7 @@ Las tres últimas importan más que antes: el tratamiento de §4 necesita una im
 
 1. **Escalar** las dos de 1536 (§5).
 2. **Comprimir.** Objetivo: **≤ 400 KB** las dos grandes, **≤ 250 KB** las cuatro chicas. `squoosh.app` lo hace en el navegador, gratis. Las actuales pesan 1,6 MB cada una para verse a 320 px.
-3. **Formato PNG**: los nombres están cableados en `constants.php` con esa extensión.
+3. **Formato JPEG**, no PNG: son fotografías y llevan grano, que es ruido incompresible. Medido sobre las seis: 5,0 MB en PNG contra 1,3 MB en JPEG, con la misma apariencia. El script elige el formato por la extensión del archivo de salida.
 
 **Checklist de aprobación:**
 
@@ -400,7 +405,7 @@ Las tres últimas importan más que antes: el tratamiento de §4 necesita una im
 - [ ] No hay texto, logos ni marcas legibles en ninguna parte
 - [ ] Las manos tienen cinco dedos y se ven naturales
 - [ ] **Cada sombra sale del pie de quien la proyecta**, y todas caen para el mismo lado
-- [ ] La ropa se ve usada, no recién comprada
+- [ ] **La ropa de trabajo se ve limpia y en buen estado.** Nada de EPP gastado ni ropa sucia: se lee como desprolijidad y molesta al cliente (§6, punto 5)
 - [ ] Ninguna cara se parece a una persona identificable
 - [ ] El paisaje corresponde a la región de esa imagen: montaña andina árida (§6.1, 6.3, 6.6) o estepa patagónica llana (§6.2, 6.5). En ningún caso desierto americano, cactus ni bosque
 - [ ] En la de energía (§6.5): quien trabaja en altura **lleva arnés y está amarrado**
@@ -415,12 +420,12 @@ Las tres últimas importan más que antes: el tratamiento de §4 necesita una im
 Las seis van a `public/img/` con **exactamente estos nombres**:
 
 ```
-public/img/toolslogin.png       ← LOGIN_IMG_BACKGROUND            (nueva)
-public/img/toolsregister.png    ← REGISTER_IMG_BACKGROUND
-public/img/toolschangepass.png  ← REGISTER_IMG_COMPLETE_PASSWORD
-public/img/toolsform.png        ← REGISTER_IMG_FORMULARIO
-public/img/toolscreaempr.png    ← REGISTER_IMG_CREAR_EMPRESA      (hoy falta → 404)
-public/img/toolsbienvenida.png  ← REGISTER_IMG_BIENVENIDA
+public/img/toolslogin.jpg       ← LOGIN_IMG_BACKGROUND
+public/img/toolsregister.jpg    ← REGISTER_IMG_BACKGROUND
+public/img/toolschangepass.jpg  ← REGISTER_IMG_COMPLETE_PASSWORD
+public/img/toolsform.jpg        ← REGISTER_IMG_FORMULARIO
+public/img/toolscreaempr.jpg    ← REGISTER_IMG_CREAR_EMPRESA
+public/img/toolsbienvenida.jpg  ← REGISTER_IMG_BIENVENIDA
 ```
 
 Cinco de las seis entran con sólo copiar el archivo. La única línea de código a tocar es la de la imagen del login, en `application/config/constants.php`, que hoy apunta a la del registro:
