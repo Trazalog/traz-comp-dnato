@@ -280,7 +280,12 @@ class User_model extends CI_Model {
 
 	    /**
      * Resuelve empr_id numérico a partir del nombre de grupo BPM.
-     * La convención es group (memberships_users) = descripcion (core.empresas).
+     * OJO: este método asume group (memberships_users) = descripcion (core.empresas),
+     * y esa convención NO se cumple en los datos reales — hay empresas donde el
+     * grupo coincide con `nombre` y la descripción es texto libre ('correa' →
+     * 'transporte'). Verificado contra la base de desarrollo. El criterio correcto
+     * es el de getEmpresasDeUsuario(): nombre O descripcion.
+     * Este método hoy no lo llama nadie; si se vuelve a usar, corregirlo antes.
      * @param string $group nombre del grupo BPM
      * @return int empr_id, o 0 si no se encuentra
      */
@@ -306,10 +311,19 @@ class User_model extends CI_Model {
      * Devuelve las empresas a las que pertenece un usuario, con los datos que
      * necesita la pantalla de selección de empresa del login (nombre + logo).
      *
-     * Fuente: seg.memberships_users (membresías del usuario) unida a core.empresas
-     * por la convención group = descripcion, la misma que ya usan getEmprIdByGroup()
-     * y chekEmpresaByEmprId(). Se deduplica por empr_id porque un usuario puede
-     * tener varios roles dentro de la misma empresa.
+     * Fuente: seg.memberships_users (membresías del usuario) unida a core.empresas.
+     * Se deduplica por empr_id porque un usuario puede tener varios roles dentro
+     * de la misma empresa.
+     *
+     * EL MATCH VA CONTRA nombre O descripcion, y eso NO es redundante: verificado
+     * contra la base de desarrollo, cada empresa usa una u otra según cómo fue
+     * creada. Con 58 grupos distintos, el criterio deja sin resolver 9 usuarios si
+     * se mira sólo `descripcion` y 40 si se mira sólo `nombre`; mirando las dos,
+     * 7. El docblock de getEmprIdByGroup() afirma que la convención es
+     * `group = descripcion` — es incorrecto, hay empresas donde el grupo coincide
+     * con `nombre` y la descripción es texto libre ('correa' → 'transporte').
+     * Se excluyen las cadenas vacías para no unir todo contra una descripción en
+     * blanco.
      *
      * IMPORTANTE: una membresía cuyo group no tenga empresa equivalente en
      * core.empresas NO se devuelve — sin empr_id no se puede armar la sesión.
@@ -326,15 +340,22 @@ class User_model extends CI_Model {
             return array();
         }
 
-        $sql = 'SELECT DISTINCT ON (e.empr_id)
-                       e.empr_id, e.descripcion, e.nombre, e.image, e.imagepath,
-                       mu."group" AS grupo
-                  FROM seg.memberships_users mu
-                  INNER JOIN core.empresas e
-                          ON UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))
-                 WHERE LOWER(TRIM(mu.email)) = ?
-                   AND e.eliminado = false
-                 ORDER BY e.empr_id';
+        // NOWDOC: el SQL lleva comillas simples y dobles, así se escribe tal cual.
+        $sql = <<<'SQL'
+SELECT DISTINCT ON (e.empr_id)
+       e.empr_id, e.descripcion, e.nombre, e.image, e.imagepath,
+       mu."group" AS grupo
+  FROM seg.memberships_users mu
+  INNER JOIN core.empresas e
+          ON (
+               (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+            OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group")))
+             )
+ WHERE LOWER(TRIM(mu.email)) = ?
+   AND TRIM(mu."group") <> ''
+   AND e.eliminado = false
+ ORDER BY e.empr_id
+SQL;
 
         $query = $this->db->query($sql, array($emailNorm));
         if (!$query) {
@@ -381,15 +402,21 @@ class User_model extends CI_Model {
             return array();
         }
 
-        $sql = 'SELECT DISTINCT mu."group" AS grupo
-                  FROM seg.memberships_users mu
-                 WHERE LOWER(TRIM(mu.email)) = ?
-                   AND NOT EXISTS (
-                       SELECT 1
-                         FROM core.empresas e
-                        WHERE UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))
-                          AND e.eliminado = false
-                   )';
+        $sql = <<<'SQL'
+SELECT DISTINCT mu."group" AS grupo
+  FROM seg.memberships_users mu
+ WHERE LOWER(TRIM(mu.email)) = ?
+   AND TRIM(mu."group") <> ''
+   AND NOT EXISTS (
+       SELECT 1
+         FROM core.empresas e
+        WHERE (
+                (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+             OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group")))
+              )
+          AND e.eliminado = false
+   )
+SQL;
 
         $query = $this->db->query($sql, array($emailNorm));
         if (!$query) {
@@ -413,14 +440,27 @@ class User_model extends CI_Model {
     public function chekEmpresaByEmprId($empr_id, $email)
     {
         $emailNorm = strtolower(trim($email));
-        $this->db->select('1');
-        $this->db->from('seg.memberships_users mu');
-        $this->db->join('core.empresas e', 'UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu.group))', 'inner');
-        $this->db->where('e.empr_id', $empr_id);
-        $this->db->where('e.eliminado', false);
-        $this->db->where('LOWER(TRIM(mu.email)) = ' . $this->db->escape($emailNorm), null, false);
-        $this->db->limit(1);
-        $query = $this->db->get();
+
+        // Mismo criterio de match que getEmpresasDeUsuario(): nombre O descripcion.
+        // Si acá se mirara sólo descripcion, una empresa que el usuario ve en la
+        // pantalla de selección porque matcheó por nombre sería rechazada al
+        // confirmarla, y el usuario no podría entrar.
+        $sql = <<<'SQL'
+SELECT 1
+  FROM seg.memberships_users mu
+  INNER JOIN core.empresas e
+          ON (
+               (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+            OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group")))
+             )
+ WHERE e.empr_id = ?
+   AND e.eliminado = false
+   AND LOWER(TRIM(mu.email)) = ?
+   AND TRIM(mu."group") <> ''
+ LIMIT 1
+SQL;
+
+        $query = $this->db->query($sql, array((int) $empr_id, $emailNorm));
         return $query && $query->num_rows() > 0;
     }
 

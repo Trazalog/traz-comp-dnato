@@ -1417,10 +1417,12 @@ class Main extends CI_Controller {
 			if($this->form_validation->run() == FALSE) {
 					// El login usa layout a sangre (split-screen), así que no se
 					// cargan container.php ni footer.php: la vista renderiza sus
-					// propios mensajes de sesión y el pie. Mismo criterio que register().
+					// propios mensajes de sesión, el pie y el cierre del HTML.
+					// El </body></html> va DENTRO de la vista y no con un echo acá:
+					// CodeIgniter bufferea las vistas pero echo escribe directo al
+					// output, así que el cierre saldría ANTES del doctype.
 					$this->load->view('header', $data);
 					$this->load->view('login', $data);
-					echo '</body></html>';
 					return;
 			}
 
@@ -1515,10 +1517,10 @@ class Main extends CI_Controller {
 			);
 
 			// Mismo layout a sangre que el login, para que las dos pantallas de
-			// entrada se vean como una sola secuencia.
+			// entrada se vean como una sola secuencia. El cierre del HTML lo hace
+			// la vista (ver comentario en login()).
 			$this->load->view('header', $data);
 			$this->load->view('login_empresa', $data);
-			echo '</body></html>';
 	}
 
 	/**

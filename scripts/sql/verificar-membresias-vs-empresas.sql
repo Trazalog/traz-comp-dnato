@@ -4,12 +4,19 @@
 --
 -- OBJETIVO
 --   El login nuevo resuelve las empresas de un usuario uniendo
---   seg.memberships_users con core.empresas por la convención
---   group = descripcion. Una membresía cuyo "group" no tenga empresa
---   equivalente NO se le puede ofrecer al usuario (sin empr_id no hay sesión).
+--   seg.memberships_users con core.empresas: el "group" de la membresía tiene
+--   que coincidir con el `nombre` O la `descripcion` de una empresa. Una
+--   membresía que no coincida con ninguna NO se le puede ofrecer al usuario
+--   (sin empr_id no hay sesión).
 --
 --   Este script mide cuántos casos así existen HOY, antes de desplegar.
 --   Es de SOLO LECTURA: no modifica nada.
+--
+--   EL MATCH VA CONTRA nombre O descripcion, y no es redundante: verificado
+--   contra la base de desarrollo el 2026-08-27, cada empresa usa una u otra
+--   según cómo fue creada. Sobre 58 grupos distintos, mirando sólo
+--   `descripcion` quedaban 9 usuarios sin poder entrar; sólo `nombre`, 40;
+--   mirando las dos, 7 (todos de cuentas de prueba).
 --
 -- DÓNDE SE EJECUTA
 --   Contra la base PostgreSQL de Dnato del ambiente que se vaya a desplegar
@@ -39,7 +46,8 @@ SELECT mu.email,
  WHERE NOT EXISTS (
            SELECT 1
              FROM core.empresas e
-            WHERE UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))
+            WHERE (   (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+                           OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))) )
               AND e.eliminado = false
        )
  GROUP BY mu.email, mu."group"
@@ -59,7 +67,8 @@ SELECT u.email,
            SELECT 1
              FROM seg.memberships_users mu2
              INNER JOIN core.empresas e
-                     ON UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu2."group"))
+                     ON (   (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu2."group")))
+                             OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu2."group"))) )
             WHERE LOWER(TRIM(mu2.email)) = LOWER(TRIM(u.email))
               AND e.eliminado = false
        )
@@ -78,7 +87,8 @@ SELECT cantidad_empresas,
                COUNT(DISTINCT e.empr_id)    AS cantidad_empresas
           FROM seg.memberships_users mu
           INNER JOIN core.empresas e
-                  ON UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))
+                  ON (   (TRIM(e.nombre)      <> '' AND UPPER(TRIM(e.nombre))      = UPPER(TRIM(mu."group")))
+                           OR (TRIM(e.descripcion) <> '' AND UPPER(TRIM(e.descripcion)) = UPPER(TRIM(mu."group"))) )
          WHERE e.eliminado = false
          GROUP BY LOWER(TRIM(mu.email))
        ) t

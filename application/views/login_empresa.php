@@ -236,3 +236,5 @@ $imagenFondo = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
 
     </div>
 </div>
+</body>
+</html>

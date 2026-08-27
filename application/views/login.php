@@ -396,8 +396,8 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
                     <span class="tz-promo__kicker">Plan freemium</span>
                     <h2 class="tz-promo__title">Empezá gratis, con todo incluido</h2>
                     <p class="tz-promo__text">
-                        Creá la cuenta de tu empresa y sumá hasta <strong>5 usuarios sin costo</strong>,
-                        con acceso a todas las funcionalidades de Trazalog.
+                        Creá la cuenta de tu empresa <strong>con 5 usuarios sin costo</strong>
+                        y acceso a todas las funcionalidades de Trazalog.
                     </p>
                     <a href="<?php echo base_url(); ?>main/register" class="tz-promo__cta">Crear cuenta gratis</a>
                     <p class="tz-promo__nota">No pedimos tarjeta de crédito.</p>
@@ -419,8 +419,8 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
                 <span class="tz-promo__kicker">Plan freemium</span>
                 <h2 class="tz-promo__title">Empezá gratis, con todo incluido</h2>
                 <p class="tz-promo__text">
-                    Creá la cuenta de tu empresa y sumá hasta <strong>5 usuarios sin costo</strong>,
-                    con acceso a todas las funcionalidades de Trazalog. Dejá de seguir tu operación
+                    Creá la cuenta de tu empresa <strong>con 5 usuarios sin costo</strong>
+                    y acceso a todas las funcionalidades de Trazalog. Dejá de seguir tu operación
                     con planillas.
                 </p>
                 <a href="<?php echo base_url(); ?>main/register" class="tz-promo__cta">Crear cuenta gratis</a>
@@ -447,3 +447,5 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
     };
 })();
 </script>
+</body>
+</html>
