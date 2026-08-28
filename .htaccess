@@ -1,13 +1,25 @@
 # ---------------------------------------------------------------------------
 # traz-comp-dnato — configuración de Apache
 #
-# ESTE ARCHIVO VA VERSIONADO. Sin la reescritura de abajo, CodeIgniter no rutea
-# y todo el sitio responde 404, salvo entrando con index.php/ en el medio. Un
-# clone limpio tiene que funcionar sin pasos manuales.
+# Este archivo es IGUAL EN TODOS LOS AMBIENTES y va versionado. No hay nada que
+# descomentar, completar ni restaurar al desplegar: un `git pull` lo deja listo.
 #
-# Lo que NO se commitea son los valores propios de cada máquina o ambiente
-# (URL pública, rutas absolutas). Van más abajo, comentados, con la explicación
-# de cuándo hacen falta.
+# La configuración que sí cambia por ambiente (la URL pública, el emisor OAuth,
+# la ruta de las claves) NO vive acá. Se resuelve sola o se declara en
+# application/config/constants.php, que ya es el archivo por ambiente:
+#
+#   · La URL pública se autodetecta del request, protocolo incluido
+#     (application/config/config.php). Con ngrok o detrás de un proxy HTTPS
+#     funciona sin configurar nada.
+#   · El emisor OAuth ("iss" del JWT) sale de DNATO_OAUTH_ISSUER en
+#     constants.php, y si está vacío se deriva de la URL pública.
+#   · Las claves JWT se leen de application/config/keys/, que es donde el
+#     instructivo indica generarlas (doc/identity/jwt-keys-setup.md).
+#
+# Las variables de entorno DNATO_PUBLIC_URL, DNATO_ISSUER, JWT_PRIVATE_KEY_PATH
+# y JWT_PUBLIC_KEY_PATH siguen teniendo prioridad si un servidor ya las define
+# en su VirtualHost. Es el lugar correcto para hacerlo cuando haga falta: no
+# este archivo, que es compartido.
 # ---------------------------------------------------------------------------
 
 RewriteEngine On
@@ -15,31 +27,6 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.+)$ index.php/$1 [L]
 
-
-# --- OAuth 2.1 / MCP -------------------------------------------------------
-#
-# Dnato es el Authorization Server del conector MCP. Estas cuatro variables
-# SÓLO hacen falta cuando OAuth se expone hacia afuera: ngrok en desarrollo,
-# o el dominio real en demo y producción.
-#
-# Sin ellas el sistema funciona igual: application/config/jwt.php cae a
-# application/config/keys/ para las claves, y el discovery arma las URLs con
-# base_url(). El login web no las necesita nunca.
-#
-# ⚠️ Si las descomentás, NO commitees tus valores: le pisás la configuración
-#    al resto del equipo. En un servidor, lo correcto es declararlas en el
-#    VirtualHost de Apache y dejar este bloque comentado.
-#
-# SetEnv DNATO_PUBLIC_URL      "https://TU-DOMINIO/traz-comp-dnato"
-# SetEnv DNATO_ISSUER          "https://TU-DOMINIO/traz-comp-dnato/oauth"
-# SetEnv JWT_PRIVATE_KEY_PATH  "/ruta/absoluta/a/traz-comp-dnato/application/config/keys/jwt_private.pem"
-# SetEnv JWT_PUBLIC_KEY_PATH   "/ruta/absoluta/a/traz-comp-dnato/application/config/keys/jwt_public.pem"
-
-
-# --- Header Authorization --------------------------------------------------
-#
-# Con PHP como CGI o FastCGI, Apache no le pasa el header Authorization a PHP.
-# Descomentar sólo si /oauth/token o las tools MCP reportan que falta el token
-# cuando el cliente sí lo está mandando.
-#
-# SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+# Con PHP como CGI o FastCGI, Apache no le pasa el header Authorization a PHP y
+# las llamadas con Bearer llegan sin token. Con mod_php sobra, pero no molesta.
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1

@@ -251,6 +251,32 @@ define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
 define('LOGIN_IMG_BACKGROUND', 'public/img/toolslogin.jpg');
 
 /*
+|--------------------------------------------------------------------------
+| OAuth 2.1 — identificador del emisor (claim "iss" del JWT)
+|--------------------------------------------------------------------------
+| Va acá, junto al resto de la configuración por ambiente, y NO en el
+| .htaccess: así el archivo de Apache es igual en todos lados y no hay que
+| acordarse de descomentar nada en cada despliegue.
+|
+| Qué es: el claim "iss" que Dnato escribe dentro de cada JWT que emite. El
+| APIM de WSO2 lo compara contra el bloque [[apim.jwt.issuer]] de su
+| deployment.toml para decidir si confía en el token. Los dos valores tienen
+| que ser IDÉNTICOS carácter por carácter; si no, el APIM rechaza el token y
+| las tools MCP responden 401 aunque la firma sea correcta.
+|
+| Orden de precedencia (application/config/jwt.php):
+|   1. Variable de entorno DNATO_ISSUER — si un ambiente ya la define, manda
+|      ella y esta constante se ignora. Demo sigue funcionando como hasta hoy.
+|   2. Esta constante, si tiene valor.
+|   3. Derivado de base_url: <esquema>://<host>/<ruta>/oauth
+|
+| Dejala VACÍA en desarrollo: la opción 3 la resuelve sola, incluso con ngrok.
+| En producción, completala con el mismo valor que quede en el APIM.
+*/
+define('DNATO_OAUTH_ISSUER', '');
+
+
+/*
 | Banner de autoregistro (freemium) en la pantalla de login.
 |
 | TRUE  → se muestra el banner "Crear cuenta gratis", que lleva a main/register.
