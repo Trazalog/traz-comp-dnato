@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# traz-comp-dnato — configuración de Apache
+#
+# ESTE ARCHIVO VA VERSIONADO. Sin la reescritura de abajo, CodeIgniter no rutea
+# y todo el sitio responde 404, salvo entrando con index.php/ en el medio. Un
+# clone limpio tiene que funcionar sin pasos manuales.
+#
+# Lo que NO se commitea son los valores propios de cada máquina o ambiente
+# (URL pública, rutas absolutas). Van más abajo, comentados, con la explicación
+# de cuándo hacen falta.
+# ---------------------------------------------------------------------------
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ index.php/$1 [L]
+
+
+# --- OAuth 2.1 / MCP -------------------------------------------------------
+#
+# Dnato es el Authorization Server del conector MCP. Estas cuatro variables
+# SÓLO hacen falta cuando OAuth se expone hacia afuera: ngrok en desarrollo,
+# o el dominio real en demo y producción.
+#
+# Sin ellas el sistema funciona igual: application/config/jwt.php cae a
+# application/config/keys/ para las claves, y el discovery arma las URLs con
+# base_url(). El login web no las necesita nunca.
+#
+# ⚠️ Si las descomentás, NO commitees tus valores: le pisás la configuración
+#    al resto del equipo. En un servidor, lo correcto es declararlas en el
+#    VirtualHost de Apache y dejar este bloque comentado.
+#
+# SetEnv DNATO_PUBLIC_URL      "https://TU-DOMINIO/traz-comp-dnato"
+# SetEnv DNATO_ISSUER          "https://TU-DOMINIO/traz-comp-dnato/oauth"
+# SetEnv JWT_PRIVATE_KEY_PATH  "/ruta/absoluta/a/traz-comp-dnato/application/config/keys/jwt_private.pem"
+# SetEnv JWT_PUBLIC_KEY_PATH   "/ruta/absoluta/a/traz-comp-dnato/application/config/keys/jwt_public.pem"
+
+
+# --- Header Authorization --------------------------------------------------
+#
+# Con PHP como CGI o FastCGI, Apache no le pasa el header Authorization a PHP.
+# Descomentar sólo si /oauth/token o las tools MCP reportan que falta el token
+# cuando el cliente sí lo está mandando.
+#
+# SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
