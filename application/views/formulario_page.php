@@ -106,7 +106,7 @@ body {
 
     <div class="form-right">
         <div class="image-container">
-            <img src="<?php echo base_url() . (defined('REGISTER_IMG_FORMULARIO') ? REGISTER_IMG_FORMULARIO : 'public/img/toolsform.png'); ?>" alt="Formulario de Registro">
+            <img src="<?php echo base_url() . (defined('REGISTER_IMG_FORMULARIO') ? REGISTER_IMG_FORMULARIO : 'public/img/toolsform.jpg'); ?>" alt="Formulario de Registro">
         </div>
     </div>
 </div>
