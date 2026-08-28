@@ -37,10 +37,32 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $_dnato_pub = getenv('DNATO_PUBLIC_URL');
 if (!empty($_dnato_pub)) {
     $config['base_url'] = rtrim($_dnato_pub, '/') . '/';
-} else {
-    $base = "http://" . $_SERVER['HTTP_HOST'];
-    $base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
+} elseif (!empty($_SERVER['HTTP_HOST'])) {
+    /* Autodetección. Antes armaba siempre "http://", y ése era el único motivo
+     * real por el que hacía falta definir DNATO_PUBLIC_URL a mano para trabajar
+     * con ngrok: el host se detectaba bien, el protocolo no. Detectando también
+     * el esquema, un túnel o un proxy HTTPS funcionan sin configurar nada. */
+    $_esquema = 'http';
+    if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+        $_esquema = 'https';
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        // ngrok, balanceadores y proxies inversos lo informan acá. Puede venir
+        // con varios valores separados por coma; el primero es el del cliente.
+        $_partes = explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO']);
+        $_esquema = (strtolower(trim($_partes[0])) === 'https') ? 'https' : 'http';
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_SSL'])
+              && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on') {
+        $_esquema = 'https';
+    } elseif (!empty($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) {
+        $_esquema = 'https';
+    }
+
+    $base  = $_esquema . '://' . $_SERVER['HTTP_HOST'];
+    $base .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
     $config['base_url'] = $base;
+} else {
+    // CLI: no hay request del cual deducirla.
+    $config['base_url'] = '';
 }
 
 /*
