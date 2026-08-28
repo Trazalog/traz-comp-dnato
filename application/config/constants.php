@@ -233,13 +233,57 @@ define('REGISTRACION_PASSWORD_DEFAULT', '12345');
 |--------------------------------------------------------------------------
 */
 define('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png');
-define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.png');
-define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.png');
-define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.png');
-define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.png');
-define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.png');
+define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.jpg');
+define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.jpg');
+define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.jpg');
+define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.jpg');
+define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.jpg');
 define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
 define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
+
+/*
+| Imagen del panel derecho del login (split-screen). Se muestra a sangre, con
+| background-size: cover. Por defecto es la misma del registro, para que las
+| dos pantallas de entrada al sistema hablen el mismo idioma visual.
+*/
+define('LOGIN_IMG_BACKGROUND', 'public/img/toolslogin.jpg');
+
+/*
+|--------------------------------------------------------------------------
+| OAuth 2.1 — identificador del emisor (claim "iss" del JWT)
+|--------------------------------------------------------------------------
+| Va acá, junto al resto de la configuración por ambiente, y NO en el
+| .htaccess: así el archivo de Apache es igual en todos lados y no hay que
+| acordarse de descomentar nada en cada despliegue.
+|
+| Qué es: el claim "iss" que Dnato escribe dentro de cada JWT que emite. El
+| APIM de WSO2 lo compara contra el bloque [[apim.jwt.issuer]] de su
+| deployment.toml para decidir si confía en el token. Los dos valores tienen
+| que ser IDÉNTICOS carácter por carácter; si no, el APIM rechaza el token y
+| las tools MCP responden 401 aunque la firma sea correcta.
+|
+| Orden de precedencia (application/config/jwt.php):
+|   1. Variable de entorno DNATO_ISSUER — si un ambiente ya la define, manda
+|      ella y esta constante se ignora. Demo sigue funcionando como hasta hoy.
+|   2. Esta constante, si tiene valor.
+|   3. Derivado de base_url: <esquema>://<host>/<ruta>/oauth
+|
+| Dejala VACÍA en desarrollo: la opción 3 la resuelve sola, incluso con ngrok.
+| En producción, completala con el mismo valor que quede en el APIM.
+*/
+define('DNATO_OAUTH_ISSUER', '');
+
+
+/*
+| Banner de autoregistro (freemium) en la pantalla de login.
+|
+| TRUE  → se muestra el banner "Crear cuenta gratis", que lleva a main/register.
+| FALSE → el login no ofrece ninguna vía de alta; el registro sigue accesible
+|         por URL directa, esto sólo controla si se promociona en el login.
+|
+| Ponerlo en FALSE cuando el alta freemium se cierre o se pase a alta asistida.
+*/
+define('LOGIN_MOSTRAR_REGISTRO', TRUE);
 
 /*
  * Configuracion unica (JSON) para usuarios por defecto de registracion.

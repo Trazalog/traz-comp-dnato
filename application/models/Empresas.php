@@ -64,6 +64,17 @@ class Empresas extends CI_Model
         return $valores;
     }
 
+    public function getEmpresaById($emprId)
+    {
+        $url = REST_CORE . '/empresa/' . (int) $emprId;
+        $aux = $this->rest->callApi('GET', $url);
+        if (empty($aux['status']) || empty($aux['data'])) {
+            return null;
+        }
+        $decoded = json_decode($aux['data']);
+        return isset($decoded->empresa) ? $decoded->empresa : null;
+    }
+
     //agrega nueva empresa
     public function agregarEmpresa($d)
     {

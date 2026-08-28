@@ -26,9 +26,44 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 #$base = "http://" . $_SERVER['HTTP_HOST'];
 #$base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
 #$config['base_url'] = $base;
-$base = "http://" . $_SERVER['HTTP_HOST'];
-$base .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
-$config['base_url'] = $base;
+// Cuando hay DNATO_PUBLIC_URL (ngrok DEV), usar ese como base_url para que
+// cookies de sesión y redirects del OAuth login queden en el mismo dominio.
+//
+// NOTA: soporte para exponer Dnato vía ngrok en entornos sin IP pública fija.
+// Uso actual: DEV y TEST (Sprint 2, mientras no existe VM TEST fija).
+// Uso futuro: solo DEV. Cuando TEST tenga IP/dominio propio, este bloque
+// puede quedar exclusivo de APP_ENV=development. Ver doc/identity/
+// oauth-discovery-flow.md para el contexto completo.
+$_dnato_pub = getenv('DNATO_PUBLIC_URL');
+if (!empty($_dnato_pub)) {
+    $config['base_url'] = rtrim($_dnato_pub, '/') . '/';
+} elseif (!empty($_SERVER['HTTP_HOST'])) {
+    /* Autodetección. Antes armaba siempre "http://", y ése era el único motivo
+     * real por el que hacía falta definir DNATO_PUBLIC_URL a mano para trabajar
+     * con ngrok: el host se detectaba bien, el protocolo no. Detectando también
+     * el esquema, un túnel o un proxy HTTPS funcionan sin configurar nada. */
+    $_esquema = 'http';
+    if (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') {
+        $_esquema = 'https';
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+        // ngrok, balanceadores y proxies inversos lo informan acá. Puede venir
+        // con varios valores separados por coma; el primero es el del cliente.
+        $_partes = explode(',', $_SERVER['HTTP_X_FORWARDED_PROTO']);
+        $_esquema = (strtolower(trim($_partes[0])) === 'https') ? 'https' : 'http';
+    } elseif (!empty($_SERVER['HTTP_X_FORWARDED_SSL'])
+              && strtolower($_SERVER['HTTP_X_FORWARDED_SSL']) === 'on') {
+        $_esquema = 'https';
+    } elseif (!empty($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443) {
+        $_esquema = 'https';
+    }
+
+    $base  = $_esquema . '://' . $_SERVER['HTTP_HOST'];
+    $base .= str_replace(basename($_SERVER['SCRIPT_NAME']), '', $_SERVER['SCRIPT_NAME']);
+    $config['base_url'] = $base;
+} else {
+    // CLI: no hay request del cual deducirla.
+    $config['base_url'] = '';
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -141,7 +176,7 @@ $config['subclass_prefix'] = 'MY_';
 | Note: This will NOT disable or override the CodeIgniter-specific
 |	autoloading (application/config/autoload.php)
 */
-$config['composer_autoload'] = FALSE;
+$config['composer_autoload'] = FCPATH . 'vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -162,8 +197,10 @@ $config['composer_autoload'] = FALSE;
 |
 | DO NOT CHANGE THIS UNLESS YOU FULLY UNDERSTAND THE REPERCUSSIONS!!
 |
+| '@' agregado [E9-IDENT-03]: Cli::issue_test_token recibe un email como argumento
+| de CLI, y CI3 filtra los argumentos de consola con esta misma regla.
 */
-$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-';
+$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-@';
 
 /*
 |--------------------------------------------------------------------------

@@ -7,3 +7,18 @@ bulkload_stage_files/
 
 testing/
 .env
+
+vendor/
+composer.lock
+
+application/config/keys/
+
+# El .htaccess SÍ va versionado: sin su reescritura, CodeIgniter no rutea y el
+# sitio responde 404 en todo. Los valores por máquina (ngrok, rutas absolutas)
+# van comentados adentro, o mejor, en el VirtualHost de Apache.
+
+# CAR de WSO2 (artefacto de build). Se regenera local/CI; no se trackea.
+development/*.car
+
+# Backups de CAR generados automáticamente por development/repack-toolsapi-car.sh
+development/*.car.bak.*
