@@ -27,7 +27,7 @@ if (!empty($flash['danger_message'])) {
     $mensajeTexto = $flash['success_message'];
 }
 
-$imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/img/toolsregister.png';
+$imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/img/toolslogin.jpg';
 $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ? LOGIN_IMG_LOGO : 'public/img/logotzl.png');
 ?>
 <style>
