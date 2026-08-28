@@ -713,6 +713,17 @@ class Bulkloads extends CI_Model {
                 return $this->respuestaCarga(false, 'ERROR: Nombre de procedimiento inválido: ' . $sp);
             }
 
+            // El id de empresa de Dnato NO sirve para AssetPlanner: son bases
+            // distintas con numeraciones propias. Se traduce igual que en la
+            // cadena de identidad del MCP, por core.empresas.empr_id_mysql.
+            //
+            // Se resuelve ANTES de tocar el staging: si no se puede, no tiene
+            // sentido haber escrito filas que después habría que limpiar.
+            $empr_id_asset = $this->resolverEmprIdAssetPlanner($empr_id, $logs);
+            if ($empr_id_asset === false) {
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
+
             $tabla_staging = $this->tablaStagingDe($sp);
             $logs[] = 'Motor MariaDB | procedimiento: ' . $sp . ' | staging: ' . $tabla_staging;
 
@@ -753,9 +764,24 @@ class Bulkloads extends CI_Model {
                 return $this->respuestaCarga(false, 'ERROR: El archivo no tiene filas de datos', $logs);
             }
 
-            // Arranque en limpio: si quedó basura de una corrida anterior sin
-            // procesar, el procedimiento la tomaría como propia de esta carga.
-            $mdb->query('DELETE FROM ' . $tabla_staging . ' WHERE procesado = 0');
+            // Si quedaron filas sin procesar de una corrida anterior, el
+            // procedimiento las tomaría como propias de esta carga y las
+            // cargaría en ESTA empresa. Pero borrarlas sin más es destructivo:
+            // podrían ser de otro usuario cargando al mismo tiempo, o de una
+            // corrida que quedó a medias y que alguien quiere recuperar.
+            //
+            // Se aborta y se avisa. Limpiar es una decisión de quien administra,
+            // no algo que esta función deba tomar por su cuenta.
+            $pendientes = $mdb->query('SELECT COUNT(*) AS n FROM ' . $tabla_staging . ' WHERE procesado = 0');
+            $cuantas = ($pendientes && $pendientes->num_rows() > 0) ? (int) $pendientes->row()->n : 0;
+            if ($cuantas > 0) {
+                $mdb->close();
+                $logs[] = 'La tabla ' . $tabla_staging . ' tiene ' . $cuantas . ' fila(s) sin procesar de una carga '
+                        . 'anterior. Si se continuara, el procedimiento las cargaría como si fueran de esta empresa. '
+                        . 'Revisar y limpiar esas filas antes de reintentar.';
+                log_message('ERROR', '#BULKLOAD|ejecutarCargaMariaDB >> ' . $tabla_staging . ' con ' . $cuantas . ' pendientes; se aborta');
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
 
             $insertadas = $this->insertarEnStaging($mdb, $tabla_staging, $filas, $logs);
             if ($insertadas === false) {
@@ -763,7 +789,7 @@ class Bulkloads extends CI_Model {
             }
             $logs[] = 'Filas cargadas en staging: ' . $insertadas;
 
-            $salida = $this->llamarProcedimientoMariaDB($mdb, $sp, $empr_id, $logs);
+            $salida = $this->llamarProcedimientoMariaDB($mdb, $sp, $empr_id_asset, $logs);
             $mdb->close();
 
             if ($salida === false) {
@@ -985,5 +1011,73 @@ class Bulkloads extends CI_Model {
             'output'       => $output,
             'raw_response' => array('output' => $output, 'logs' => $logs)
         );
+    }
+
+    /**
+     * Traduce el id de empresa de Dnato al id que esa misma empresa tiene en
+     * AssetPlanner (base assetv2).
+     *
+     * POR QUÉ HACE FALTA: son dos bases con numeraciones independientes. En la
+     * base de desarrollo, de las 4 empresas vinculadas 3 tienen ids distintos
+     * (187->17, 188->18, 190->20). Pasarle a MariaDB el empr_id de Dnato
+     * cargaría los equipos EN LA EMPRESA DE OTRO CLIENTE, sin ningún error
+     * visible. Es el mismo problema que se corrigió en las tools alm_* del MCP.
+     *
+     * El vínculo es core.empresas.empr_id_mysql, exactamente el que alimenta el
+     * claim empr_id_mysql del JWT (ver Empresas::getEmpresaById, usado por
+     * Oauth::_issueCode y Oauthlogin::_resolveCompany). Acá se consulta la
+     * tabla directamente en lugar de ir por el DataService, porque el resource
+     * GET /empresa/{empr_id} no está en todas las copias desplegadas del CAR.
+     *
+     * SI NO HAY VÍNCULO, CORTA. Es deliberado: sin el id correcto la única
+     * alternativa sería adivinar, y adivinar acá significa escribir en los
+     * datos de otra empresa. Mejor no cargar nada y decir por qué.
+     *
+     * @param  int   $empr_id  id de empresa en Dnato (PostgreSQL)
+     * @param  array $logs
+     * @return int|false       id en AssetPlanner, o false si no se puede resolver
+     */
+    private function resolverEmprIdAssetPlanner($empr_id, &$logs) {
+        $empr_id = (int) $empr_id;
+        if ($empr_id <= 0) {
+            $logs[] = 'Id de empresa inválido: ' . $empr_id;
+            return false;
+        }
+
+        try {
+            $this->load->database();
+            $q = $this->db->query(
+                'SELECT empr_id_mysql, nombre FROM core.empresas WHERE empr_id = ? AND eliminado = false LIMIT 1',
+                array($empr_id)
+            );
+
+            if (!$q || $q->num_rows() === 0) {
+                $logs[] = 'La empresa ' . $empr_id . ' no existe en core.empresas';
+                return false;
+            }
+
+            $fila = $q->row();
+            if ($fila->empr_id_mysql === null || trim((string) $fila->empr_id_mysql) === '') {
+                $logs[] = 'La empresa "' . $fila->nombre . '" (empr_id ' . $empr_id . ') no tiene definido su '
+                        . 'equivalente en AssetPlanner (core.empresas.empr_id_mysql). Sin ese dato la carga se '
+                        . 'haría sobre otra empresa, así que se cancela. Un administrador debe completar el vínculo.';
+                log_message('ERROR', '#BULKLOAD|resolverEmprIdAssetPlanner >> empr_id_mysql vacío para empr_id=' . $empr_id);
+                return false;
+            }
+
+            $asset_id = (int) $fila->empr_id_mysql;
+            if ($asset_id <= 0) {
+                $logs[] = 'El vínculo con AssetPlanner de la empresa ' . $empr_id . ' es inválido: ' . $fila->empr_id_mysql;
+                return false;
+            }
+
+            $logs[] = 'Empresa: Dnato ' . $empr_id . ' -> AssetPlanner ' . $asset_id . ' ("' . $fila->nombre . '")';
+            return $asset_id;
+
+        } catch (Exception $e) {
+            $logs[] = 'No pude resolver la empresa en AssetPlanner: ' . $e->getMessage();
+            log_message('ERROR', '#BULKLOAD|resolverEmprIdAssetPlanner >> ' . $e->getMessage());
+            return false;
+        }
     }
 }
