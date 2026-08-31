@@ -488,8 +488,8 @@
       <param name="lipr_id" sqlType="STRING"/>
    </query>
    <query id="getEntidadesNegocio" useConfig="ToolsDataSource">
-      <sql>SELECT nombre, stored_procedure, template, fec_alta, usuario FROM sta.entidades_negocio ORDER BY nombre</sql>
-      <result outputType="json">{"response":{"entidades":[{"nombre":"$nombre","stored_procedure":"$stored_procedure","template":"$template","fec_alta":"$fec_alta","usuario":"$usuario"}]}}</result>
+      <sql>SELECT nombre, stored_procedure, template, motor_bd, fec_alta, usuario FROM sta.entidades_negocio ORDER BY nombre</sql>
+      <result outputType="json">{"response":{"entidades":[{"nombre":"$nombre","stored_procedure":"$stored_procedure","template":"$template","motor_bd":"$motor_bd","fec_alta":"$fec_alta","usuario":"$usuario"}]}}</result>
    </query>
    <query id="procesarCargaMasiva" useConfig="ToolsDataSource">
       <sql>SELECT sta.ejecutar_carga_masiva(:stored_procedure, :url_archivo, CAST(:empr_id AS INTEGER)) as resultado</sql>

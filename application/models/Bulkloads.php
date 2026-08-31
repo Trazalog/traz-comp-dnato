@@ -116,7 +116,70 @@ class Bulkloads extends CI_Model {
      * @param string $empr_id ID de la empresa
      * @return array|false Resultado del procesamiento o false si hay error
      */
+    /**
+     * Punto de entrada de la carga masiva: decide contra qué motor corre la
+     * entidad y despacha. El controlador y la vista no cambian ni se enteran.
+     *
+     * @param  string $csv_filepath     ruta del CSV ya generado en staging
+     * @param  string $stored_procedure nombre del SP tal como está en el catálogo
+     * @param  int    $empr_id          empresa del usuario
+     * @return array|false              mismo formato para los dos motores
+     */
     public function enviarADataservice($csv_filepath, $stored_procedure, $empr_id) {
+        $motor = $this->resolverMotorBd($stored_procedure);
+        log_message('info', '=== CARGA MASIVA === motor resuelto: ' . $motor . ' para ' . $stored_procedure);
+
+        if ($motor === 'mariadb') {
+            return $this->ejecutarCargaMariaDB($csv_filepath, $stored_procedure, $empr_id);
+        }
+        return $this->ejecutarCargaPostgreSQL($csv_filepath, $stored_procedure, $empr_id);
+    }
+
+    /**
+     * Resuelve el motor de una entidad leyendo sta.entidades_negocio, que vive
+     * siempre en PostgreSQL aunque la carga corra en otro motor.
+     *
+     * Se consulta la tabla directamente y no el catálogo que ya trajo el
+     * controlador vía WSO2, a propósito: así el despacho funciona aunque el
+     * COREDataService todavía no haya sido redesplegado con la columna nueva.
+     *
+     * Si la entidad no está en el catálogo, se cae a la convención de nombres
+     * que el propio catálogo respeta: los procedimientos de PostgreSQL llevan
+     * el prefijo 'sta.' y los de AssetPlanner no.
+     *
+     * @param  string $stored_procedure
+     * @return string 'postgresql' | 'mariadb'
+     */
+    private function resolverMotorBd($stored_procedure) {
+        $sp = trim((string) $stored_procedure);
+
+        try {
+            $this->load->database();
+            $q = $this->db->query(
+                'SELECT motor_bd FROM sta.entidades_negocio WHERE stored_procedure = ? LIMIT 1',
+                array($sp)
+            );
+            if ($q && $q->num_rows() > 0) {
+                $motor = strtolower(trim((string) $q->row()->motor_bd));
+                if ($motor === 'mariadb' || $motor === 'postgresql') {
+                    return $motor;
+                }
+            }
+            log_message('info', '#BULKLOAD|resolverMotorBd >> sin motor_bd en el catálogo para ' . $sp . ', se deduce por el nombre');
+        } catch (Exception $e) {
+            // La columna puede no existir todavía en un ambiente sin migrar.
+            log_message('error', '#BULKLOAD|resolverMotorBd >> no pude leer el catálogo: ' . $e->getMessage());
+        }
+
+        return (strpos($sp, 'sta.') === 0) ? 'postgresql' : 'mariadb';
+    }
+
+    /**
+     * Carga masiva contra PostgreSQL. Es el camino histórico, sin cambios:
+     * el dispatcher sta.ejecutar_carga_masiva recibe el CSV y se encarga del
+     * COPY y de invocar al procedimiento de la entidad.
+     */
+    private function ejecutarCargaPostgreSQL($csv_filepath, $stored_procedure, $empr_id) {
         try {
             log_message('info', '=== INICIANDO enviarADataservice (DIRECTO A BD) ===');
             log_message('info', 'Parámetros recibidos:');
@@ -605,6 +668,415 @@ class Bulkloads extends CI_Model {
             
         } catch (Exception $e) {
             log_message('error', 'Exception in obtenerEmpresaPorUsuario: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    // =======================================================================
+    // MariaDB (AssetPlanner)
+    // =======================================================================
+
+    /**
+     * Carga masiva contra MariaDB (base assetv2 de AssetPlanner).
+     *
+     * EL PATRÓN ES DISTINTO AL DE POSTGRESQL, y no es un detalle: allá el
+     * dispatcher recibe la ruta del CSV y hace el COPY por su cuenta. Acá los
+     * procedimientos NO reciben archivo — verificado sobre el servidor:
+     * bulkload_equipos tiene un solo parámetro, (IN p_id_empresa INT). Leen de
+     * una tabla de staging (sta_equipos, sta_articulos), procesan lo que esté
+     * con procesado = 0 y lo marcan al terminar.
+     *
+     * Entonces acá hay dos pasos donde en PostgreSQL hay uno:
+     *   1. volcar el CSV en la tabla de staging que corresponde a la entidad;
+     *   2. CALL al procedimiento con el id de empresa.
+     *
+     * El CSV se inserta desde PHP en vez de con LOAD DATA INFILE porque el
+     * archivo vive en el servidor de Dnato y MariaDB corre en otro host: un
+     * LOAD DATA server-side no lo vería. Para los volúmenes de una carga
+     * masiva de catálogo (decenas o cientos de filas) el costo es irrelevante.
+     *
+     * @param  string $csv_filepath
+     * @param  string $stored_procedure  p. ej. 'bulkload_equipos'
+     * @param  int    $empr_id           id de empresa EN ASSETPLANNER
+     * @return array|false
+     */
+    private function ejecutarCargaMariaDB($csv_filepath, $stored_procedure, $empr_id) {
+        $logs = array();
+
+        try {
+            if (!file_exists($csv_filepath)) {
+                return $this->respuestaCarga(false, 'ERROR: Archivo CSV no encontrado: ' . $csv_filepath);
+            }
+
+            $sp = trim((string) $stored_procedure);
+            if (preg_match('/^[a-zA-Z0-9_]+$/', $sp) !== 1) {
+                return $this->respuestaCarga(false, 'ERROR: Nombre de procedimiento inválido: ' . $sp);
+            }
+
+            // El id de empresa de Dnato NO sirve para AssetPlanner: son bases
+            // distintas con numeraciones propias. Se traduce igual que en la
+            // cadena de identidad del MCP, por core.empresas.empr_id_mysql.
+            //
+            // Se resuelve ANTES de tocar el staging: si no se puede, no tiene
+            // sentido haber escrito filas que después habría que limpiar.
+            $empr_id_asset = $this->resolverEmprIdAssetPlanner($empr_id, $logs);
+            if ($empr_id_asset === false) {
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
+
+            $tabla_staging = $this->tablaStagingDe($sp);
+            $logs[] = 'Motor MariaDB | procedimiento: ' . $sp . ' | staging: ' . $tabla_staging;
+
+            $mdb = $this->load->database('assetplanner', TRUE);
+            if (!$mdb) {
+                return $this->respuestaCarga(false, 'ERROR: No se pudo conectar a AssetPlanner (MariaDB)');
+            }
+
+            // La tabla de staging tiene que existir: si no, la entidad está mal
+            // dada de alta en el catálogo y conviene decirlo claro.
+            $existe = $mdb->query(
+                'SELECT COUNT(*) AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?',
+                array($tabla_staging)
+            );
+            if (!$existe || (int) $existe->row()->n === 0) {
+                return $this->respuestaCarga(false, 'ERROR: No existe la tabla de staging ' . $tabla_staging . ' en AssetPlanner');
+            }
+
+            // Columnas reales de la tabla, para mapear el CSV por NOMBRE de
+            // encabezado y no por posición: así un cambio de orden en la
+            // plantilla no rompe la carga.
+            $cols_tabla = array();
+            $qc = $mdb->query(
+                'SELECT COLUMN_NAME FROM information_schema.COLUMNS
+                  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+                    AND COLUMN_NAME NOT IN (\'procesado\', \'fec_proceso\')',
+                array($tabla_staging)
+            );
+            foreach ($qc->result() as $r) {
+                $cols_tabla[strtolower($r->COLUMN_NAME)] = $r->COLUMN_NAME;
+            }
+
+            $filas = $this->leerCsvParaStaging($csv_filepath, $cols_tabla, $logs);
+            if ($filas === false) {
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
+            if (count($filas['datos']) === 0) {
+                return $this->respuestaCarga(false, 'ERROR: El archivo no tiene filas de datos', $logs);
+            }
+
+            // Si quedaron filas sin procesar de una corrida anterior, el
+            // procedimiento las tomaría como propias de esta carga y las
+            // cargaría en ESTA empresa. Pero borrarlas sin más es destructivo:
+            // podrían ser de otro usuario cargando al mismo tiempo, o de una
+            // corrida que quedó a medias y que alguien quiere recuperar.
+            //
+            // Se aborta y se avisa. Limpiar es una decisión de quien administra,
+            // no algo que esta función deba tomar por su cuenta.
+            $pendientes = $mdb->query('SELECT COUNT(*) AS n FROM ' . $tabla_staging . ' WHERE procesado = 0');
+            $cuantas = ($pendientes && $pendientes->num_rows() > 0) ? (int) $pendientes->row()->n : 0;
+            if ($cuantas > 0) {
+                $mdb->close();
+                $logs[] = 'La tabla ' . $tabla_staging . ' tiene ' . $cuantas . ' fila(s) sin procesar de una carga '
+                        . 'anterior. Si se continuara, el procedimiento las cargaría como si fueran de esta empresa. '
+                        . 'Revisar y limpiar esas filas antes de reintentar.';
+                log_message('ERROR', '#BULKLOAD|ejecutarCargaMariaDB >> ' . $tabla_staging . ' con ' . $cuantas . ' pendientes; se aborta');
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
+
+            $insertadas = $this->insertarEnStaging($mdb, $tabla_staging, $filas, $logs);
+            if ($insertadas === false) {
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
+            $logs[] = 'Filas cargadas en staging: ' . $insertadas;
+
+            $salida = $this->llamarProcedimientoMariaDB($mdb, $sp, $empr_id_asset, $logs);
+            $mdb->close();
+
+            if ($salida === false) {
+                return $this->respuestaCarga(false, 'ERROR: ' . end($logs), $logs);
+            }
+
+            // Los procedimientos de AssetPlanner no devuelven SUCCESS:/ERROR:
+            // como los de PostgreSQL: emiten una serie de mensajes con prefijo
+            // propio (BULKEQ:, etc.). Se traduce al contrato que espera la
+            // vista, que es la misma para los dos motores.
+            $hubo_error = false;
+            foreach ($salida as $linea) {
+                if (stripos($linea, 'ERROR') !== false) {
+                    $hubo_error = true;
+                    break;
+                }
+            }
+            $logs = array_merge($logs, $salida);
+
+            if ($hubo_error) {
+                return $this->respuestaCarga(false, 'ERROR: ' . implode(' | ', $salida), $logs);
+            }
+            return $this->respuestaCarga(true, 'SUCCESS: Carga masiva ejecutada en AssetPlanner (' . $insertadas . ' filas)', $logs);
+
+        } catch (Exception $e) {
+            log_message('error', '#BULKLOAD|ejecutarCargaMariaDB >> ' . $e->getMessage());
+            return $this->respuestaCarga(false, 'ERROR: ' . $e->getMessage(), $logs);
+        }
+    }
+
+    /**
+     * Tabla de staging que le corresponde a un procedimiento, por convención:
+     * bulkload_equipos -> sta_equipos, bulkload_articulos -> sta_articulos.
+     *
+     * @param  string $stored_procedure
+     * @return string
+     */
+    private function tablaStagingDe($stored_procedure) {
+        $base = preg_replace('/^bulkload_/', '', strtolower(trim((string) $stored_procedure)));
+        return 'sta_' . $base;
+    }
+
+    /**
+     * Lee el CSV y arma las filas a insertar, quedándose sólo con las columnas
+     * que existen en la tabla de staging. El mapeo es por nombre de encabezado.
+     *
+     * @param  string $csv_filepath
+     * @param  array  $cols_tabla   columna_en_minuscula => ColumnaReal
+     * @param  array  $logs         se completa por referencia
+     * @return array|false          array('columnas'=>..., 'datos'=>...)
+     */
+    private function leerCsvParaStaging($csv_filepath, $cols_tabla, &$logs) {
+        $fh = fopen($csv_filepath, 'r');
+        if (!$fh) {
+            $logs[] = 'No se pudo abrir el CSV: ' . $csv_filepath;
+            return false;
+        }
+
+        $delim = $this->detectarDelimitador($csv_filepath);
+        $encabezado = fgetcsv($fh, 0, $delim);
+        if (!$encabezado) {
+            fclose($fh);
+            $logs[] = 'El CSV no tiene encabezado';
+            return false;
+        }
+
+        // Posición en el CSV -> nombre real de columna en la tabla
+        $mapa = array();
+        foreach ($encabezado as $i => $nombre) {
+            $limpio = strtolower(trim(str_replace("\xEF\xBB\xBF", '', (string) $nombre)));
+            if (isset($cols_tabla[$limpio])) {
+                $mapa[$i] = $cols_tabla[$limpio];
+            }
+        }
+        if (empty($mapa)) {
+            fclose($fh);
+            $logs[] = 'Ningún encabezado del CSV coincide con las columnas de la tabla de staging. Encabezados: ' . implode(', ', $encabezado);
+            return false;
+        }
+        $logs[] = 'Columnas mapeadas: ' . implode(', ', array_values($mapa));
+
+        $datos = array();
+        while (($fila = fgetcsv($fh, 0, $delim)) !== FALSE) {
+            if (count($fila) === 1 && trim((string) $fila[0]) === '') {
+                continue; // línea vacía
+            }
+            $registro = array();
+            foreach ($mapa as $i => $col) {
+                $registro[$col] = isset($fila[$i]) ? trim((string) $fila[$i]) : '';
+            }
+            $datos[] = $registro;
+        }
+        fclose($fh);
+
+        return array('columnas' => array_values($mapa), 'datos' => $datos);
+    }
+
+    /**
+     * El CSV que genera el sistema puede venir con coma o con punto y coma
+     * según cómo se haya exportado el Excel.
+     *
+     * @param  string $csv_filepath
+     * @return string
+     */
+    private function detectarDelimitador($csv_filepath) {
+        $fh = fopen($csv_filepath, 'r');
+        if (!$fh) {
+            return ',';
+        }
+        $primera = fgets($fh);
+        fclose($fh);
+        return (substr_count((string) $primera, ';') > substr_count((string) $primera, ',')) ? ';' : ',';
+    }
+
+    /**
+     * Inserta las filas en la tabla de staging, en lotes.
+     *
+     * @param  object $mdb    conexión a AssetPlanner
+     * @param  string $tabla
+     * @param  array  $filas
+     * @param  array  $logs
+     * @return int|false      cantidad insertada
+     */
+    private function insertarEnStaging($mdb, $tabla, $filas, &$logs) {
+        $columnas = $filas['columnas'];
+        $total    = 0;
+        $lote     = array();
+
+        foreach ($filas['datos'] as $registro) {
+            $lote[] = $registro;
+            if (count($lote) >= 200) {
+                if (!$mdb->insert_batch($tabla, $lote)) {
+                    $e = $mdb->error();
+                    $logs[] = 'Error insertando en ' . $tabla . ': ' . $e['message'];
+                    return false;
+                }
+                $total += count($lote);
+                $lote = array();
+            }
+        }
+        if (!empty($lote)) {
+            if (!$mdb->insert_batch($tabla, $lote)) {
+                $e = $mdb->error();
+                $logs[] = 'Error insertando en ' . $tabla . ': ' . $e['message'];
+                return false;
+            }
+            $total += count($lote);
+        }
+        return $total;
+    }
+
+    /**
+     * Ejecuta CALL sp(empr_id) y junta la salida.
+     *
+     * Los procedimientos de AssetPlanner van informando su avance con SELECTs
+     * sueltos, así que devuelven VARIOS resultsets. Hay que recorrerlos todos:
+     * quedarse con el primero pierde justamente el mensaje final, que es el
+     * que dice si terminó bien o falló.
+     *
+     * @param  object $mdb
+     * @param  string $sp
+     * @param  int    $empr_id
+     * @param  array  $logs
+     * @return array|false  líneas devueltas por el procedimiento
+     */
+    private function llamarProcedimientoMariaDB($mdb, $sp, $empr_id, &$logs) {
+        $conn = $mdb->conn_id;
+        if (!($conn instanceof mysqli)) {
+            $logs[] = 'La conexión a AssetPlanner no es mysqli; no puedo leer múltiples resultados';
+            return false;
+        }
+
+        $sql = 'CALL ' . $sp . '(' . intval($empr_id) . ')';
+        $logs[] = 'Ejecutando: ' . $sql;
+
+        $salida = array();
+        if (!$conn->multi_query($sql)) {
+            $logs[] = 'Falló el CALL: (' . $conn->errno . ') ' . $conn->error;
+            return false;
+        }
+
+        do {
+            $res = $conn->store_result();
+            if ($res) {
+                while ($fila = $res->fetch_row()) {
+                    foreach ($fila as $valor) {
+                        $valor = trim((string) $valor);
+                        if ($valor !== '') {
+                            $salida[] = $valor;
+                        }
+                    }
+                }
+                $res->free();
+            }
+        } while ($conn->more_results() && $conn->next_result());
+
+        if ($conn->errno) {
+            $logs[] = 'Error durante la ejecución: (' . $conn->errno . ') ' . $conn->error;
+            return false;
+        }
+        return $salida;
+    }
+
+    /**
+     * Formato de respuesta único para los dos motores: lo que espera
+     * application/views/bulkload/resultado.php.
+     *
+     * @param  bool   $exito
+     * @param  string $output
+     * @param  array  $logs
+     * @return array
+     */
+    private function respuestaCarga($exito, $output, $logs = array()) {
+        if (!empty($logs)) {
+            log_message('debug', '#BULKLOAD >> ' . implode(' || ', $logs));
+        }
+        return array(
+            'success'      => (bool) $exito,
+            'output'       => $output,
+            'raw_response' => array('output' => $output, 'logs' => $logs)
+        );
+    }
+
+    /**
+     * Traduce el id de empresa de Dnato al id que esa misma empresa tiene en
+     * AssetPlanner (base assetv2).
+     *
+     * POR QUÉ HACE FALTA: son dos bases con numeraciones independientes. En la
+     * base de desarrollo, de las 4 empresas vinculadas 3 tienen ids distintos
+     * (187->17, 188->18, 190->20). Pasarle a MariaDB el empr_id de Dnato
+     * cargaría los equipos EN LA EMPRESA DE OTRO CLIENTE, sin ningún error
+     * visible. Es el mismo problema que se corrigió en las tools alm_* del MCP.
+     *
+     * El vínculo es core.empresas.empr_id_mysql, exactamente el que alimenta el
+     * claim empr_id_mysql del JWT (ver Empresas::getEmpresaById, usado por
+     * Oauth::_issueCode y Oauthlogin::_resolveCompany). Acá se consulta la
+     * tabla directamente en lugar de ir por el DataService, porque el resource
+     * GET /empresa/{empr_id} no está en todas las copias desplegadas del CAR.
+     *
+     * SI NO HAY VÍNCULO, CORTA. Es deliberado: sin el id correcto la única
+     * alternativa sería adivinar, y adivinar acá significa escribir en los
+     * datos de otra empresa. Mejor no cargar nada y decir por qué.
+     *
+     * @param  int   $empr_id  id de empresa en Dnato (PostgreSQL)
+     * @param  array $logs
+     * @return int|false       id en AssetPlanner, o false si no se puede resolver
+     */
+    private function resolverEmprIdAssetPlanner($empr_id, &$logs) {
+        $empr_id = (int) $empr_id;
+        if ($empr_id <= 0) {
+            $logs[] = 'Id de empresa inválido: ' . $empr_id;
+            return false;
+        }
+
+        try {
+            $this->load->database();
+            $q = $this->db->query(
+                'SELECT empr_id_mysql, nombre FROM core.empresas WHERE empr_id = ? AND eliminado = false LIMIT 1',
+                array($empr_id)
+            );
+
+            if (!$q || $q->num_rows() === 0) {
+                $logs[] = 'La empresa ' . $empr_id . ' no existe en core.empresas';
+                return false;
+            }
+
+            $fila = $q->row();
+            if ($fila->empr_id_mysql === null || trim((string) $fila->empr_id_mysql) === '') {
+                $logs[] = 'La empresa "' . $fila->nombre . '" (empr_id ' . $empr_id . ') no tiene definido su '
+                        . 'equivalente en AssetPlanner (core.empresas.empr_id_mysql). Sin ese dato la carga se '
+                        . 'haría sobre otra empresa, así que se cancela. Un administrador debe completar el vínculo.';
+                log_message('ERROR', '#BULKLOAD|resolverEmprIdAssetPlanner >> empr_id_mysql vacío para empr_id=' . $empr_id);
+                return false;
+            }
+
+            $asset_id = (int) $fila->empr_id_mysql;
+            if ($asset_id <= 0) {
+                $logs[] = 'El vínculo con AssetPlanner de la empresa ' . $empr_id . ' es inválido: ' . $fila->empr_id_mysql;
+                return false;
+            }
+
+            $logs[] = 'Empresa: Dnato ' . $empr_id . ' -> AssetPlanner ' . $asset_id . ' ("' . $fila->nombre . '")';
+            return $asset_id;
+
+        } catch (Exception $e) {
+            $logs[] = 'No pude resolver la empresa en AssetPlanner: ' . $e->getMessage();
+            log_message('ERROR', '#BULKLOAD|resolverEmprIdAssetPlanner >> ' . $e->getMessage());
             return false;
         }
     }
