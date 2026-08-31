@@ -33,8 +33,18 @@
     <div class="oauth-card">
 
         <?php if (!empty($logo_empresa)): ?>
+        <?php
+            // core.tablas guarda la ruta relativa ('public/img/logotzl.png'), asi que
+            // hay que anteponerle base_url(): sin eso el navegador la resuelve contra
+            // /oauth/login y busca /oauth/public/img/... -> 404 y el logo no aparece.
+            // Se contempla igual que el valor sea una URL absoluta, para no romper si
+            // alguien la carga asi.
+            $logo_src = preg_match('~^(https?:)?//~i', $logo_empresa)
+                ? $logo_empresa
+                : base_url($logo_empresa);
+        ?>
         <div class="text-center">
-            <img class="logo" src="<?= htmlspecialchars($logo_empresa) ?>" alt="Trazalog">
+            <img class="logo" src="<?= htmlspecialchars($logo_src) ?>" alt="Trazalog">
         </div>
         <?php endif; ?>
 
