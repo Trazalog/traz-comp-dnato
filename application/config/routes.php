@@ -66,7 +66,9 @@ $route['oauth/.well-known/openid-configuration']             = 'oauth/authorizat
 $route['oauth/register']                                     = 'oauth/register_client';
 
 // OAuth 2.1 login screen — E9-IDENT-04
-// TAD-IDENT-02: MVP asume 1 empresa por usuario — no existe pantalla de selección
+// Un usuario con varias empresas elige en el paso 2 (oauth/login/empresa).
+// Revisa la nota sobre TAD-IDENT-02 en la cabecera de Oauthlogin.php.
 $route['oauth/login']              = 'oauthlogin/index';
 $route['oauth/login/credentials']  = 'oauthlogin/credentials';
+$route['oauth/login/empresa']      = 'oauthlogin/empresa';
 $route['oauth/resume']             = 'oauth/resume_after_login';

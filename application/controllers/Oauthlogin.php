@@ -4,15 +4,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 /**
  * OauthLogin — Pantalla de login compatible con OAuth 2.1 + PKCE.
  *
- * Flujo de autenticación (TAD-IDENT-02: 1 empresa por usuario):
+ * Flujo de autenticación:
  *
  *   GET  /oauth/login             — Formulario de credenciales
  *   POST /oauth/login/credentials — Valida email/password, resuelve empresa y emite code
  *
  * Invariantes:
- *   - Cada usuario debe tener exactamente 1 empresa asignada en Bonita.
  *   - 0 empresas → error "sin empresa asignada".
- *   - >1 empresas → error "múltiples empresas no soportado" (viola TAD-IDENT-02).
+ *   - 1 empresa   → se resuelve sola, sin preguntar.
+ *   - >1 empresas → paso 2: el usuario elige (GET/POST /oauth/login/empresa).
+ *
+ * Sobre TAD-IDENT-02: esa decisión fijaba "un usuario, una empresa" y hacía
+ * que más de una fuera un error de configuración. Se revisó el 2026-09-02 —
+ * decisión del PM— porque en la práctica hay usuarios que operan para varias
+ * empresas, y el login web ya resolvía el caso con una pantalla de selección.
+ * Acá se replica ese mismo comportamiento. Lo que NO cambia es que el token
+ * queda atado a la empresa elegida: para cambiarla hay que reconectar el
+ * cliente, porque /oauth/token todavía no emite refresh_token (ver jwt.php).
  *
  * No modifica Main::login() — los flujos web y OAuth coexisten de forma independiente.
  */
@@ -67,8 +75,8 @@ class Oauthlogin extends CI_Controller
     // -----------------------------------------------------------------------
 
     /**
-     * Valida email + password, resuelve la empresa única del usuario y emite el code.
-     * TAD-IDENT-02: un usuario → una empresa. Cero o más de una son errores de configuración.
+     * Valida email + password y resuelve la empresa. Con una sola, emite el code
+     * derecho; con varias, deriva al paso 2 para que el usuario elija.
      */
     public function credentials()
     {
@@ -135,14 +143,6 @@ class Oauthlogin extends CI_Controller
             return;
         }
 
-        // TAD-IDENT-02: MVP asume exactamente 1 empresa por usuario.
-        // Más de una es un error de configuración — el admin debe ajustar las membresías en Bonita.
-        if ($count > 1) {
-            log_message('ERROR', '#OauthLogin|credentials >> usuario con múltiples empresas no soportado (TAD-IDENT-02). email=' . $email . ' count=' . $count);
-            $this->_showError('Su cuenta tiene múltiples empresas asignadas. Contacte al administrador para corregir la configuración.');
-            return;
-        }
-
         $this->session->set_userdata('oauth_login_state', [
             'email'     => $userInfo->email,
             'usernick'  => $userInfo->usernick,
@@ -151,7 +151,119 @@ class Oauthlogin extends CI_Controller
         ]);
         $this->session->set_userdata('oauth_memberships', $memberships);
 
-        $this->_resolveCompany($memberships[0]);
+        // Con una sola empresa no hay nada que preguntar: se sigue derecho.
+        // Con varias, el usuario elige (paso 2). Antes de esto, mas de una
+        // empresa era un error de configuracion; ver la nota de TAD-IDENT-02
+        // en la cabecera de esta clase.
+        if ($count === 1) {
+            $this->_resolveCompany($memberships[0]);
+            return;
+        }
+
+        redirect(base_url() . 'oauth/login/empresa');
+    }
+
+    // -----------------------------------------------------------------------
+    // GET / POST /oauth/login/empresa
+    // -----------------------------------------------------------------------
+
+    /**
+     * Paso 2: el usuario elige con cual de sus empresas autoriza el acceso.
+     *
+     * GET  muestra las tarjetas. POST valida y emite el authorization code.
+     *
+     * La lista que se MUESTRA sale de PostgreSQL (getEmpresasDeUsuario trae
+     * nombre y logo, que Bonita no tiene), pero la que AUTORIZA es la de
+     * Bonita: solo se ofrecen —y solo se aceptan— empresas que esten en
+     * oauth_memberships. Si las dos fuentes discrepan, manda Bonita.
+     */
+    public function empresa()
+    {
+        $pending     = $this->session->userdata('oauth_pending');
+        $loginState  = $this->session->userdata('oauth_login_state');
+        $memberships = $this->session->userdata('oauth_memberships');
+
+        if (empty($pending) || empty($loginState) || empty($memberships)) {
+            $this->_showError('Sesión expirada. Inicie el proceso nuevamente desde el cliente.');
+            return;
+        }
+
+        // indice empr_id -> membership de Bonita: es la fuente de autorizacion
+        $porEmprId = [];
+        foreach ($memberships as $m) {
+            $porEmprId[(string) $m['empr_id']] = $m;
+        }
+
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $this->_confirmarEmpresa($porEmprId);
+            return;
+        }
+
+        $todas = $this->user_model->getEmpresasDeUsuario($loginState['email']);
+
+        // Solo las que Bonita autoriza. Si PostgreSQL no devolvio ninguna que
+        // coincida, se arman tarjetas con lo que si tenemos de Bonita para no
+        // dejar al usuario sin poder elegir.
+        $empresas = [];
+        foreach ($todas as $e) {
+            if (isset($porEmprId[(string) $e->empr_id])) {
+                $empresas[] = $e;
+            }
+        }
+        if (empty($empresas)) {
+            log_message('ERROR', '#OauthLogin|empresa >> ninguna empresa de PostgreSQL coincide con las membresias de Bonita. email='
+                . $loginState['email']);
+            foreach ($memberships as $m) {
+                $obj = new stdClass();
+                $obj->empr_id     = $m['empr_id'];
+                $obj->descripcion = $m['groupBpm'];
+                $obj->nombre      = $m['groupBpm'];
+                $obj->image       = null;
+                $obj->imagepath   = null;
+                $empresas[] = $obj;
+            }
+        }
+
+        $logo = $this->_getLogo();
+
+        // form/image/url ya vienen del autoload
+        $this->load->view('oauth/login_empresa', [
+            'empresas'     => $empresas,
+            'csrf_token'   => (string) $this->session->userdata('oauth_csrf'),
+            'logoEmpresa'  => $logo,
+            'error'        => (string) $this->session->flashdata('oauth_error'),
+        ]);
+    }
+
+    /**
+     * Procesa el POST del paso 2: verifica CSRF y que el empr_id elegido sea
+     * una de las empresas que Bonita le reconoce al usuario.
+     *
+     * @param array $porEmprId  empr_id => membership, armado desde la sesion
+     */
+    private function _confirmarEmpresa(array $porEmprId)
+    {
+        $fromForm    = (string) $this->input->post('oauth_csrf');
+        $fromSession = (string) $this->session->userdata('oauth_csrf');
+
+        if ($fromForm === '' || $fromSession === '' || !hash_equals($fromSession, $fromForm)) {
+            log_message('ERROR', '#OauthLogin|_confirmarEmpresa >> CSRF invalido');
+            $this->_showError('La sesión expiró o el formulario no es válido. Iniciá el proceso nuevamente desde el cliente.');
+            return;
+        }
+
+        $elegida = (string) $this->input->post('empr_id');
+
+        // No alcanza con que el empr_id exista: tiene que estar entre las
+        // membresias que Bonita reporto para ESTE usuario en ESTA sesion.
+        if ($elegida === '' || !isset($porEmprId[$elegida])) {
+            log_message('ERROR', '#OauthLogin|_confirmarEmpresa >> empr_id fuera de las membresias del usuario. elegida=' . $elegida);
+            $this->session->set_flashdata('oauth_error', 'La empresa seleccionada no es válida. Elegí una de la lista.');
+            redirect(base_url() . 'oauth/login/empresa');
+            return;
+        }
+
+        $this->_resolveCompany($porEmprId[$elegida]);
     }
 
     // -----------------------------------------------------------------------
