@@ -185,8 +185,12 @@ $coherencia$;
 --    contra MariaDB ABORTA a propósito: usar el empr_id de Dnato escribiría en
 --    los datos de otra empresa, porque las dos bases numeran distinto.
 --
---    Esto crea la ESTRUCTURA. Cargar los VALORES es un trabajo de datos
---    aparte — ver "QUÉ FALTA DESPUÉS DE ESTO".
+--    Esto crea la ESTRUCTURA. Cargar los VALORES es un trabajo de datos aparte,
+--    y HOY ES MANUAL: verificado el 2026-09 que ningún código de traz-comp-dnato
+--    ni de traz-tools invoca updateEmpresaAssetId, aunque el DataService y la
+--    ruta PUT /empresa/asset-id de toolsCOREAPI existan. Por eso un ambiente
+--    puede tener 0 empresas vinculadas aunque la registración haya corrido
+--    muchas veces — ver "QUÉ FALTA DESPUÉS DE ESTO".
 --
 --    Espejo de traz-tools/scripts/sql/2026-08-core-empresas-empr-id-mysql.sql;
 --    si ya se corrió aquel, esto es no-op.
@@ -195,7 +199,7 @@ ALTER TABLE core.empresas
   ADD COLUMN IF NOT EXISTS empr_id_mysql integer;
 
 COMMENT ON COLUMN core.empresas.empr_id_mysql IS
-  'Id de la misma empresa en la base de AssetPlanner (MySQL/MariaDB). Lo escribe la registración freemium (updateEmpresaAssetId). NULL = empresa sin contraparte en asset. Lookup inverso: COREDataService.getEmpresaByMysqlId.';
+  'Id de la misma empresa en la base de AssetPlanner (MySQL/MariaDB). NULL = empresa sin contraparte en asset. HOY SE CARGA A MANO: existe el DataService updateEmpresaAssetId y la ruta PUT /empresa/asset-id en toolsCOREAPI, pero ningún código de traz-comp-dnato ni de traz-tools la invoca. Lectores: emisión de JWT (claim empr_id_mysql) y carga masiva contra MariaDB. Lookup inverso: COREDataService.getEmpresaByMysqlId.';
 
 -- Unicidad parcial: un id de AssetPlanner no puede apuntar a dos empresas de
 -- Tools. Parcial para permitir múltiples NULL (empresas sin vínculo).
@@ -262,9 +266,29 @@ SELECT count(*) FILTER (WHERE empr_id_mysql IS NOT NULL) AS vinculadas,
 --    ⚠️ Estos objetos NO están versionados en ningún repo: al 2026-09 sólo
 --    existen instalados en la base de desarrollo.
 --
--- 4. DATOS DE empr_id_mysql
---    Cargar el vínculo para las empresas que vayan a usar la carga. Este script
---    crea la columna, no los valores. Sin valores, la carga aborta con mensaje.
+-- 4. DATOS DE empr_id_mysql  ← es el que bloquea hoy en DEMO (0 de 26 empresas)
+--    Este script crea la columna, no los valores. Y los valores NO se cargan
+--    solos: no hay ningún llamador de updateEmpresaAssetId en traz-comp-dnato
+--    ni en traz-tools, así que hay que poblarlos a mano hasta que ese hueco se
+--    cierre. El emparejamiento se hace por nombre contra la tabla `empresas` de
+--    la base de AssetPlanner (PK `id_empresa`, nombre en `descripcion`):
+--
+--      -- en PostgreSQL del ambiente
+--      SELECT empr_id, nombre, descripcion FROM core.empresas
+--       WHERE eliminado = false ORDER BY nombre;
+--
+--      -- en MariaDB del ambiente
+--      SELECT id_empresa, descripcion FROM empresas ORDER BY descripcion;
+--
+--      -- y una vez emparejadas, por cada una:
+--      UPDATE core.empresas SET empr_id_mysql = <id_empresa de AssetPlanner>
+--       WHERE empr_id = <empr_id de Tools>;
+--
+--    El índice único parcial que crea este script impide asignar el mismo id de
+--    AssetPlanner a dos empresas distintas.
+--
+--    Sin valores, la carga aborta con mensaje (no adivina un id, que sería
+--    escribir en los datos de otra empresa).
 --
 -- 5. REDESPLIEGUE DEL CAR (opcional, no bloquea)
 --    La query getEntidadesNegocio de COREDataService devuelve motor_bd desde el
