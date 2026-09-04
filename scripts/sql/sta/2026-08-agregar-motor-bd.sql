@@ -1,4 +1,13 @@
 -- =============================================================================
+-- ⚠️ YA APLICADO EN DESARROLLO (2026-08). Se conserva como registro histórico.
+--    Para desplegar en DEMO o PRODUCCIÓN usar el script consolidado:
+--      scripts/sql/despliegue/2026-09-carga-masiva-multimotor.sql
+--    Aquel incluye esta migración, agrega pre-chequeos que abortan si el
+--    ambiente está inconsistente, y suma la columna core.empresas.empr_id_mysql
+--    que la carga contra MariaDB también necesita.
+-- =============================================================================
+
+-- =============================================================================
 -- Carga Masiva multi-motor — migración del catálogo de entidades
 -- =============================================================================
 --
