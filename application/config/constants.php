@@ -100,7 +100,15 @@ define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
 define('FRM', 'traz-comp-formularios/');
 define('FORMULARIO_REGISTRO_ID', 72);
-define('REGISTER_TEMP_EMPR_ID', 9000);
+// String, no entero, y no es un detalle de estilo. Este valor va a la sesion y de ahi
+// lo lee empresa(); despues viaja en el JSON de cualquier POST a un DataService, y esos
+// declaran sus parametros como STRING (2.314 de 2.321 en el repo). Un entero los rompe
+// con "Value type miss match, Expected value type - 'string', but found - 'NUMBER'" y la
+// operacion no se hace. Paso con el alta de pedidos de materiales en el DEMO.
+//
+// Antes de v2.5 el empr_id de la sesion siempre venia de un $_POST, o sea siempre
+// string. Esto lo mantiene asi.
+define('REGISTER_TEMP_EMPR_ID', '9000');
 
 define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');
