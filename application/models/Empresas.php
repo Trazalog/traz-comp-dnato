@@ -123,6 +123,72 @@ class Empresas extends CI_Model
         return $this->rest->callAPI('DELETE', $url, $post);
     }
 
+    /**
+     * Crea en Bonita un rol de la empresa.
+     *
+     * Mismo contrato que usa la sequence toolsCreateRole del API: el rol queda con
+     * name "<empr_id>-<rolBase> <empresa>" y displayName "<rolBase> <empresa>".
+     *
+     * @param string $emprId
+     * @param string $rolBase   parte fija del rol, p.ej. "SMA - Generador"
+     * @param string $empresa   razón social
+     * @param string $bpmSession
+     * @return array retorno de REST::callAPI (status, data, code)
+     */
+    public function crearRolBpm($emprId, $rolBase, $empresa, $bpmSession)
+    {
+        $rolCompleto = trim((string) $rolBase) . ' ' . trim((string) $empresa);
+        $post = array(
+            'session' => (string) $bpmSession,
+            'payload' => array(
+                'icon' => '',
+                'name' => (string) $emprId . '-' . $rolCompleto,
+                'displayName' => $rolCompleto,
+                'description' => ''
+            )
+        );
+        $url = rtrim((string) REST_BPM, '/') . '/role';
+        return $this->rest->callAPI('POST', $url, $post);
+    }
+
+    /**
+     * Mapea un actor de un proceso de Bonita al grupo de la empresa, opcionalmente
+     * a través de un rol.
+     *
+     * Sin $rolBase usa POST /bpm/actor/grupo (solo grupo); con rol, /bpm/actor/membership.
+     * Son los mismos endpoints que invocan las sequences toolsBpmActorGrupo y
+     * toolsBpmActorMembership del API.
+     *
+     * @param string      $emprId
+     * @param string      $empresa   razón social
+     * @param string      $proceso   nombre del proceso en Bonita, habilitado
+     * @param string      $actor     nombre del actor dentro del proceso
+     * @param string|null $rolBase   parte fija del rol; null o '' mapea solo el grupo
+     * @param string      $bpmSession
+     * @return array retorno de REST::callAPI (status, data, code)
+     */
+    public function mapearActorBpm($emprId, $empresa, $proceso, $actor, $rolBase, $bpmSession)
+    {
+        $empresa = trim((string) $empresa);
+        $grupo = (string) $emprId . '-' . $empresa;
+        $post = array(
+            'session' => (string) $bpmSession,
+            'nombre_proceso' => (string) $proceso,
+            'nombre_actor' => (string) $actor,
+            'nombre_grupo' => $grupo
+        );
+
+        $rolBase = trim((string) $rolBase);
+        if ($rolBase === '') {
+            $url = rtrim((string) REST_BPM, '/') . '/actor/grupo';
+        } else {
+            $post['nombre_rol'] = (string) $emprId . '-' . $rolBase . ' ' . $empresa;
+            $url = rtrim((string) REST_BPM, '/') . '/actor/membership';
+        }
+
+        return $this->rest->callAPI('POST', $url, $post);
+    }
+
     //revisar que este duplicado el mail
     public function isDuplicate($email)
     {

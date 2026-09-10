@@ -237,6 +237,70 @@ define('REGISTRACION_PASSWORD_DEFAULT', '12345');
 
 /*
 |--------------------------------------------------------------------------
+| Alta de empresa — roles y mapeos OPCIONALES, por instancia
+|--------------------------------------------------------------------------
+|
+| El alta de empresa crea en Bonita los roles de la empresa y mapea sus actores
+| a los procesos. Hay dos grupos:
+|
+|   OBLIGATORIOS — viven en el API (toolsCOREAPI, POST /empresa) porque sin ellos
+|   la empresa no sirve: son los 12 roles base y los procesos de Almacenes
+|   ("Pedido de Recursos Materiales"), Mantenimiento ("proceso de Mantenimiento
+|   AssetPlanner") y "TST001 - Tarea Planificada". Si uno falla, el alta falla.
+|
+|   OPCIONALES — los de acá. Dependen de qué módulos usa CADA INSTALACIÓN.
+|   Residuos (TERSU) corre en instalaciones ON-PREMISE del cliente, que sí crean
+|   empresas y sí necesitan esos roles; la nube no los usa nunca. Tenerlos dentro
+|   del API obligaba a desplegar un artefacto de WSO2 a mano para cambiar la lista,
+|   y hacía que el alta muriera en cualquier ambiente donde el proceso no estuviera
+|   publicado.
+|
+| "Opcional" es por INSTANCIA, no por empresa: si esta instalación los declara, hacen
+| falta. Una empresa de residuos sin sus roles ni sus actores no sirve para nada, así que
+| si alguno falla el alta se REVIERTE completa —igual que con los obligatorios— y el
+| usuario ve qué faltó. Buscar en el log: "extras configurables".
+|
+| Corolario: no dejar declarado acá nada que la instalación no vaya a poder crear. Un
+| proceso que figure en la lista y no esté publicado y HABILITADO en Bonita va a impedir
+| que se registre cualquier empresa nueva en esta instancia.
+|
+| VACÍO EN LA NUBE. En una instalación ON-PREMISE de residuos hay que descomentar
+| el bloque TERSU de abajo — si no, las empresas nuevas de ESA instancia no van a
+| tener los roles SMA ni sus mapeos.
+|
+| Los nombres se componen solos: el rol queda "<empr_id>-<rol> <empresa>" y el grupo
+| "<empr_id>-<empresa>". Acá va solo la parte fija.
+|
+*/
+
+/* Roles extra a crear, además de los 12 base. */
+define('ALTA_EMPRESA_ROLES_EXTRA', array(
+    // 'SMA - Transportista',
+    // 'SMA - Generador',
+    // 'SMA - Operario Descarga',
+    // 'SMA - Operador de Bascula',
+));
+
+/*
+| Mapeos extra de actor de Bonita.
+|   proceso : nombre del proceso, tal cual figura en Bonita y HABILITADO
+|   actor   : nombre del actor dentro de ese proceso
+|   rol     : rol de la empresa que se asocia. Si se omite, se mapea solo el grupo
+|             de la empresa al actor (equivale a POST /bpm/actor/grupo).
+*/
+define('ALTA_EMPRESA_ACTORES_EXTRA', array(
+    // array('proceso' => 'TERSU-BPM01 - Solicitud de Contenedores',        'actor' => 'Solicitante Transporte',    'rol' => 'SMA - Generador'),
+    // array('proceso' => 'TERSU-BPM01 - Solicitud de Contenedores',        'actor' => 'Transportista',             'rol' => 'SMA - Transportista'),
+    // array('proceso' => 'TERSU-BPM02 - Solicitud de Retiro de Contenedores', 'actor' => 'Solicitante Transporte', 'rol' => 'SMA - Generador'),
+    // array('proceso' => 'TERSU-BPM02 - Solicitud de Retiro de Contenedores', 'actor' => 'Transportista',          'rol' => 'SMA - Transportista'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Operario Báscula',          'rol' => 'SMA - Operador de Bascula'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Operario Descarga',         'rol' => 'SMA - Operario Descarga'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Solicitante de Transporte', 'rol' => 'SMA - Generador'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Transportista',             'rol' => 'SMA - Transportista'),
+));
+
+/*
+|--------------------------------------------------------------------------
 | Imágenes del flujo de registro y login (configurables)
 |--------------------------------------------------------------------------
 */
