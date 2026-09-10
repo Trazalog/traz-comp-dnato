@@ -888,8 +888,8 @@ class Register extends CI_Controller {
             $bpmSession = $this->obtenerSesionBpmToken();
         }
 
-        $this->crearUsuariosPorDefecto($userData, $companyEmailDomain, $companyName, $bpmSession);
-        $this->asignarRolesAUsuario($userData->email, array('Administrador'), $companyName);
+        $this->crearUsuariosPorDefecto($userData, $companyEmailDomain, $companyName, $bpmSession, $emprId);
+        $this->asignarRolesAUsuario($userData->email, array('Administrador'), $companyName, $emprId);
         $this->crearEstablecimientoDefectoEmpresa($emprId, $companyEmailDomain);
         $this->aprovisionarExtrasConfigurables($emprId, $companyName, $bpmSession);
 
@@ -1104,7 +1104,7 @@ class Register extends CI_Controller {
         return $t;
     }
 
-    private function crearUsuariosPorDefecto($userData, $emailDomain, $companyName, $bpmSession)
+    private function crearUsuariosPorDefecto($userData, $emailDomain, $companyName, $bpmSession, $emprId = '')
     {
         $config = $this->obtenerUsuariosDefault();
         if (empty($config)) {
@@ -1125,13 +1125,13 @@ class Register extends CI_Controller {
 
             if ($this->user_model->isDuplicate($email)) {
                 log_message('INFO', '#TRAZA|REGISTER|crearUsuariosPorDefecto() >> Usuario ya existe, se reasignan roles: ' . $email);
-                $this->asignarRolesAUsuario($email, is_array($roles) ? $roles : array($roles), $companyName);
+                $this->asignarRolesAUsuario($email, is_array($roles) ? $roles : array($roles), $companyName, $emprId);
                 continue;
             }
 
             $creado = $this->crearUsuarioDefaultViaApi($alias, $email, $companyName, $userData, $bpmSession);
             if ($creado) {
-                $this->asignarRolesAUsuario($email, is_array($roles) ? $roles : array($roles), $companyName);
+                $this->asignarRolesAUsuario($email, is_array($roles) ? $roles : array($roles), $companyName, $emprId);
             } else {
                 $this->addProvisionWarning('No se pudo crear en Tools el usuario ' . $email . ' (revisá el log: crearUsuarioDefaultViaApi).');
             }
@@ -1187,7 +1187,7 @@ class Register extends CI_Controller {
         }
     }
 
-    private function asignarRolesAUsuario($email, $roleBaseNames, $companyName)
+    private function asignarRolesAUsuario($email, $roleBaseNames, $companyName, $emprId = '')
     {
         if (!$email || !$companyName || empty($roleBaseNames)) {
             return;
@@ -1237,7 +1237,14 @@ class Register extends CI_Controller {
                 'role' => $roleFullName,
                 'group_id' => (string) $groupInfo->id,
                 'role_id' => (string) $roleInfo->id,
-                'bpmSession' => $bpmSession
+                'bpmSession' => $bpmSession,
+                // Con estos dos, el API le da además al usuario acceso a AssetPlanner con el
+                // menú que le corresponde por su rol. La decisión de qué grupo le toca vive
+                // allá, en la sequence toolsAssetUserEmpresa: acá solo se aportan datos.
+                // `role_base` es el rol sin el sufijo de empresa, que el API necesita para
+                // mapearlo y que separar del nombre completo dentro de Synapse sería frágil.
+                'empr_id' => (string) $emprId,
+                'role_base' => $baseName
             );
 
             try {
