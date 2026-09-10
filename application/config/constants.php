@@ -255,9 +255,14 @@ define('REGISTRACION_PASSWORD_DEFAULT', '12345');
 |   y hacía que el alta muriera en cualquier ambiente donde el proceso no estuviera
 |   publicado.
 |
-| Si un opcional falla, se registra en el log y el alta SIGUE: por definición no es
-| indispensable, y tumbar una empresa entera por un mapeo accesorio sería peor.
-| Buscar en el log: "extras configurables".
+| "Opcional" es por INSTANCIA, no por empresa: si esta instalación los declara, hacen
+| falta. Una empresa de residuos sin sus roles ni sus actores no sirve para nada, así que
+| si alguno falla el alta se REVIERTE completa —igual que con los obligatorios— y el
+| usuario ve qué faltó. Buscar en el log: "extras configurables".
+|
+| Corolario: no dejar declarado acá nada que la instalación no vaya a poder crear. Un
+| proceso que figure en la lista y no esté publicado y HABILITADO en Bonita va a impedir
+| que se registre cualquier empresa nueva en esta instancia.
 |
 | VACÍO EN LA NUBE. En una instalación ON-PREMISE de residuos hay que descomentar
 | el bloque TERSU de abajo — si no, las empresas nuevas de ESA instancia no van a

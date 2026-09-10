@@ -910,9 +910,14 @@ class Register extends CI_Controller {
      * on-premise en el cliente y la nube no lo usa nunca— y se declaran en constants.php:
      * ALTA_EMPRESA_ROLES_EXTRA y ALTA_EMPRESA_ACTORES_EXTRA.
      *
-     * NO usa addProvisionWarning() a propósito: un warning haría que guardarEmpresa()
-     * borre la empresa recién creada, y tumbar una empresa entera por un mapeo accesorio
-     * sería peor que no tenerlo. Se registra en el log y se sigue.
+     * "Opcional" es por INSTANCIA, no por empresa: si esta instalación los declara, hacen
+     * falta. Una empresa de residuos sin sus roles ni sus actores no sirve para nada, así
+     * que crearla igual sería peor que no crearla. Por eso un fallo acá SÍ usa
+     * addProvisionWarning(), que hace que guardarEmpresa() revierta el alta completa.
+     *
+     * Se recorre la lista entera antes de cortar, a propósito: así el log muestra TODOS
+     * los que fallaron y no solo el primero, que es lo que se necesita para arreglar la
+     * configuración de una vez.
      *
      * @param string $emprId
      * @param string $companyName razón social
@@ -930,7 +935,9 @@ class Register extends CI_Controller {
 
         $emprId = trim((string) $emprId);
         if ($emprId === '' || !$bpmSession) {
-            log_message('ERROR', '#TRAZA|REGISTER|extras configurables >> sin empr_id o sin sesión de Bonita, se omiten'
+            $this->addProvisionWarning('No se pudieron crear los roles y mapeos extra de esta instalación:'
+                . ' falta el empr_id o la sesión de Bonita.');
+            log_message('ERROR', '#TRAZA|REGISTER|extras configurables >> sin empr_id o sin sesión de Bonita'
                 . ' | empr_id=' . ($emprId !== '' ? $emprId : 'vacío')
                 . ' | sesion=' . ($bpmSession ? 'ok' : 'no'));
             return;
@@ -939,6 +946,7 @@ class Register extends CI_Controller {
         foreach ($roles as $rolBase) {
             $rsp = $this->Empresas->crearRolBpm($emprId, $rolBase, $companyName, $bpmSession);
             if (empty($rsp['status'])) {
+                $this->addProvisionWarning('No se pudo crear el rol "' . $rolBase . '" en Bonita.');
                 log_message('ERROR', '#TRAZA|REGISTER|extras configurables >> no se pudo crear el rol "' . $rolBase . '"'
                     . ' | empr_id=' . $emprId
                     . ' | code=' . (isset($rsp['code']) ? $rsp['code'] : 'N/A')
@@ -954,6 +962,8 @@ class Register extends CI_Controller {
             $rolBase = isset($mapeo['rol']) ? trim((string) $mapeo['rol']) : '';
 
             if ($proceso === '' || $actor === '') {
+                $this->addProvisionWarning('Hay un mapeo mal declarado en el constants.php de esta instalación:'
+                    . ' le falta el proceso y/o el actor.');
                 log_message('ERROR', '#TRAZA|REGISTER|extras configurables >> mapeo mal declarado en constants.php,'
                     . ' faltan proceso y/o actor | ' . json_encode($mapeo));
                 continue;
@@ -961,6 +971,8 @@ class Register extends CI_Controller {
 
             $rsp = $this->Empresas->mapearActorBpm($emprId, $companyName, $proceso, $actor, $rolBase, $bpmSession);
             if (empty($rsp['status'])) {
+                $this->addProvisionWarning('No se pudo mapear el actor "' . $actor . '" del proceso "' . $proceso . '".'
+                    . ' Verificá que el proceso esté publicado y habilitado en Bonita.');
                 log_message('ERROR', '#TRAZA|REGISTER|extras configurables >> no se pudo mapear el actor "' . $actor . '"'
                     . ' del proceso "' . $proceso . '"'
                     . ' | empr_id=' . $emprId
