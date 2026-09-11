@@ -899,6 +899,30 @@ class Main extends CI_Controller {
 		return $this->guardarMembership();
 		
 	}
+	/**
+	 * Devuelve el rol sin el sufijo de empresa: "Responsable de Almacén ACME" -> "Responsable de Almacén".
+	 *
+	 * El API lo necesita para mapear el rol a un grupo de AssetPlanner. Se recorta acá y no
+	 * dentro de Synapse porque separar un sufijo de un string en XPath es frágil, y porque el
+	 * nombre de la empresa ya viaja en el mismo payload. Es preparación de datos, no una
+	 * decisión de negocio: qué grupo le toca a cada rol lo sigue decidiendo el API.
+	 *
+	 * Si el rol no termina con el nombre de la empresa, lo devuelve tal cual.
+	 *
+	 * @param  string $role   nombre completo del rol
+	 * @param  string $group  nombre de la empresa
+	 * @return string
+	 */
+	private function _rolBaseSinEmpresa($role, $group)
+	{
+		$role  = trim((string) $role);
+		$group = trim((string) $group);
+		if ($group === '') {
+			return $role;
+		}
+		return trim(preg_replace('/\s*' . preg_quote($group, '/') . '\s*$/u', '', $role));
+	}
+
 	//Recibe el objeto de json (array de roles)
 	public function changeLevelRolUserObject(){
 		$data = $this->session->userdata;
@@ -944,7 +968,12 @@ class Main extends CI_Controller {
 				'role' => $dataRole[$i]['role'],
 				'group_id' => (string) (isset($dataRoleBpmItem['group_id']) ? $dataRoleBpmItem['group_id'] : ''),
 				'role_id' => (string) (isset($dataRoleBpmItem['role_id']) ? $dataRoleBpmItem['role_id'] : ''),
-				'bpmSession' => $bpmSession
+				'bpmSession' => $bpmSession,
+				// Con estos dos, el API le da además al usuario acceso a AssetPlanner con el
+				// menú que le corresponde. La decisión de qué grupo le toca vive allá; acá
+				// solo se aportan datos. Ver CLAUDE.md > Convenciones de código.
+				'empr_id' => (string) empresa(),
+				'role_base' => $this->_rolBaseSinEmpresa($dataRole[$i]['role'], $dataRole[$i]['group'])
 			);
 			try {
 				$response = $this->rest->callAPI('POST', API_CORE . '/rol/asignar', $payload);
@@ -1054,7 +1083,10 @@ class Main extends CI_Controller {
 			'role' => $membership['role'],
 			'group_id' => (string) (isset($membershipBPM['group_id']) ? $membershipBPM['group_id'] : ''),
 			'role_id' => (string) (isset($membershipBPM['role_id']) ? $membershipBPM['role_id'] : ''),
-			'bpmSession' => $bpmSession
+			'bpmSession' => $bpmSession,
+			// Ídem: habilita el acceso a AssetPlanner. Ver CLAUDE.md > Convenciones de código.
+			'empr_id' => (string) empresa(),
+			'role_base' => $this->_rolBaseSinEmpresa($membership['role'], $membership['group'])
 		);
 
 		try {
