@@ -348,6 +348,54 @@ class Register extends CI_Controller {
      *
      * @return array<string, array<int, string>>
      */
+    /**
+     * Alinea la clave de Bonita de todos los usuarios de la empresa a BPM_USER_PASS.
+     *
+     * Son el administrador (que se creo en la activacion) y los usuarios por defecto (que
+     * crea crearUsuariosPorDefecto). Todos nacen en Bonita con la clave de la app porque el
+     * POST /usuario del API usa una sola clave para las tres puntas (login, asset y Bonita).
+     * Pero el sistema actua como el usuario en Bonita con BPM_USER_PASS —sin conocer su
+     * clave real—, asi que sin esta alineacion los pedidos no arrancan (H-070). Es la
+     * Opcion A aprobada por el PM: restaurar el invariante de produccion sin tocar el API.
+     *
+     * Un fallo se marca como warning de aprovisionamiento: guardarEmpresa revierte el alta,
+     * porque una empresa cuyos usuarios no pueden usar BPM queda inservible.
+     *
+     * @param string $adminEmail  correo del administrador
+     * @param string $emailDomain dominio corporativo ya normalizado (sin @)
+     */
+    private function alinearPasswordBpm($adminEmail, $emailDomain)
+    {
+        $nicks = array();
+        $admin = strtolower(trim((string) $adminEmail));
+        if ($admin !== '') {
+            $nicks[] = $admin;
+        }
+
+        $config = $this->obtenerUsuariosDefault();
+        if (is_array($config)) {
+            foreach (array_keys($config) as $alias) {
+                $local = strtolower(preg_replace('/[^a-z0-9]/i', '', (string) $alias));
+                if ($local !== '') {
+                    $nicks[] = $local . '@' . strtolower($emailDomain);
+                }
+            }
+        }
+
+        foreach (array_unique($nicks) as $nick) {
+            if ($nick === '' || strpos($nick, '@') === false) {
+                continue;
+            }
+            $rsp = $this->bpm->setPasswordUsuario($nick);
+            if (empty($rsp['status'])) {
+                $this->addProvisionWarning('No se pudo alinear la clave de BPM de ' . $nick . ' (sin eso no podra lanzar ni aprobar procesos).');
+                log_message('ERROR', '#TRAZA|REGISTER|alinearPasswordBpm() >> fallo alineando ' . $nick);
+            } else {
+                log_message('INFO', '#TRAZA|REGISTER|alinearPasswordBpm() >> clave BPM alineada: ' . $nick);
+            }
+        }
+    }
+
     private function obtenerUsuariosDefault()
     {
         if (!defined('REGISTRACION_USUARIOS_DEFAULT_JSON')) {
@@ -889,6 +937,10 @@ class Register extends CI_Controller {
         }
 
         $this->crearUsuariosPorDefecto($userData, $companyEmailDomain, $companyName, $bpmSession, $emprId);
+        // El POST /usuario del API crea al usuario en Bonita con la clave de la app; hay que
+        // alinearla a BPM_USER_PASS o el usuario no puede lanzar/aprobar procesos (H-070).
+        // Ver doc/analisis/impacto-clave-bonita-registracion-freemium.md.
+        $this->alinearPasswordBpm($userData->email, $companyEmailDomain);
         $this->asignarRolesAUsuario($userData->email, array('Administrador'), $companyName, $emprId);
         $this->crearEstablecimientoDefectoEmpresa($emprId, $companyEmailDomain);
         $this->aprovisionarExtrasConfigurables($emprId, $companyName, $bpmSession);
