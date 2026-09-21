@@ -326,7 +326,15 @@ if (!empty($arr['danger_message'])) {
         <?php echo $server_message_text; ?>
     </div>
     <?php endif; ?>
-        
+
+    <?php if (validation_errors() !== ''): ?>
+    <!-- Muestra TODAS las validaciones de servidor que fallaron (correo inválido, campos
+         requeridos, etc.). Antes fallaban en silencio: el form se recargaba sin mensaje. -->
+    <div id="validation-errors" class="server-error-message" style="background:#e74c3c !important; color:#fff !important; text-align:left;">
+        <?php echo validation_errors(); ?>
+    </div>
+    <?php endif; ?>
+
     <div class="form-container" <?php echo ($server_message_type==='success') ? 'style="display: none;"' : ''; ?>>
         <?php echo form_open('main/register'); ?>
         

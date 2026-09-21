@@ -601,6 +601,26 @@ class Register extends CI_Controller {
             . ' | company_domain=' . $companyDomain
             . ' | is_webmail=' . ($viewData['is_webmail'] ? 'SI' : 'NO'));
 
+        // Rechazar si el dominio de la empresa ya está en uso por usuarios de OTRA empresa.
+        // Sin esto, los usuarios por defecto (usuario@dominio, almacen@dominio, ...) ya
+        // existirían y el alta los "heredaría" en vez de fallar (H-083). Se excluye el email
+        // del propio admin: con email corporativo, el admin ya es de ese mismo dominio y no
+        // debe contar como colisión.
+        $dominioEmpresa = strtolower($companyDomain);
+        $emailAdmin = strtolower($cleanPost['email']);
+        $qDom = $this->db->query(
+            'SELECT COUNT(*) AS n FROM seg.users WHERE LOWER(email) LIKE ? AND LOWER(email) <> ?',
+            array('%@' . $dominioEmpresa, $emailAdmin)
+        );
+        if ($qDom && (int) $qDom->row()->n > 0) {
+            log_message('WARNING', '#TRAZA|REGISTER|guardarEmpresa() >> Dominio ya en uso por otra empresa | dominio=' . $dominioEmpresa);
+            $this->session->set_flashdata('flash_message', 'El dominio "' . $companyDomain . '" ya está en uso por otra empresa. Usá un dominio propio.');
+            $this->load->view('header', $viewData);
+            $this->load->view('crear_empresa_page', $viewData);
+            $this->load->view('footer');
+            return;
+        }
+
         // Validar duplicado real en core.empresas antes de invocar el alta en API
         if ($this->user_model->existeRazonSocial($cleanPost['nombre'], $cleanPost['pais_id'], $cleanPost['cuit'])) {
             log_message('WARNING', '#TRAZA|REGISTER|guardarEmpresa() >> Empresa duplicada detectada | razon=' . $cleanPost['nombre'] . ' | pais_id=' . $cleanPost['pais_id'] . ' | cuit=' . $cleanPost['cuit']);
