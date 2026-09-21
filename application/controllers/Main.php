@@ -1166,6 +1166,22 @@ class Main extends CI_Controller {
 		}
 	}
 
+	/**
+	 * Rechaza correos con "+" (plus addressing) en la registración: no los aceptamos.
+	 * El "+" rompe la asignación de roles en Bonita (se interpreta como espacio y el usuario
+	 * no se encuentra), así que se corta acá con un mensaje claro en vez de dejar avanzar un
+	 * alta que después falla. Método con guion bajo para que no sea ruteable; se usa como
+	 * callback de form_validation.
+	 */
+	public function _email_sin_signo_mas($email)
+	{
+		if (strpos((string) $email, '+') !== FALSE) {
+			$this->form_validation->set_message('_email_sin_signo_mas', 'Formato de email no aceptado');
+			return FALSE;
+		}
+		return TRUE;
+	}
+
 	//register new user from frontend
 	public function register()
 	{
@@ -1179,7 +1195,7 @@ class Main extends CI_Controller {
 		// Reglas de validación
 		$this->form_validation->set_rules('firstname', 'Nombre', 'required');
 		$this->form_validation->set_rules('lastname', 'Apellido', 'required');
-		$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
+		$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email|callback__email_sin_signo_mas');
 		$this->form_validation->set_rules('reg_razon_social', 'Razón Social de la Empresa', 'required');
 		$this->form_validation->set_rules('telefono', 'Teléfono', 'required');
 		$this->form_validation->set_rules('reg_pais_id', 'País', 'required');
