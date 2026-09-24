@@ -1306,10 +1306,14 @@ class Main extends CI_Controller {
 	public function successresetpassword()
 	{
 			$data['title'] = "Contraseña Restablecida";
+			//logo y copyright configurables en core tablas, igual que el login/forgot
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
+			$data['copyright'] = $tabla[0]['valor'];
+			// Mismo layout a sangre que el login/forgot: sin container.php ni footer.php.
 			$this->load->view('header', $data);
-			$this->load->view('container');
-			$this->load->view('reset-pass-info');
-			$this->load->view('footer');
+			$this->load->view('reset-pass-info', $data);
 	}
 
 	protected function _islocal(){
@@ -1842,14 +1846,21 @@ class Main extends CI_Controller {
 			);
 
 			$data['title'] = "Restablecer Contraseña";
+
+			//logo y copyright configurables en core tablas, igual que el login/forgot
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
+			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
+			$data['copyright'] = $tabla[0]['valor'];
+
 			$this->form_validation->set_rules('password', 'Contraseña', 'required|min_length[10]|password_strong');
 			$this->form_validation->set_rules('passconf', 'Confirmación de contraseña', 'required|matches[password]');
 
 			if ($this->form_validation->run() == FALSE) {
+					// Mismo layout a sangre que el login/forgot: sin container.php ni footer.php;
+					// la vista cierra el HTML.
 					$this->load->view('header', $data);
-					$this->load->view('container');
 					$this->load->view('reset_password', $data);
-					$this->load->view('footer');
 			}else{
 					$this->load->library('password');
 					$post = $this->input->post(NULL, TRUE);
