@@ -1,0 +1,41 @@
+Vamos a tomar la registracion actual y hacerle modificaciones
+
+Primero, repasa los standares de php de Trazalog Tools y asegurate que el codigo que generes cumpla con lo siguiente:
+1 - Todo el codigo a generar debe dividirse en model, view y controller. En el model deben ir todas las llamadas a servicios de wso2, y en casos particulares, las llamadas a base de datos. 
+    En el view todo el html. En el controller se cargarn el resto de los componentes, y es quien coordina las ainteracciones entre los demas elementos, pero nunca imprime valores en pantalla 
+    ni hace operaciones en servicios o base de datos
+2 - No deben hardcodearse valores, se deben dejar parametros en constants.php
+3 - todas las llamadas a endpoints de servicios no deben estar hardcodeada, deben ester en constant.php, con variables como por ej REST_CORE para el COREDataService
+4 - usamos logging, se debe poner mensajes de info en la entrada de toda operacion, debug cuando queramos mostrar valores importantes de variables, o parametros que estamos enviando a un servicio, y ERROR en caso de excepcion (y luego propagar el error)
+5 - Toda llamada en los models a servicios REST, debe realizar utilizando la libreria REST de Trazalog Tools, no directamente curl.
+
+Ahora vamos con las modificaciones sobre Registrar usuario:
+ Alinear todo hacia la izquierda. El formulario debe ocupar el 40% de la pantalla. En el 60% restante mostrar la imagen public/img/toolsregister.png"
+Debe figurar el logo de Trazalog primero, en fondo gris oscuro. Este se encuentra en public/img/toolsgrey.png
+El fondo debe ser de color gris oscuro también.
+Luego debe aparecer el siguiente título 1 con fuente Ubuntu
+
+Regístrese Gratis
+
+Luego las siguientes tres lineas como subtitulo
+
+Podés utilizar todas nuestras
+funcionalidades y generar gratuitamente
+hasta 5 usuarios
+
+Finalmente ahora si mostramos el formulario actual, con las siguientes modificaciones:
+1 - Quitemos la linea que dice Hola!
+2 - Quitemos la linea que dice "Por favor ingrese...."
+3 - Despleguemos una lista de paises, la cual sera obtenida del servicio REST_CORE/tablas/paises_registracion, el cual responde 
+    en formato JSON con estructura tablas->tabla->lista de valores. El id a grabar vendran en el campo tabl_id, y el valor a mostrar en "descripcion". Quiero que cada pais se muestre junto a una bandera, lo ideal es no 
+    almacenar en el sistema los gif de cada bandera, fijate si puedes hacerlo con alguna funcion. Sino avisame y lo guardamos en las tablas de REST_CORE
+4 -  Mostraremos un campo "Nombre o Razon Social de la empresa". Lo usaremos luego para crear la empresa en Tools. Es texto libre
+5 - Aqui ya mostraemos los demas campos
+6 - Eliminaremos el campo "SEleccione Empresa", no hay que mostrarlo mas
+7 - Debajo de email, mostraremos este texto de advertencia "Atención! Utilizaremos este dominio para generarte usuarios para tu empresa"
+8 - Agregar campo obligatorio llamado Teléfono, y validar formato de acuerdo al pais seleccionado.
+9 - Colocar este texto al pie "Al registrarme, acepto los Términos y Condiciones y las Políticas de Privacidad de Trazalog."
+10 - Reemplazar el botón de Signup por Utilizar Trazalog Tools Gratis
+11 - mostrar este texto y link a login al pie "¿Ya es usuario? Acceda aquí" <<--- link a login
+12 - agrega los camposs adicionales a la tabla seg.users como campos no obligatorios (aunque en el formulario html si son obligatorios)
+13 - prosigue con el proceso de registración tal cual como esta

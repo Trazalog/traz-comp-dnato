@@ -1,0 +1,9 @@
+---
+key: "MANDataService_proxy-1.0.0"
+name: "MANDataService"
+displayName: "MANDataService"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/MANDataService"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

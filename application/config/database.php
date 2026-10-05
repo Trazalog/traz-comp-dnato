@@ -96,3 +96,42 @@ $db['default'] = array(
 	'failover' => array(),
 	'save_queries' => TRUE
 );
+
+/*
+|--------------------------------------------------------------------------
+| AssetPlanner (MariaDB) — Carga Masiva multi-motor
+|--------------------------------------------------------------------------
+| Conexión secundaria, usada SÓLO por la Carga Masiva para las entidades
+| marcadas con motor_bd = 'mariadb' en sta.entidades_negocio (hoy:
+| Mantenimiento Equipos y Mantenimiento Articulos).
+|
+| Se carga bajo demanda con $this->load->database('assetplanner', TRUE); la
+| conexión por defecto sigue siendo PostgreSQL y nada más la usa.
+|
+| Mismos datos que el AssetPlannerDataSource de WSO2
+| (development/datasources_car_build/AssetPlannerDataSource_1.0.0/).
+| Cada ambiente ajusta host y credenciales en SU database.php, igual que la
+| conexión por defecto.
+*/
+$db['assetplanner'] = array(
+	'dsn'	=> '',
+	'hostname' => '10.142.0.13',
+	'username' => 'rootremote',
+	'password' => '!Password00',
+	'database' => 'assetv2',
+	'dbdriver' => 'mysqli',
+	'port'   => 3306,
+	'dbprefix' => '',
+	'pconnect' => FALSE,
+	'db_debug' => (ENVIRONMENT !== 'production'),
+	'cache_on' => FALSE,
+	'cachedir' => '',
+	'char_set' => 'utf8',
+	'dbcollat' => 'utf8_general_ci',
+	'swap_pre' => '',
+	'encrypt' => FALSE,
+	'compress' => FALSE,
+	'stricton' => FALSE,
+	'failover' => array(),
+	'save_queries' => TRUE
+);

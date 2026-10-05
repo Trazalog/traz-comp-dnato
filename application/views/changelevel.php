@@ -165,46 +165,53 @@ debugger;
 				var icon = "<i class='fa fa-trash' aria-hidden='true'></i>";
 				var goup_nombre = $("#groups option:selected").text();
 				var role_nombre = $("#roles option:selected").text();
+				var grupo = group_id.split("-");
+				var rolarray = role_id.split("-");
+				var group_bpm_id = grupo[0];
+				var role_bpm_id = rolarray[0];
+				var group_name = grupo.length > 1 ? grupo.slice(1).join("-") : goup_nombre;
 
 				var row = '<tr>'+ 
-												'<td class="hidden">' + user_id + '</td>'+
-												'<td>' + icon + '</td>'+
-												'<td>'+ goup_nombre  +'</td>'+
-												'<td>'+ role_nombre  +'</td>'+
-									'</tr>';
+					'<td class="hidden">' + user_id + '</td>'+
+					'<td>' + icon + '</td>'+
+					'<td>'+ goup_nombre  +'</td>'+
+					'<td>'+ role_nombre  +'</td>'+
+					'<td class="hidden" data-group-id="'+group_bpm_id+'">'+group_bpm_id+'</td>'+
+					'<td class="hidden" data-role-id="'+role_bpm_id+'">'+role_bpm_id+'</td>'+
+				'</tr>';
 
 				var membership = {};
 				membership.email = user_id;
-				var grupo = group_id.split("-");
-				var name = grupo[2];
-				membership.group = name;
+				membership.group = group_name;
 				membership.role = role_nombre;
+				membership.group_id = group_bpm_id;
+				membership.role_id = role_bpm_id;
 
 				var membershipBPM = {};
-				membershipBPM.group_id = grupo[0];
-				var rolarray = role_id.split("-");
-				membershipBPM.role_id = rolarray[0];
+				membershipBPM.group_id = group_bpm_id;
+				membershipBPM.role_id = role_bpm_id;
 
-				console.log(membershipBPM);
-				console.log(membership);
-
-				/*
 				$.ajax({
-
-						type: 'POST',
-						data:{ membership, membershipBPM },
-						url: '<?php echo base_url() ?>/main/guardarMembership',
-						success: function(result) {
-
-										$("#tbl_temporal tbody").append(row);
-						},
-						error: function(result){
-											alert('Error al guardar membresia...');
-						},
-						complete: function(){
-
+					type: 'POST',
+					data: { membership: membership, membershipBPM: membershipBPM },
+					url: '<?php echo base_url() ?>/main/guardarMembership',
+					success: function(result) {
+						var r = typeof result === 'string' ? JSON.parse(result) : result;
+						if (r && r.success !== false) {
+							$("#tbl_temporal tbody").append(row);
+						} else {
+							alert(r && r.message ? r.message : 'Error al guardar membresía.');
 						}
-				});*/
+					},
+					error: function(xhr) {
+						var msg = 'Error al guardar membresía.';
+						try {
+							var r = JSON.parse(xhr.responseText);
+							if (r && r.message) msg = r.message;
+						} catch(e) {}
+						alert(msg);
+					}
+				});
 
 		
 		}else{
@@ -217,26 +224,31 @@ debugger;
 			var row = $(this).parents("tr");
 			var membership = [];
 			var user_id = $(this).parents("tr").find("td").eq(0).html();
-			var group_id = $(this).parents("tr").find("td").eq(2).html();
-			var role_id	= $(this).parents("tr").find("td").eq(3).html();
+			var group_name = $(this).parents("tr").find("td").eq(2).html();
+			var role_name = $(this).parents("tr").find("td").eq(3).html();
+			var group_id = $(this).parents("tr").find("td[data-group-id]").attr("data-group-id") || $(this).parents("tr").find("td[data-group-id]").html();
+			var role_id = $(this).parents("tr").find("td[data-role-id]").attr("data-role-id") || $(this).parents("tr").find("td[data-role-id]").html();
 			tmp = {};
 			tmp.email = user_id;
-			tmp.group = group_id;
-			tmp.role  = role_id;
+			tmp.group = group_name;
+			tmp.role = role_name;
+			tmp.group_id = group_id || '';
+			tmp.role_id = role_id || '';
 			membership.push(tmp);
 
 			$.ajax({
 				type: 'POST',
-				data:{ membership },
+				data: { membership: membership },
 				url: '<?php echo base_url() ?>/main/borrarMembership',
 				success: function(result) {
-					row.remove();
+					if (result === 'true' || result === true) {
+						row.remove();
+					} else {
+						alert('Error al eliminar membresía.');
+					}
 				},
-				error: function(result){
-						
-				},
-				complete: function(){
-									
+				error: function() {
+					alert('Error al eliminar membresía.');
 				}
 			});	
 	});

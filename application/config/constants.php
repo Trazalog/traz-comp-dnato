@@ -85,32 +85,98 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 define('BONITA_URL', 'http://10.142.0.13:8080/bonita/');
-define('REST_BPM', 'http://10.142.0.13:8280/tools/bpm');
-define('API_CORE', 'http://10.142.0.13:8280/tools/core');
+
+/*
+|--------------------------------------------------------------------------
+| WSO2 Micro Integrator - URL base
+|--------------------------------------------------------------------------
+| Cada ambiente tiene su propio constants.php: en este (desa) usamos nuestro
+| WSO2 local. En otros ambientes, en su constants ponen su URL (ej. 10.142.0.13:8280).
+*/
+$wso2_base = 'http://10.142.0.13:8280';
+define('REST_BPM', $wso2_base . '/tools/bpm');
+define('API_CORE', $wso2_base . '/tools/core');
 define('BPM_ADMIN_USER', 'admin');
 define('BPM_ADMIN_PASS', '123traza');
-define('TOOLS_ADMIN_USER','admin@gmail.com');
+define('FRM', 'traz-comp-formularios/');
+define('FORMULARIO_REGISTRO_ID', 72);
+// String, no entero, y no es un detalle de estilo. Este valor va a la sesion y de ahi
+// lo lee empresa(); despues viaja en el JSON de cualquier POST a un DataService, y esos
+// declaran sus parametros como STRING (2.314 de 2.321 en el repo). Un entero los rompe
+// con "Value type miss match, Expected value type - 'string', but found - 'NUMBER'" y la
+// operacion no se hace. Paso con el alta de pedidos de materiales en el DEMO.
+//
+// Antes de v2.5 el empr_id de la sesion siempre venia de un $_POST, o sea siempre
+// string. Esto lo mantiene asi.
+define('REGISTER_TEMP_EMPR_ID', '9000');
+
+define('TOOLS_ADMIN_USER','ramon@gmail.com');
 define('BPM_USER_PASS', 'bpm');
 
-#SISTEMA A ENLAZAR
+/*
+|--------------------------------------------------------------------------
+| Sesión BPM para asignación de roles (tools/bpm)
+|--------------------------------------------------------------------------
+| Usado por Roles->getInfoBPM, guardarMembershipBPM, deleteMembershipBPM.
+| Obtener sesión: login a Bonita, extraer X-Bonita-API-Token y JSESSIONID.
+| Formato base: X-Bonita-API-Token=xxx;JSESSIONID=xxx;bonita.tenant=1;
+| Actualizar cuando expire la sesión.
+*/
+$bpm_roles_session_base = 'X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;';
+
+define('BPM_ROLES_SESSION', '"' . $bpm_roles_session_base . '"');
+define('BPM_ROLES_SESSION_URL', rawurlencode($bpm_roles_session_base));
+//define('BPM_SESSION_FALLBACK', BPM_ROLES_SESSION);
+define('BPM_SESSION_FALLBACK', '"X-Bonita-API-Token=658fcd51-ef8b-48c3-9606-1d89a88cf3e5;JSESSIONID=BCDEA4A05749709F4DFBDCBB58A527E8;bonita.tenant=1;"');
+
+# SISTEMA A ENLAZAR — URLs públicas de la app
 define('USUARIO_EXTERNO', 8);
 define('DE', 'http://localhost/traz-tools/');
 define('DS', 'http://localhost/traz-comp-dnato/main/login');
-define('DNATO', 'http://localhost/traz-comp-dnato/');
+define('DNATO', 'http://localhost/traz-comp-dnato/main/users');
 define('SIS_NAME', 'TOOLS');
+
+/*
+|--------------------------------------------------------------------------
+| Dominios de webmail publicos
+|--------------------------------------------------------------------------
+| Si el email con el que se registra el usuario pertenece a alguno de estos
+| dominios, durante "Completar Datos de Empresa" se le pedira un dominio
+| corporativo adicional para generar los usuarios por defecto de la empresa.
+| Si el email NO pertenece a un webmail, se reutiliza directamente el dominio
+| del email para generar esos usuarios.
+*/
+define('WEBMAIL_DOMAINS', array(
+    'gmail.com', 'googlemail.com',
+    'hotmail.com', 'hotmail.es', 'hotmail.com.ar', 'hotmail.co.uk',
+    'outlook.com', 'outlook.es', 'outlook.com.ar',
+    'live.com', 'live.com.ar', 'live.com.mx', 'msn.com',
+    'yahoo.com', 'yahoo.es', 'yahoo.com.ar', 'yahoo.com.mx', 'ymail.com', 'rocketmail.com',
+    'aol.com',
+    'icloud.com', 'me.com', 'mac.com',
+    'protonmail.com', 'proton.me', 'pm.me',
+    'zoho.com',
+    'gmx.com', 'gmx.net', 'gmx.us', 'gmx.es',
+    'yandex.com', 'yandex.ru',
+    'mail.com', 'mail.ru',
+    'fastmail.com',
+    'tutanota.com', 'tuta.io', 'tutamail.com',
+    'hey.com',
+));
+define('WEBMAIL_DOMAINS_CSV', 'gmail.com,googlemail.com,hotmail.com,hotmail.es,hotmail.com.ar,hotmail.co.uk,outlook.com,outlook.es,outlook.com.ar,live.com,live.com.ar,live.com.mx,msn.com,yahoo.com,yahoo.es,yahoo.com.ar,yahoo.com.mx,ymail.com,rocketmail.com,aol.com,icloud.com,me.com,mac.com,protonmail.com,proton.me,pm.me,zoho.com,gmx.com,gmx.net,gmx.us,gmx.es,yandex.com,yandex.ru,mail.com,mail.ru,fastmail.com,tutanota.com,tuta.io,tutamail.com,hey.com');
 
 /*
 |--------------------------------------------------------------------------
 | Variables HOST y REST
 |--------------------------------------------------------------------------
 |
-| Variables Locales
+| Variables Locales (HOST usa mismo puerto WSO2 que API_CORE)
 |
 */
-define('HOST', 'http://10.142.0.13:8280');
-define('REST_CORE', HOST.'/services/COREDataService');
-define('API_URL', HOST.'/tools/log');
-define('REST_RESI', HOST.'/services/semaresiduosDS');
+define('HOST', $wso2_base);
+define('REST_CORE', HOST . '/services/COREDataService');
+define('API_URL', HOST . '/tools/log');
+define('REST_RESI', HOST . '/services/semaresiduosDS');
 
 #ERRORES DE BONITA
 define('ASP_100', 'Fallo Conexión BPM');
@@ -138,7 +204,7 @@ define('ASP_115', 'Error al Leer Variable');
 | URLs para los servicios de datos de WSO2
 |
 */
-define('COREDataService_URL', 'http://10.142.0.13:8280/services/COREDataService');
+define('COREDataService_URL', $wso2_base . '/services/COREDataService');
 
 /*
 |--------------------------------------------------------------------------
@@ -152,3 +218,175 @@ define('BULKLOAD_STAGING_DIR', FCPATH . 'bulkload_stage_files');
 define('BULKLOAD_MAX_FILE_SIZE', 10 * 1024 * 1024); // 10 MB
 define('BULKLOAD_ALLOWED_EXTENSIONS', 'xlsx,xls');
 define('BULKLOAD_TIMEOUT', 60); // segundos
+
+/*
+|--------------------------------------------------------------------------
+| Registro de Usuarios Configuration
+|--------------------------------------------------------------------------
+|
+| Configuración para la funcionalidad de registro de usuarios
+|
+*/
+define('REST_CORE_PAISES', REST_CORE . '/tablas/paises_registracion');
+define('CAMPOS_USUARIO_ADICIONALES', array(
+    'reg_pais_id',
+    'reg_razon_social',
+    'telefono'
+));
+define('REGISTRACION_PASSWORD_DEFAULT', '12345');
+
+/*
+|--------------------------------------------------------------------------
+| Alta de empresa — roles y mapeos OPCIONALES, por instancia
+|--------------------------------------------------------------------------
+|
+| El alta de empresa crea en Bonita los roles de la empresa y mapea sus actores
+| a los procesos. Hay dos grupos:
+|
+|   OBLIGATORIOS — viven en el API (toolsCOREAPI, POST /empresa) porque sin ellos
+|   la empresa no sirve: son los 12 roles base y los procesos de Almacenes
+|   ("Pedido de Recursos Materiales"), Mantenimiento ("proceso de Mantenimiento
+|   AssetPlanner") y "TST001 - Tarea Planificada". Si uno falla, el alta falla.
+|
+|   OPCIONALES — los de acá. Dependen de qué módulos usa CADA INSTALACIÓN.
+|   Residuos (TERSU) corre en instalaciones ON-PREMISE del cliente, que sí crean
+|   empresas y sí necesitan esos roles; la nube no los usa nunca. Tenerlos dentro
+|   del API obligaba a desplegar un artefacto de WSO2 a mano para cambiar la lista,
+|   y hacía que el alta muriera en cualquier ambiente donde el proceso no estuviera
+|   publicado.
+|
+| "Opcional" es por INSTANCIA, no por empresa: si esta instalación los declara, hacen
+| falta. Una empresa de residuos sin sus roles ni sus actores no sirve para nada, así que
+| si alguno falla el alta se REVIERTE completa —igual que con los obligatorios— y el
+| usuario ve qué faltó. Buscar en el log: "extras configurables".
+|
+| Corolario: no dejar declarado acá nada que la instalación no vaya a poder crear. Un
+| proceso que figure en la lista y no esté publicado y HABILITADO en Bonita va a impedir
+| que se registre cualquier empresa nueva en esta instancia.
+|
+| VACÍO EN LA NUBE. En una instalación ON-PREMISE de residuos hay que descomentar
+| el bloque TERSU de abajo — si no, las empresas nuevas de ESA instancia no van a
+| tener los roles SMA ni sus mapeos.
+|
+| Los nombres se componen solos: el rol queda "<empr_id>-<rol> <empresa>" y el grupo
+| "<empr_id>-<empresa>". Acá va solo la parte fija.
+|
+*/
+
+/* Roles extra a crear, además de los 12 base. */
+define('ALTA_EMPRESA_ROLES_EXTRA', array(
+    // 'SMA - Transportista',
+    // 'SMA - Generador',
+    // 'SMA - Operario Descarga',
+    // 'SMA - Operador de Bascula',
+));
+
+/*
+| Mapeos extra de actor de Bonita.
+|   proceso : nombre del proceso, tal cual figura en Bonita y HABILITADO
+|   actor   : nombre del actor dentro de ese proceso
+|   rol     : rol de la empresa que se asocia. Si se omite, se mapea solo el grupo
+|             de la empresa al actor (equivale a POST /bpm/actor/grupo).
+*/
+define('ALTA_EMPRESA_ACTORES_EXTRA', array(
+    // array('proceso' => 'TERSU-BPM01 - Solicitud de Contenedores',        'actor' => 'Solicitante Transporte',    'rol' => 'SMA - Generador'),
+    // array('proceso' => 'TERSU-BPM01 - Solicitud de Contenedores',        'actor' => 'Transportista',             'rol' => 'SMA - Transportista'),
+    // array('proceso' => 'TERSU-BPM02 - Solicitud de Retiro de Contenedores', 'actor' => 'Solicitante Transporte', 'rol' => 'SMA - Generador'),
+    // array('proceso' => 'TERSU-BPM02 - Solicitud de Retiro de Contenedores', 'actor' => 'Transportista',          'rol' => 'SMA - Transportista'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Operario Báscula',          'rol' => 'SMA - Operador de Bascula'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Operario Descarga',         'rol' => 'SMA - Operario Descarga'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Solicitante de Transporte', 'rol' => 'SMA - Generador'),
+    // array('proceso' => 'TERSU-BPM03 - Generación Orden de Transporte',   'actor' => 'Transportista',             'rol' => 'SMA - Transportista'),
+));
+
+/*
+|--------------------------------------------------------------------------
+| Imágenes del flujo de registro y login (configurables)
+|--------------------------------------------------------------------------
+*/
+define('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png');
+define('REGISTER_IMG_BACKGROUND', 'public/img/toolsregister.jpg');
+define('REGISTER_IMG_COMPLETE_PASSWORD', 'public/img/toolschangepass.jpg');
+define('REGISTER_IMG_FORMULARIO', 'public/img/toolsform.jpg');
+define('REGISTER_IMG_CREAR_EMPRESA', 'public/img/toolscreaempr.jpg');
+define('REGISTER_IMG_BIENVENIDA', 'public/img/toolsbienvenida.jpg');
+define('REGISTER_IMG_EMAIL_LOGO', 'public/img/logotzl.png');
+define('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
+
+/*
+| Imagen del panel derecho del login (split-screen). Se muestra a sangre, con
+| background-size: cover. Por defecto es la misma del registro, para que las
+| dos pantallas de entrada al sistema hablen el mismo idioma visual.
+*/
+define('LOGIN_IMG_BACKGROUND', 'public/img/toolslogin.jpg');
+
+/*
+|--------------------------------------------------------------------------
+| OAuth 2.1 — identificador del emisor (claim "iss" del JWT)
+|--------------------------------------------------------------------------
+| Va acá, junto al resto de la configuración por ambiente, y NO en el
+| .htaccess: así el archivo de Apache es igual en todos lados y no hay que
+| acordarse de descomentar nada en cada despliegue.
+|
+| Qué es: el claim "iss" que Dnato escribe dentro de cada JWT que emite. El
+| APIM de WSO2 lo compara contra el bloque [[apim.jwt.issuer]] de su
+| deployment.toml para decidir si confía en el token. Los dos valores tienen
+| que ser IDÉNTICOS carácter por carácter; si no, el APIM rechaza el token y
+| las tools MCP responden 401 aunque la firma sea correcta.
+|
+| Orden de precedencia (application/config/jwt.php):
+|   1. Variable de entorno DNATO_ISSUER — si un ambiente ya la define, manda
+|      ella y esta constante se ignora. Demo sigue funcionando como hasta hoy.
+|   2. Esta constante, si tiene valor.
+|   3. Derivado de base_url: <esquema>://<host>/<ruta>/oauth
+|
+| Dejala VACÍA en desarrollo: la opción 3 la resuelve sola, incluso con ngrok.
+| En producción, completala con el mismo valor que quede en el APIM.
+*/
+define('DNATO_OAUTH_ISSUER', '');
+
+
+/*
+| Banner de autoregistro (freemium) en la pantalla de login.
+|
+| TRUE  → se muestra el banner "Crear cuenta gratis", que lleva a main/register.
+| FALSE → el login no ofrece ninguna vía de alta; el registro sigue accesible
+|         por URL directa, esto sólo controla si se promociona en el login.
+|
+| Ponerlo en FALSE cuando el alta freemium se cierre o se pase a alta asistida.
+*/
+define('LOGIN_MOSTRAR_REGISTRO', TRUE);
+
+/*
+ * Configuracion unica (JSON) para usuarios por defecto de registracion.
+ * Se usa JSON para compatibilidad total con PHP 5.6+ y superiores.
+ */
+define('REGISTRACION_USUARIOS_DEFAULT_JSON', '{'
+    . '"usuario":["Solicitante de Almacén","Solicitante de Mantenimiento"],'
+    . '"almacen":["Responsable de Almacén"],'
+    . '"panol":["Responsable de Pañol"],'
+    . '"produccion":["Responsable de Producción"],'
+    . '"mantenimiento":["Supervisor de Mantenimiento","Planificador de Mantenimiento"]'
+. '}');
+
+
+/*
+ * Defaults para el alta automática de Establecimiento + Depósito que se crea al dar de alta una empresa
+ * (Register::postProcesarEmpresa -> Establecimientos::crearDefaultsEmpresa).
+ * ENCARGADO_ALIAS debe coincidir con una clave de REGISTRACION_USUARIOS_DEFAULT_JSON para que el usuario exista.
+ */
+define('REGISTRACION_ESTABLECIMIENTO_DEFAULT_NOMBRE', 'Establecimiento Principal');
+define('REGISTRACION_DEPOSITO_DEFAULT_NOMBRE', 'Deposito 1');
+define('REGISTRACION_DEPOSITO_DEFAULT_DESCRIPCION', 'Depósito 1');
+define('REGISTRACION_DEPOSITO_DEFAULT_ENCARGADO_ALIAS', 'almacen');
+
+// La página de bienvenida (register/registro_completo) arma el listado desde REGISTRACION_USUARIOS_DEFAULT_JSON + dominio corporativo.
+
+/*
+||--------------------------------------------------------------------------
+|| Formularios Dinámicos Configuration
+||--------------------------------------------------------------------------
+||
+|| Configuración para el módulo de formularios dinámicos
+||
+*/

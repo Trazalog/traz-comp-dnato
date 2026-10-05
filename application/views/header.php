@@ -1,6 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
+// Cargar tema Bootstrap para todas las páginas
 $result = $this->user_model->getAllSettings();
 $theme = $result->theme;
 ?>
@@ -32,6 +33,5 @@ $theme = $result->theme;
         <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.dataTables.min.css">
         <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.bootstrap.min.css">
 
-        <!-- <script src='https://www.google.com/recaptcha/api.js'></script> -->
     </head>
 <body>

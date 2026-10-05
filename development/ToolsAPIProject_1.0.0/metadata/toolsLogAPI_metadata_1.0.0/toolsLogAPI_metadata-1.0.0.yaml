@@ -1,0 +1,9 @@
+---
+key: "toolsLogAPI-1.0.0"
+name: "toolsLogAPI"
+displayName: "toolsLogAPI"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/tools/log"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

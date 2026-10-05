@@ -112,12 +112,8 @@ class REST
             return ['status' => ($response_code < 300), 'header' => $headers, 'data' => $body, 'code' => $response_code];
 
         } catch (Exception $e) {
-
-            trigger_error(sprintf(
-                'Curl failed with error #%d: %s',
-                $e->getCode(), $e->getMessage()),
-                E_USER_ERROR);
-
+            log_message('ERROR', '#TRAZA | #REST | #CURL | Exception: ' . $e->getMessage());
+            return array('status' => false, 'header' => false, 'data' => false, 'code' => 0);
         }
     }
 

@@ -1,0 +1,9 @@
+---
+key: "PRDLoteDataService_proxy-1.0.0"
+name: "PRDLoteDataService"
+displayName: "PRDLoteDataService"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/PRDLoteDataService"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

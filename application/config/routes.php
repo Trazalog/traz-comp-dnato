@@ -56,3 +56,17 @@ $route['translate_uri_dashes'] = FALSE;
 // Alias de compatibilidad: redirigir rutas de la versión SEPARATED al controlador unificado
 $route['bulkload_separated'] = 'bulkload';
 $route['bulkload_separated/(:any)'] = 'bulkload/$1';
+
+// OAuth 2.1 endpoints — E9-IDENT-03
+$route['oauth/authorize']                                    = 'oauth/authorize';
+$route['oauth/token']                                        = 'oauth/token';
+$route['oauth/.well-known/jwks.json']                        = 'oauth/jwks';
+$route['oauth/.well-known/oauth-authorization-server']       = 'oauth/authorization_server_metadata';
+$route['oauth/.well-known/openid-configuration']             = 'oauth/authorization_server_metadata';
+$route['oauth/register']                                     = 'oauth/register_client';
+
+// OAuth 2.1 login screen — E9-IDENT-04
+// TAD-IDENT-02: MVP asume 1 empresa por usuario — no existe pantalla de selección
+$route['oauth/login']              = 'oauthlogin/index';
+$route['oauth/login/credentials']  = 'oauthlogin/credentials';
+$route['oauth/resume']             = 'oauth/resume_after_login';

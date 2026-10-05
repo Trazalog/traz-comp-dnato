@@ -298,6 +298,44 @@ class BPM
 
     }
 
+    /**
+     * Alinea la clave del usuario en Bonita a BPM_USER_PASS.
+     *
+     * El sistema actua como el usuario en Bonita (lanzarProceso() se loguea con
+     * loggin(userNick(), userPass()) y userPass() = BPM_USER_PASS) SIN conocer su clave
+     * real, asi que TODO usuario de Bonita debe tener BPM_USER_PASS. El ABM ya lo hace al
+     * crear (crearUsrBPM); la registracion freemium crea el usuario de Bonita via el
+     * POST /usuario del API con la clave de la app, asi que hay que corregirla despues.
+     * Es lo que restaura el invariante de produccion (ver
+     * doc/analisis/impacto-clave-bonita-registracion-freemium.md).
+     *
+     * @param string $nick usernick del usuario (su correo)
+     * @return array msj()
+     */
+    public function setPasswordUsuario($nick)
+    {
+        $u = $this->getUser($nick);
+        if (!$u['status'] || !isset($u['data']['id'])) {
+            log_message('ERROR', '#TRAZA | #BPM | setPasswordUsuario >> usuario no encontrado en Bonita: ' . $nick);
+            return $this->msj(false, ASP_113);
+        }
+
+        $contract = array(
+            'password'         => BPM_USER_PASS,
+            'password_confirm' => BPM_USER_PASS,
+        );
+
+        $url = BONITA_URL . 'API/identity/user/' . $u['data']['id'];
+        $rsp = $this->REST->callAPI('PUT', $url, $contract, $this->loggin(BPM_ADMIN_USER, BPM_ADMIN_PASS));
+
+        if (!$rsp['status']) {
+            log_message('ERROR', '#TRAZA | #BPM | setPasswordUsuario >> no se pudo actualizar la clave de ' . $nick . ' | code=' . (isset($rsp['code']) ? $rsp['code'] : 'N/A'));
+            return $this->msj(false, 'No se pudo alinear la clave BPM de ' . $nick);
+        }
+
+        return $this->msj(true, 'OK');
+    }
+
     public function setUsuario($task, $user)
     {
         $contract = array(

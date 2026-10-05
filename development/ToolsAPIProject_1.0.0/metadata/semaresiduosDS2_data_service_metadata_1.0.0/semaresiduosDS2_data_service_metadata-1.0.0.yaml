@@ -1,0 +1,9 @@
+---
+key: "semaresiduosDS2_proxy-1.0.0"
+name: "semaresiduosDS2"
+displayName: "semaresiduosDS2"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/semaresiduosDS2"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

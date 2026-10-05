@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copiar a MI_HOME/registry/config/tools/apiconfig.xml
+     o al path que use tu registry (conf:tools/apiconfig.xml).
+     Ajustar api_url y dataservices_url según el host/puerto de tu WSO2 MI. -->
+<config>
+  <api_url>http://localhost:8290/tools</api_url>
+  <dataservices_url>http://localhost:8290/services</dataservices_url>
+</config>

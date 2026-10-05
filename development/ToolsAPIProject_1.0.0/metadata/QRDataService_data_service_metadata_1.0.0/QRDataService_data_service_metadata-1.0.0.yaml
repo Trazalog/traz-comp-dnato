@@ -1,0 +1,9 @@
+---
+key: "QRDataService_proxy-1.0.0"
+name: "QRDataService"
+displayName: "QRDataService"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/services/QRDataService"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

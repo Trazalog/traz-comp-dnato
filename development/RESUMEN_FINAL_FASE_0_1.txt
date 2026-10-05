@@ -1,0 +1,46 @@
+FASE 0.1: ESTADO FINAL
+======================
+
+PROBLEMA IDENTIFICADO:
+- El password NO se está hasheando en MD5 antes de insertarse en MySQL AssetPlanner
+- Los usuarios creados tienen el password en texto plano
+
+CAMBIOS REALIZADOS EN CÓDIGO:
+1. ✓ Modificado toolsCOREApi.xml: Agregado script JavaScript para hashear password en MD5
+   - Ubicación: Línea ~393-400
+   - Script usa: Packages.org.apache.commons.codec.digest.DigestUtils.md5Hex()
+   - Cambia usr_password por usr_password_md5 en el payload (línea 407)
+   - Agregados logs para debugging
+
+2. ✓ Modificado COREDataService.xml: Removido MD5() del SQL
+   - El password ahora debería venir hasheado desde el API
+
+3. ✓ Creado CAR (Carbon Application Archive):
+   - Archivo: COREToolsApplication_1.0.0.car
+   - Estructura correcta con artifacts.xml
+   - Incluye toolsCOREApi y COREDataService
+
+PROBLEMA ACTUAL:
+- El CAR se despliega pero el password sigue sin hashearse
+- No se ven logs del script JavaScript en wso2carbon.log
+- Esto sugiere que:
+  a) El API no se está desplegando correctamente desde el CAR, o
+  b) El script JavaScript no se está ejecutando, o
+  c) Hay un problema con la forma en que WSO2 MI procesa el script
+
+PRÓXIMOS PASOS NECESARIOS:
+1. Verificar que el API toolsCOREApi se desplegó correctamente
+2. Verificar que el script JavaScript se ejecuta (revisar logs)
+3. Si el script no se ejecuta, investigar alternativas:
+   - Usar clase mediator en lugar de script JavaScript
+   - Hashear el password en el DataService usando una función diferente
+   - Verificar si Apache Commons Codec está disponible en WSO2 MI
+
+ARCHIVOS CREADOS:
+- development/COREToolsApplication_1.0.0.car (CAR listo para desplegar)
+- development/car_build/ (estructura del CAR)
+- development/test_fase_0_1*.sh (scripts de prueba)
+- development/verificar_md5*.py (scripts de verificación)
+
+NOTA: El CAR está en:
+/home/rodolfo/dev/wso2mi-4.3.0/repository/deployment/server/carbonapps/COREToolsApplication_1.0.0.car

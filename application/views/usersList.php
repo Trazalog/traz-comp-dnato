@@ -14,33 +14,28 @@
                 </tr>
             </thead>  
             <tbody>
-            <?php                    
-                    foreach($emp_connect as $emp_con){
-                        foreach($usersList as $row){
-                           
-                            if($row->busines == $emp_con->group){  //Filtra Empresa del conectado
-                                //if(($email != $row->email) && ($usernick != $row->usernick)){   // No                             
-                                    echo "<tr id='".$row->id."|".$row->busines."|".$row->first_name."|".$row->last_name."|".$row->email."|".$row->last_login."|".$row->nombre."|".$row->status."'>";
-                                    echo '<td>'.$row->id.'</td>';
-                                    echo '<td class="hidden">'.$row->busines.'</td>';
-                                    echo '<td>'.$row->first_name.' '.$row->last_name.'</td>';
-                                    echo '<td>'.$row->email.'</td>';
-                                    echo '<td>'.$row->last_login.'</td>';
-                                    echo '<td>'.$row->nombre.'</td>';
-                                    echo '<td>'.$row->status.'</td>';
-                                    //echo '<td><a href="'.site_url().'main/changelevel"><button type="button" class="btn btn-primary">Rol</button></a></td>';
-                                    echo '<td>';
-                                    /*echo '<a href="'.site_url().'main/changeleveluser/'.$row->id.'"><button type="button" class="btn btn-primary">Rol</button></a>';
-                                    echo str_repeat ("&nbsp;",1); 
-                                    echo '<a href="'.site_url().'main/deleteuser/'.$row->id.'/'.$row->busines.'"><button type="button" class="btn btn-danger">Borrar</button></a>';*/
-                                    echo '<a href="'.site_url().'main/changeleveluser/'.$row->id.'"><i class="fa fa-fw fa-address-card-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Asignar Rol"  id="btnEditUser"></i></a>';
-                                    echo '<a href="'.site_url().'main/deleteuser/'.$row->id.'/'.$row->busines.'"><i class="fa fa-fw fa-trash-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Eliminar Usuario"  id="btnDeleteUser"></i></a>';                                    
-                                    echo '</td></tr>';
-                                //}
-                            }
+            <?php
+                    $fallbackBiz = '';
+                    if (!empty($emp_connect) && is_array($emp_connect) && isset($emp_connect[0]->group)) {
+                        $fallbackBiz = (string) $emp_connect[0]->group;
+                    }
+                    if (!empty($usersList)) {
+                        foreach ($usersList as $row) {
+                            $biz = (isset($row->busines) && (string) $row->busines !== '') ? (string) $row->busines : $fallbackBiz;
+                            echo "<tr id='".$row->id."|".$biz."|".$row->first_name."|".$row->last_name."|".$row->email."|".$row->last_login."|".$row->nombre."|".$row->status."'>";
+                            echo '<td>'.$row->id.'</td>';
+                            echo '<td class="hidden">'.$biz.'</td>';
+                            echo '<td>'.$row->first_name.' '.$row->last_name.'</td>';
+                            echo '<td>'.$row->email.'</td>';
+                            echo '<td>'.$row->last_login.'</td>';
+                            echo '<td>'.$row->nombre.'</td>';
+                            echo '<td>'.$row->status.'</td>';
+                            echo '<td>';
+                            echo '<a href="'.site_url().'main/changeleveluser/'.$row->id.'"><i class="fa fa-fw fa-address-card-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Asignar Rol"  id="btnEditUser"></i></a>';
+                            echo '<a href="'.site_url().'main/deleteuser/'.$row->id.'/'.rawurlencode($biz).'"><i class="fa fa-fw fa-trash-o text-light-blue" style="cursor: pointer; margin-left: 4px;" title="Eliminar Usuario"  id="btnDeleteUser"></i></a>';
+                            echo '</td></tr>';
                         }
                     }
-    
                 ?>
             </tbody>
         </table>

@@ -1,0 +1,30 @@
+[10:50:56] === Prueba Bonita ActorMember (rol + grupo / membership) ===
+[10:50:56] URL: http://10.142.0.13:8080/bonita
+[10:50:57] Login OK
+[10:50:58] Proceso: Inspecciones a Establecimientos (id=7558850613353527519)
+[10:50:58] Actor: Coordinador de Inspecciones (id=107)
+[10:50:59] Rol elegido: 106-Administrador Transportista desde Tools con API (id=1468)
+[10:52:19] === Prueba Bonita ActorMember (rol + grupo / membership) ===
+[10:52:19] URL: http://10.142.0.13:8080/bonita
+[10:52:19] Login OK
+[10:52:20] Proceso: Inspecciones a Establecimientos (id=7558850613353527519)
+[10:52:20] Actor: Coordinador de Inspecciones (id=107)
+[10:52:21] Rol elegido: 106-Administrador Transportista desde Tools con API (id=1468)
+[10:53:15] === Prueba Bonita ActorMember (rol + grupo / membership) ===
+[10:53:15] URL: http://10.142.0.13:8080/bonita
+[10:53:16] Login OK
+[10:53:16] Proceso: Inspecciones a Establecimientos (id=7558850613353527519)
+[10:53:17] Actor: Coordinador de Inspecciones (id=107)
+[10:53:17] Rol elegido: 106-Administrador Transportista desde Tools con API (id=1468)
+[10:54:59] === Prueba Bonita ActorMember (rol + grupo / membership) ===
+[10:54:59] URL: http://10.142.0.13:8080/bonita
+[10:54:59] Login OK
+[10:55:00] Proceso: Inspecciones a Establecimientos (id=7558850613353527519)
+[10:55:00] Actor: Coordinador de Inspecciones (id=107)
+[10:55:01] Rol elegido: 106-Administrador Transportista desde Tools con API (id=1468)
+[10:55:01] Grupo elegido: 103-Koke RNS generador 4 from SOAP (id=1017)
+[10:55:01] POST membership: actor_id=107 role_id=1468 group_id=1017 (path actorMember)
+[10:55:02] OK: ActorMember (membership) creado id=3614
+[10:55:02] DELETE limpieza...
+[10:55:02] DELETE HTTP 200
+[10:55:02] === Prueba OK (misma semántica que /tools/bpm/actor/membership) ===

@@ -1,0 +1,5 @@
+<script language="js"><![CDATA[
+   var password = mc.getProperty('usr_password');
+   mc.setProperty('test_script', 'executed');
+   mc.setProperty('test_password', password);
+]]></script>

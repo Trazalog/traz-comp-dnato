@@ -1,0 +1,20 @@
+{
+  "bpmSession": "YOUR_BPM_SESSION_TOKEN_HERE",
+  "usuario": {
+    "firstname": "Juan",
+    "lastname": "Pérez",
+    "email": "juan.perez@example.com",
+    "password": "Password123",
+    "role": "subscriber",
+    "status": "active",
+    "banned_users": "",
+    "telefono": "+5491112345678",
+    "dni": "12345678",
+    "usernick": "juanperez",
+    "depo_id": null,
+    "image_name": null,
+    "image": null,
+    "business": "empresa_test"
+  }
+}
+
