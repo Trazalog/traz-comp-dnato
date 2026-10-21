@@ -280,25 +280,30 @@ class User_model extends CI_Model {
 
 	    /**
      * Resuelve empr_id numérico a partir del nombre de grupo BPM.
-     * OJO: este método asume group (memberships_users) = descripcion (core.empresas),
-     * y esa convención NO se cumple en los datos reales — hay empresas donde el
-     * grupo coincide con `nombre` y la descripción es texto libre ('correa' →
-     * 'transporte'). Verificado contra la base de desarrollo. El criterio correcto
-     * es el de getEmpresasDeUsuario(): nombre O descripcion.
-     * Este método hoy no lo llama nadie; si se vuelve a usar, corregirlo antes.
+     * El match va contra `nombre` O `descripcion` de core.empresas, con el mismo
+     * criterio que getEmpresasDeUsuario() (ver ahí por qué hacen falta los dos).
+     * Puede haber varias candidatas (en DEV, 'test' y 'Test' son cuatro empresas):
+     * gana la coincidencia exacta sobre la que difiere en mayúsculas, `nombre` sobre
+     * `descripcion`, y a igualdad la más nueva.
      * @param string $group nombre del grupo BPM
      * @return int empr_id, o 0 si no se encuentra
      */
     public function getEmprIdByGroup($group)
     {
-        $norm = strtoupper(trim($group));
-        if ($norm === '') {
+        $exacto = trim((string) $group);
+        if ($exacto === '') {
             return 0;
         }
+        $grupo = $this->db->escape(strtoupper($exacto));
+        $exacto = $this->db->escape($exacto);
         $this->db->select('empr_id');
         $this->db->from('core.empresas');
         $this->db->where('eliminado', false);
-        $this->db->where('UPPER(TRIM(descripcion)) = ' . $this->db->escape($norm), null, false);
+        $this->db->where("((TRIM(nombre) <> '' AND UPPER(TRIM(nombre)) = $grupo)"
+            . " OR (TRIM(descripcion) <> '' AND UPPER(TRIM(descripcion)) = $grupo))", null, false);
+        $this->db->order_by("CASE WHEN TRIM(nombre) = $exacto THEN 0"
+            . " WHEN TRIM(descripcion) = $exacto THEN 1"
+            . " WHEN UPPER(TRIM(nombre)) = $grupo THEN 2 ELSE 3 END, empr_id DESC", '', false);
         $this->db->limit(1);
         $query = $this->db->get();
         if ($query && $query->num_rows() > 0) {
@@ -868,8 +873,14 @@ SQL;
         cast(seg.users.image as bytea),
         seg.users.image_name,seg.roles.*,seg.users_business.busines");
         $this->db->from('seg.users');
-        $this->db->join('seg.memberships_users mu', 'mu.email = seg.users.email', 'inner');
-        $this->db->where('mu."group" IN (' . $inList . ')', null, false);
+        // Un usuario es "de" una empresa del conectado si tiene un rol en ella (memberships_users)
+        // O si fue dado de alta para ella (users_business). Lo segundo es lo que hace visible
+        // al recién creado, que todavía no tiene roles: sin eso la lista no lo muestra y no hay
+        // desde dónde asignárselos (H-032, #464).
+        $this->db->where('(EXISTS (SELECT 1 FROM seg.memberships_users mu'
+            . ' WHERE mu.email = seg.users.email AND mu."group" IN (' . $inList . '))'
+            . ' OR EXISTS (SELECT 1 FROM seg.users_business ub'
+            . ' WHERE ub.email = seg.users.email AND ub.busines IN (' . $inList . ')))', null, false);
         $this->db->join('seg.roles', 'seg.roles.rol_id = CAST(seg.users.role AS int)', 'left');
         $this->db->join('seg.users_business', 'seg.users_business.email = seg.users.email', 'left');
         $this->db->order_by('seg.users.id', 'asc');

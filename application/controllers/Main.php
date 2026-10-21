@@ -923,6 +923,26 @@ class Main extends CI_Controller {
 		return trim(preg_replace('/\s*' . preg_quote($group, '/') . '\s*$/u', '', $role));
 	}
 
+	/**
+	 * empr_id de la empresa a la que pertenece el rol que se asigna.
+	 *
+	 * NO es empresa(): esa es la empresa de la sesión del admin. Un admin de varias empresas
+	 * logueado en X que asigna un rol de Y vinculaba al usuario con X en AssetPlanner.
+	 * Si el grupo no se encuentra en core.empresas, se usa empresa() como antes.
+	 *
+	 * @param  string $group nombre de la empresa (grupo BPM)
+	 * @return int|string
+	 */
+	private function _emprIdDelGrupo($group)
+	{
+		$emprId = $this->user_model->getEmprIdByGroup($group);
+		if ($emprId > 0) {
+			return $emprId;
+		}
+		log_message('ERROR', '#TRAZA | MAIN | _emprIdDelGrupo() >> grupo sin empresa en core.empresas, se usa la de la sesión. group=' . $group);
+		return empresa();
+	}
+
 	//Recibe el objeto de json (array de roles)
 	public function changeLevelRolUserObject(){
 		$data = $this->session->userdata;
@@ -972,7 +992,7 @@ class Main extends CI_Controller {
 				// Con estos dos, el API le da además al usuario acceso a AssetPlanner con el
 				// menú que le corresponde. La decisión de qué grupo le toca vive allá; acá
 				// solo se aportan datos. Ver CLAUDE.md > Convenciones de código.
-				'empr_id' => (string) empresa(),
+				'empr_id' => (string) $this->_emprIdDelGrupo($dataRole[$i]['group']),
 				'role_base' => $this->_rolBaseSinEmpresa($dataRole[$i]['role'], $dataRole[$i]['group'])
 			);
 			try {
@@ -1085,7 +1105,7 @@ class Main extends CI_Controller {
 			'role_id' => (string) (isset($membershipBPM['role_id']) ? $membershipBPM['role_id'] : ''),
 			'bpmSession' => $bpmSession,
 			// Ídem: habilita el acceso a AssetPlanner. Ver CLAUDE.md > Convenciones de código.
-			'empr_id' => (string) empresa(),
+			'empr_id' => (string) $this->_emprIdDelGrupo($membership['group']),
 			'role_base' => $this->_rolBaseSinEmpresa($membership['role'], $membership['group'])
 		);
 
