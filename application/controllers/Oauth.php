@@ -8,7 +8,8 @@ use Firebase\JWT\JWT;
  *
  * Endpoints:
  *   GET  /oauth/authorize                              — Inicio del flujo, redirige a login si no autenticado
- *   POST /oauth/token                                  — Intercambio de code por JWT
+ *   POST /oauth/token                                  — Intercambio de code por JWT, o
+ *                                                        token de maquina (client_credentials, ADR-A10)
  *   GET  /oauth/.well-known/jwks.json                  — Clave pública en formato JWKS
  *   GET  /oauth/.well-known/oauth-authorization-server — Metadata RFC 8414 (descubrimiento automático por clientes MCP)
  */
@@ -137,6 +138,14 @@ class Oauth extends CI_Controller
         }
 
         $grant_type    = $this->input->post('grant_type');
+
+        // Token de maquina de los agentes (ADR-A10). Rama aparte: el flujo de
+        // authorization_code de abajo queda exactamente como estaba.
+        if ($grant_type === 'client_credentials') {
+            $this->_tokenMaquina();
+            return;
+        }
+
         $code          = $this->input->post('code');
         $code_verifier = $this->input->post('code_verifier');
         $client_id     = $this->input->post('client_id');
@@ -277,7 +286,7 @@ class Oauth extends CI_Controller
             'jwks_uri'                              => $base . '/oauth/.well-known/jwks.json',
             'registration_endpoint'                 => $base . '/oauth/register',
             'response_types_supported'              => ['code'],
-            'grant_types_supported'                 => ['authorization_code'],
+            'grant_types_supported'                 => ['authorization_code', 'client_credentials'],
             'code_challenge_methods_supported'      => ['S256'],
             'token_endpoint_auth_methods_supported' => ['none'],
         ];
@@ -335,6 +344,59 @@ class Oauth extends CI_Controller
     // -----------------------------------------------------------------------
     // Helpers privados
     // -----------------------------------------------------------------------
+
+    /**
+     * grant_type=client_credentials — token de maquina de los agentes (ADR-A10).
+     *
+     * Body (application/x-www-form-urlencoded): client_id, client_secret.
+     * La empresa del token sale de seg.oauth_clients; un pedido que trae
+     * empr_id se rechaza en vez de ignorarlo, para que quien lo intenta se
+     * entere de que no funciona asi.
+     */
+    private function _tokenMaquina()
+    {
+        $client_id = (string) $this->input->post('client_id');
+        $secreto   = (string) $this->input->post('client_secret');
+
+        if ($this->input->post('empr_id') !== null || $this->input->post('empr_id_mysql') !== null) {
+            $this->_jsonError('invalid_request', 'La empresa no se pide: sale del cliente', 400);
+            return;
+        }
+        if ($client_id === '' || $secreto === '' || $client_id === self::ALLOWED_CLIENT_ID) {
+            $this->_jsonError('invalid_client', 'client_id y client_secret son requeridos', 401);
+            return;
+        }
+
+        $this->load->model('OauthClient_model');
+        $cliente = $this->OauthClient_model->autenticar($client_id, $secreto);
+        if ($cliente === false) {
+            log_message('ERROR', '#TRAZA | DNATO | Oauth | _tokenMaquina() >> credenciales rechazadas para ' . substr($client_id, 0, 64));
+            $this->_jsonError('invalid_client', 'Credenciales del cliente invalidas', 401);
+            return;
+        }
+
+        $empr_id = (int) $cliente['empr_id'];
+        $this->load->model('Empresas');
+        $emprIdMysql = null;
+        $empresa = $this->Empresas->getEmpresaById($empr_id);
+        if ($empresa && !empty($empresa->empr_id_mysql)) {
+            $emprIdMysql = (int) $empresa->empr_id_mysql;
+        }
+
+        $jwt = $this->jwtissuer->issueMaquina($cliente['client_id'], $empr_id, $emprIdMysql);
+        $this->OauthClient_model->marcarUso($cliente['client_id']);
+        log_message('DEBUG', '#TRAZA | DNATO | Oauth | _tokenMaquina() >> token emitido para ' . $cliente['client_id'] . ' empr_id=' . $empr_id);
+
+        $this->output
+            ->set_status_header(200)
+            ->set_content_type('application/json')
+            ->set_header('Cache-Control: no-store')
+            ->set_output(json_encode([
+                'access_token' => $jwt,
+                'token_type'   => 'Bearer',
+                'expires_in'   => $this->jwtissuer->ttlMaquina(),
+            ]));
+    }
 
     private function _issueCode($email, $redirect_uri, $code_challenge, $state)
     {

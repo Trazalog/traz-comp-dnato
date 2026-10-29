@@ -7,6 +7,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  *
  * Uso:
  *   php index.php cli issue_test_token <email> [empr_id]
+ *   php index.php cli oauth_cliente_alta <empr_id> "<nombre>"   (ADR-A10)
+ *   php index.php cli oauth_cliente_baja <client_id>
+ *   php index.php cli oauth_cliente_lista
  */
 class Cli extends CI_Controller
 {
@@ -121,5 +124,68 @@ class Cli extends CI_Controller
         // Output del JWT a stdout — listo para copiar en curl / Postman
         echo $jwt . PHP_EOL;
         exit(0);
+    }
+
+    // -----------------------------------------------------------------------
+    // Clientes de maquina de los agentes de IA (ADR-A10)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Da de alta el cliente de maquina de una empresa e imprime el client_id y
+     * el secreto. El secreto se muestra UNA sola vez: Dnato guarda solo su hash.
+     */
+    public function oauth_cliente_alta($empr_id = null, $nombre = '')
+    {
+        if (!ctype_digit((string) $empr_id) || (int) $empr_id <= 0) {
+            fwrite(STDERR, "Uso: php index.php cli oauth_cliente_alta <empr_id> \"<nombre>\"\n");
+            exit(1);
+        }
+
+        $this->load->model('Empresas');
+        $empresa = $this->Empresas->getEmpresaById((int) $empr_id);
+        if (!$empresa) {
+            fwrite(STDERR, "Error: la empresa $empr_id no existe (o no se pudo consultar core)\n");
+            exit(1);
+        }
+
+        $this->load->model('OauthClient_model');
+        $alta = $this->OauthClient_model->alta((int) $empr_id, $nombre);
+        if ($alta === false) {
+            fwrite(STDERR, "Error: no se pudo guardar el cliente (ver log)\n");
+            exit(1);
+        }
+
+        echo "Cliente de maquina creado para la empresa $empr_id\n";
+        echo "client_id: " . $alta['client_id'] . "\n";
+        echo "secreto:   " . $alta['secreto'] . "\n";
+        echo "\nGuardalo ahora: no se vuelve a mostrar. Se carga en el agente con\n";
+        echo "  python -m agente.credenciales alta --empresa $empr_id --client-id " . $alta['client_id'] . "\n";
+    }
+
+    /** Revoca el cliente: desde ese momento no obtiene mas tokens. */
+    public function oauth_cliente_baja($client_id = null)
+    {
+        if (empty($client_id)) {
+            fwrite(STDERR, "Uso: php index.php cli oauth_cliente_baja <client_id>\n");
+            exit(1);
+        }
+        $this->load->model('OauthClient_model');
+        if (!$this->OauthClient_model->baja($client_id)) {
+            fwrite(STDERR, "Error: el cliente $client_id no existe\n");
+            exit(1);
+        }
+        echo "Cliente $client_id revocado\n";
+    }
+
+    /** Lista los clientes de maquina (sin secretos). */
+    public function oauth_cliente_lista()
+    {
+        $this->load->model('OauthClient_model');
+        foreach ($this->OauthClient_model->lista() as $c) {
+            echo implode("\t", array(
+                $c['client_id'], 'empr_id=' . $c['empr_id'], $c['activo'] === 't' || $c['activo'] === true ? 'activo' : 'revocado',
+                'alta=' . $c['fec_alta'], 'ultimo_uso=' . ($c['fec_ultimo_uso'] ? $c['fec_ultimo_uso'] : '-'), $c['nombre'],
+            )) . "\n";
+        }
     }
 }

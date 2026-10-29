@@ -13,6 +13,7 @@ class JwtIssuer
     private $ttl;
     private $kid;
     private $azp;
+    private $ttlMaquina;
 
     public function __construct()
     {
@@ -26,6 +27,10 @@ class JwtIssuer
         $this->ttl        = (int)    $this->CI->config->item('jwt_ttl', 'jwt');
         $this->kid        = (string) $this->CI->config->item('jwt_kid', 'jwt');
         $this->azp        = (string) $this->CI->config->item('jwt_azp', 'jwt');
+        $this->ttlMaquina = (int)    $this->CI->config->item('jwt_ttl_maquina', 'jwt');
+        if ($this->ttlMaquina <= 0) {
+            $this->ttlMaquina = 900;
+        }
 
         if (empty($this->privateKey)) {
             log_message('ERROR', '#JwtIssuer | Clave privada no configurada (JWT_PRIVATE_KEY_PATH)');
@@ -63,5 +68,49 @@ class JwtIssuer
         $headers = ['kid' => $this->kid];
 
         return JWT::encode($payload, $this->privateKey, $this->algorithm, null, $headers);
+    }
+
+    /**
+     * Emite el JWT de un cliente de maquina (grant_type=client_credentials, ADR-A10).
+     *
+     * Mismo emisor, firma y azp que los de usuario, asi el APIM lo acepta sin
+     * cambios. Se distingue por sub ("agente:<client_id>") y token_tipo
+     * ("maquina"): el MI rechaza las escrituras con este token. Sin rol ni
+     * datos de Bonita: no es una persona.
+     *
+     * @param string   $client_id
+     * @param int      $empr_id        el de la fila del cliente, nunca el del pedido
+     * @param int|null $empr_id_mysql
+     * @return string JWT firmado
+     */
+    public function issueMaquina($client_id, $empr_id, $empr_id_mysql = null)
+    {
+        $now = time();
+
+        $payload = [
+            'iss'          => $this->issuer,
+            'aud'          => $this->audience,
+            'iat'          => $now,
+            'exp'          => $now + $this->ttlMaquina,
+            'sub'          => 'agente:' . $client_id,
+            'azp'          => $this->azp,
+            'email'        => '',
+            'empr_id'      => (string) $empr_id,
+            'empr_id_mysql'=> $empr_id_mysql !== null ? (string) $empr_id_mysql : '',
+            'role'         => '',
+            'userIdBpm'    => '',
+            'groupBpm'     => '',
+            'token_tipo'   => 'maquina',
+        ];
+
+        $headers = ['kid' => $this->kid];
+
+        return JWT::encode($payload, $this->privateKey, $this->algorithm, null, $headers);
+    }
+
+    /** Segundos de vida de un token de maquina. */
+    public function ttlMaquina()
+    {
+        return $this->ttlMaquina;
     }
 }

@@ -70,6 +70,10 @@ $config['jwt_ttl']         = 86400; // segundos — 24h en DEV para no expirar d
                                     // así que un TTL corto deja al cliente (Claude) trabado al vencer:
                                     // no renueva ni re-dispara login. TODO: implementar refresh_token.
 
+// TTL de los tokens de maquina (grant_type=client_credentials, ADR-A10). Corto a
+// proposito: el agente pide otro cuando vence, y un token robado sirve poco tiempo.
+$config['jwt_ttl_maquina'] = 900; // 15 minutos
+
 // key_id para el JWKS endpoint (permite rotar claves sin romper validadores)
 $config['jwt_kid'] = 'dnato-rs256-v1';
 
