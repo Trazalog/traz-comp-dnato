@@ -554,7 +554,8 @@ class Register extends CI_Controller {
         log_message('INFO', '#TRAZA|REGISTER|guardarEmpresa() >> Validación OK, procesando');
 
         $post = $this->input->post(NULL, TRUE);
-        $pais_id = urlencode($user_data->reg_pais_id);
+        // La empresa guarda el país real (paises), no el de la lista de registración.
+        $pais_id = $this->user_model->obtenerPaisEmpresa($user_data->reg_pais_id);
         $prov_id = urldecode($this->input->post('prov_id'));
         $loca_id = urldecode($this->input->post('loca_id'));
 

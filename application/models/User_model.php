@@ -57,6 +57,51 @@ class User_model extends CI_Model {
         return $this->db->affected_rows() > 0 ? TRUE : FALSE;         
     }
     
+    /**
+     * Devuelve todos los identificadores que representan al mismo país.
+     *
+     * Un país tiene dos filas en core.tablas: `paises` (ej. paisesArgentina) es el
+     * catálogo real que usan las empresas, y `paises_registracion` (ej.
+     * paises_registracionAR) es la lista de países habilitados para abrir cuenta.
+     * Se relacionan por el nombre: paises.valor = paises_registracion.descripcion.
+     *
+     * @param string $pais_id tabl_id de cualquiera de las dos tablas
+     * @return array filas con tabl_id y tabla; vacío si el país no existe
+     */
+    private function obtenerPaisesEquivalentes($pais_id)
+    {
+        $sql = "SELECT t.tabl_id, t.tabla
+                  FROM core.tablas t
+                  JOIN (SELECT CASE WHEN tabla = 'paises' THEN valor ELSE descripcion END AS nombre
+                          FROM core.tablas
+                         WHERE tabl_id = ?
+                           AND tabla IN ('paises', 'paises_registracion')) origen
+                    ON (t.tabla = 'paises' AND t.valor = origen.nombre)
+                    OR (t.tabla = 'paises_registracion' AND t.descripcion = origen.nombre)";
+
+        return $this->db->query($sql, array($pais_id))->result();
+    }
+
+    /**
+     * Traduce el país elegido al registrarse al país que se guarda en la empresa.
+     *
+     * @param string $reg_pais_id tabl_id de `paises_registracion` (ej. paises_registracionAR)
+     * @return string tabl_id de `paises` (ej. paisesArgentina); si no se encuentra, el recibido
+     */
+    public function obtenerPaisEmpresa($reg_pais_id)
+    {
+        $pais = trim((string) $reg_pais_id);
+
+        foreach ($this->obtenerPaisesEquivalentes($pais) as $fila) {
+            if ($fila->tabla === 'paises') {
+                return $fila->tabl_id;
+            }
+        }
+
+        log_message('ERROR', '#TRAZA|USER_MODEL|obtenerPaisEmpresa() >> Sin equivalente en paises | pais_id=' . $pais);
+        return $pais;
+    }
+
     //check if razon social exists for the same country
     public function existeRazonSocial($razon_social, $pais_id, $cuit = null)
     {
@@ -69,13 +114,24 @@ class User_model extends CI_Model {
             return false;
         }
 
+        // Las empresas guardan el país de `paises`, pero acá puede llegar el de
+        // `paises_registracion`: compararlos tal cual nunca coincide.
+        $paises = array($pais);
+        foreach ($this->obtenerPaisesEquivalentes($pais) as $fila) {
+            $paises[] = $fila->tabl_id;
+        }
+
+        // Las mayúsculas las resuelve PostgreSQL en los dos lados: strtoupper() de
+        // PHP no convierte la ñ ni las vocales acentuadas.
+        $razonSql = $this->db->escape($razon);
+
         $this->db->select('empr_id');
         $this->db->from('core.empresas');
         $this->db->where('eliminado', false);
-        $this->db->where('pais_id', $pais);
+        $this->db->where_in('pais_id', array_unique($paises));
         $this->db->group_start();
-        $this->db->where('UPPER(TRIM(nombre))', strtoupper($razon));
-        $this->db->or_where('UPPER(TRIM(descripcion))', strtoupper($razon));
+        $this->db->where('UPPER(TRIM(nombre)) = UPPER(' . $razonSql . ')', null, false);
+        $this->db->or_where('UPPER(TRIM(descripcion)) = UPPER(' . $razonSql . ')', null, false);
         $this->db->group_end();
         if ($cuitNorm !== '') {
             $this->db->where('cuit', $cuitNorm);
