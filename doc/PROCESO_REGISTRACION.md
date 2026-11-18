@@ -162,7 +162,7 @@ Con el `empr_id` en la mano, y en este orden:
 | `almacen@{dominio}` | Responsable de Almacén |
 | `panol@{dominio}` | Responsable de Pañol |
 | `produccion@{dominio}` | Responsable de Producción |
-| `mantenimiento@{dominio}` | Supervisor de Mantenimiento · Planificador de Mantenimiento |
+| `mantenimiento@{dominio}` | Supervisor de Mantenimiento · Planificador de Mantenimiento · Mantenedor |
 
 Todos se crean con `POST {API_CORE}/usuario` y la contraseña de `REGISTRACION_PASSWORD_DEFAULT`, que hoy vale **`12345`**. Si el correo ya existía, no se recrea: sólo se le reasignan los roles.
 
