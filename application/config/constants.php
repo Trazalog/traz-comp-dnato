@@ -366,7 +366,7 @@ define('REGISTRACION_USUARIOS_DEFAULT_JSON', '{'
     . '"almacen":["Responsable de Almacén"],'
     . '"panol":["Responsable de Pañol"],'
     . '"produccion":["Responsable de Producción"],'
-    . '"mantenimiento":["Supervisor de Mantenimiento","Planificador de Mantenimiento"]'
+    . '"mantenimiento":["Supervisor de Mantenimiento","Planificador de Mantenimiento","Mantenedor"]'
 . '}');
 
 
