@@ -54,7 +54,7 @@
                         }
                     ?>
                     <?php
-                        if($this->session->userdata['email'] == TOOLS_ADMIN_USER){
+                        if(es_superusuario($this->session->userdata['email'])){
                         // if($dataLevel == 'is_admin'){ //Check user level if is Admin
                             echo'
                             <li class="dropdown">

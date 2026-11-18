@@ -31,7 +31,7 @@ class Empresa extends CI_Controller {
             redirect(base_url().'main/login/');
         }
         
-		if($data['email'] == TOOLS_ADMIN_USER){
+		if(es_superusuario($data['email'])){
             $this->load->view('header', $data);
             $this->load->view('navbar', $data);
             $this->load->view('container',$data);
@@ -53,7 +53,7 @@ class Empresa extends CI_Controller {
 		}
 		$dataLevel = $this->userlevel->checkLevel($data['role']);
 
-        if($data['email'] == TOOLS_ADMIN_USER){
+        if(es_superusuario($data['email'])){
             $this->form_validation->set_rules('nombre', 'Nombre', 'required');
             $this->form_validation->set_rules('cuit', 'Cuit', 'required');
             $this->form_validation->set_rules('descripcion', 'Descripcion', 'required');

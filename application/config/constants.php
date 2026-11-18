@@ -110,7 +110,7 @@ define('FORMULARIO_REGISTRO_ID', 72);
 // string. Esto lo mantiene asi.
 define('REGISTER_TEMP_EMPR_ID', '9000');
 
-define('TOOLS_ADMIN_USER','ramon@gmail.com');
+define('TOOLS_ADMIN_USER','admin@gmail.com');
 define('BPM_USER_PASS', 'bpm');
 
 /*
