@@ -52,6 +52,17 @@ if (!$jwt_issuer && defined('DNATO_OAUTH_ISSUER') && DNATO_OAUTH_ISSUER !== '') 
     $jwt_issuer = DNATO_OAUTH_ISSUER;
 }
 
+/* REQ-019 marca por dominio: el emisor de los tokens NO puede depender del
+ * dominio por el que entró el usuario (el APIM lo compara carácter por
+ * carácter). Si el pedido vino por un dominio de otra marca, se deriva de la
+ * dirección fija de Dnato (constante DNATO, ".../traz-comp-dnato/main/users")
+ * en vez de base_url. Lo correcto igual es completar DNATO_OAUTH_ISSUER en
+ * cada servidor (doc/infra/pirkai-04-configuracion-post-despliegue.md). */
+if (!$jwt_issuer && function_exists('marca_es_defecto') && !marca_es_defecto()
+    && defined('DNATO') && preg_match('#^(https?://.+/)main/users/?$#', DNATO, $_m_dnato)) {
+    $jwt_issuer = rtrim($_m_dnato[1], '/') . '/oauth';
+}
+
 if (!$jwt_issuer) {
     $base_detectada = '';
     if (function_exists('get_instance')) {

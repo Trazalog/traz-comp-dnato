@@ -334,7 +334,7 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
     <div class="tz-login__form">
         <div class="tz-login__inner">
 
-            <img src="<?php echo base_url($logoEmpresa); ?>" alt="Trazalog Tools" class="tz-login__logo">
+            <img src="<?php echo base_url($logoEmpresa); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>" class="tz-login__logo">
 
             <h1 class="tz-login__title">Bienvenido</h1>
             <p class="tz-login__subtitle">Ingresá a tu cuenta para continuar.</p>
@@ -403,7 +403,7 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
                     <h2 class="tz-promo__title">Empezá gratis, con todo incluido</h2>
                     <p class="tz-promo__text">
                         Creá la cuenta de tu empresa <strong>con 5 usuarios sin costo</strong>
-                        y acceso a todas las funcionalidades de Trazalog.
+                        y acceso a todas las funcionalidades de <?php echo marca('nombre', 'Trazalog'); ?>.
                     </p>
                     <a href="<?php echo base_url(); ?>main/register" class="tz-promo__cta">Crear cuenta gratis</a>
                     <p class="tz-promo__nota">No pedimos tarjeta de crédito.</p>
@@ -412,7 +412,7 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
 
             <div class="tz-login__foot">
                 <?php if (isset($copyright) && $copyright == 'true'): ?>
-                    Copyright &middot; <a href="http://trazalog.com/" target="_blank" rel="noopener">TRAZALOG</a>
+                    Copyright &middot; <a href="<?php echo marca('url_sitio', 'http://trazalog.com/'); ?>" target="_blank" rel="noopener"><?php echo marca('nombre', 'TRAZALOG'); ?></a>
                     &middot;
                 <?php endif; ?>
                 <span class="tz-login__version"><?php echo html_escape(ApplicationVersion::getVersion()); ?></span>
@@ -428,7 +428,7 @@ $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
                 <h2 class="tz-promo__title">Empezá gratis, con todo incluido</h2>
                 <p class="tz-promo__text">
                     Creá la cuenta de tu empresa <strong>con 5 usuarios sin costo</strong>
-                    y acceso a todas las funcionalidades de Trazalog. Dejá de seguir tu operación
+                    y acceso a todas las funcionalidades de <?php echo marca('nombre', 'Trazalog'); ?>. Dejá de seguir tu operación
                     con planillas.
                 </p>
                 <a href="<?php echo base_url(); ?>main/register" class="tz-promo__cta">Crear cuenta gratis</a>

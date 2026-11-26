@@ -136,7 +136,7 @@ body {
 <div class="password-container">
     <div class="password-left">
         <div class="logo-container">
-            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . marca_constante('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png'); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>">
         </div>
         
         <h1 class="password-title">Establecer Contraseña</h1>

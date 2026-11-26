@@ -187,7 +187,7 @@ $imagenFondo = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/
     <div class="tz-sel__card">
 
         <div class="tz-sel__head">
-            <img src="<?php echo base_url($logoEmpresa); ?>" alt="Trazalog Tools" class="tz-sel__logo">
+            <img src="<?php echo base_url($logoEmpresa); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>" class="tz-sel__logo">
             <h1 class="tz-sel__title">¿Con qué empresa querés ingresar?</h1>
             <p class="tz-sel__subtitle">Tu usuario pertenece a más de una. Hacé clic en una para continuar.</p>
         </div>

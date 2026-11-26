@@ -25,12 +25,12 @@
 
                     <hr>
                     <div class="text-center text-muted" style="font-size: 12px; margin-top: 15px;">
-                        © 2026 <strong>Trazalog SAS</strong>. Todos los derechos reservados.<br><br>
+                        © 2026 <strong><?php echo marca('razon_social', 'Trazalog SAS'); ?></strong>. Todos los derechos reservados.<br><br>
 
                         <strong>Propiedad Intelectual y Derechos de Autor</strong><br>
                         Todo el contenido de este software, incluyendo pero no limitado a: código fuente,
                         algoritmos, interfaces de usuario, diseños gráficos, logotipos, textos y archivos de audio,
-                        es propiedad exclusiva de <strong>Trazalog SAS</strong> y está protegido por las leyes
+                        es propiedad exclusiva de <strong><?php echo marca('razon_social', 'Trazalog SAS'); ?></strong> y está protegido por las leyes
                         internacionales de derechos de autor y propiedad intelectual.
                         Queda prohibida la reproducción, distribución, modificación o ingeniería inversa de
                         cualquier parte de este producto sin la autorización previa y por escrito del titular

@@ -1328,7 +1328,7 @@ class Main extends CI_Controller {
 			$data['title'] = "Contraseña Restablecida";
 			//logo y copyright configurables en core tablas, igual que el login/forgot
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
-			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$data['logoEmpresa'] = marca('logo_login', $tabla[0]['valor']); // REQ-019
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
 			$data['copyright'] = $tabla[0]['valor'];
 			// Mismo layout a sangre que el login/forgot: sin container.php ni footer.php.
@@ -1456,7 +1456,7 @@ class Main extends CI_Controller {
 			/* Si hay email en sesión, el usuario ya está autenticado en esta app */
 			if (!empty($data['email'])) {
 				log_message('DEBUG','#Main/login Sesion Existente');
-				redirect(DE);
+				redirect(marca_url_host(DE)); // REQ-019: vuelve a Tools por el mismo dominio
 				return;
 			}
 
@@ -1465,11 +1465,11 @@ class Main extends CI_Controller {
 			$this->form_validation->set_rules('email', 'Correo electrónico', 'required|valid_email');
 			$this->form_validation->set_rules('password', 'Contraseña', 'required');
 
-			$data['title'] = "Trazalog Tools!";
+			$data['title'] = marca('titulo_login', "Trazalog Tools!"); // REQ-019
 
 			//logo de login configurable en core tablas
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
-			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$data['logoEmpresa'] = marca('logo_login', $tabla[0]['valor']); // REQ-019
 
 			//copyright footer de login configurable en core tablas
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
@@ -1583,7 +1583,7 @@ class Main extends CI_Controller {
 
 			$data = array(
 					'title'        => 'Seleccioná tu empresa',
-					'logoEmpresa'  => $tabla[0]['valor'],
+					'logoEmpresa'  => marca('logo_login', $tabla[0]['valor']), // REQ-019
 					'empresas'     => $empresas,
 					'csrf_token'   => (string) $this->session->userdata('login_csrf'),
 			);
@@ -1710,7 +1710,7 @@ class Main extends CI_Controller {
 			$this->session->unset_userdata('login_csrf');
 
 			log_message('INFO', '#TRAZA|MAIN|_finalizarLogin() >> sesión abierta. email=' . $userInfo->email . ' empr_id=' . $empresa->empr_id);
-			redirect(DE);
+			redirect(marca_url_host(DE)); // REQ-019: vuelve a Tools por el mismo dominio
 	}
 
 	/**
@@ -1733,7 +1733,7 @@ class Main extends CI_Controller {
 	//Logout
 	public function logout()
 	{
-			$dir = DS;#$this->session->userdata['direccionsalida'];
+			$dir = marca_url_host(DS); // REQ-019 #$this->session->userdata['direccionsalida'];
 			$this->session->sess_destroy();
 			redirect($dir);
 	}
@@ -1752,7 +1752,7 @@ class Main extends CI_Controller {
 
 			//logo y copyright configurables en core tablas, igual que el login
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
-			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$data['logoEmpresa'] = marca('logo_login', $tabla[0]['valor']); // REQ-019
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
 			$data['copyright'] = $tabla[0]['valor'];
 
@@ -1869,7 +1869,7 @@ class Main extends CI_Controller {
 
 			//logo y copyright configurables en core tablas, igual que el login/forgot
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_ui');
-			$data['logoEmpresa'] = $tabla[0]['valor'];
+			$data['logoEmpresa'] = marca('logo_login', $tabla[0]['valor']); // REQ-019
 			$tabla = $this->Tablas->obtenerTabla('configuraciones_uifotterCopyright');
 			$data['copyright'] = $tabla[0]['valor'];
 
