@@ -142,6 +142,8 @@ La lista negra vive en `constants.php` y está por duplicado a propósito: `WEBM
 
 Antes de llamar al API se revalida el duplicado, esta vez **con CUIT**: `existeRazonSocial($nombre, $pais_id, $cuit)`.
 
+**El país cambia de formato en este paso.** `seg.users.reg_pais_id` guarda el país de `paises_registracion` (`paises_registracionAR`), que es la lista de países habilitados para abrir cuenta. La empresa guarda el de `paises` (`paisesArgentina`), que es el catálogo real. `User_model::obtenerPaisEmpresa()` los traduce por el nombre: `paises_registracion.descripcion = paises.valor`. Por el mismo motivo, `existeRazonSocial()` acepta los dos formatos: compararlos tal cual nunca coincide.
+
 ### 6.2 La llamada que crea la empresa
 
 `Empresas::agregarEmpresa()` hace `POST {API_CORE}/empresa`. Del otro lado, WSO2 ejecuta una orquestación larga (§7.3).
