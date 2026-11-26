@@ -22,6 +22,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
  * queda atado a la empresa elegida: para cambiarla hay que reconectar el
  * cliente, porque /oauth/token todavía no emite refresh_token (ver jwt.php).
  *
+ * Sobre la alineacion con el login web (2026-10-24, decision del PM):
+ * las empresas que se ofrecen salen de getEmpresasDeUsuario(), la MISMA
+ * consulta que usa Main::login(). Antes la lista la decidia Bonita —se pedian
+ * las membresias del usuario y se intersectaban con PostgreSQL—, con tres
+ * efectos que el login web no tiene y que no dejaban rastro:
+ *
+ *   1. un grupo de Bonita sin el prefijo "{empr_id}-" se descartaba en silencio;
+ *   2. una empresa en Bonita sin fila en PostgreSQL se perdia, porque el
+ *      fallback solo actuaba si la lista quedaba VACIA del todo;
+ *   3. con Bonita caido no se podia entrar.
+ *
+ * Bonita y PostgreSQL no estan sincronizados y depurarlos no es viable hoy, asi
+ * que se eligio que manden los datos de Tools. Contrapartida aceptada: las dos
+ * tools que instancian procesos (man_create_ot, alm_crear_pedido_materiales)
+ * pueden fallar si el usuario no es miembro de ese grupo en Bonita. Es
+ * preferible a no poder entrar.
+ *
  * No modifica Main::login() — los flujos web y OAuth coexisten de forma independiente.
  */
 class Oauthlogin extends CI_Controller
@@ -120,25 +137,29 @@ class Oauthlogin extends CI_Controller
             return;
         }
 
-        // Obtener userIdBpm (BPM está autoloaded como $this->bpm)
+        // userIdBpm: viaja como claim del token y lo necesitan las dos tools que
+        // instancian procesos en Bonita. NO es bloqueante: si Bonita no responde,
+        // el login sigue y el claim queda vacio. Decision del PM (2026-10-24): es
+        // preferible entrar y que fallen esas dos tools, a no poder entrar.
+        $userIdBpm = '';
         $bpmResult = $this->bpm->getUser($userInfo->usernick);
-        if (!$bpmResult || !$bpmResult['status']) {
-            log_message('ERROR', '#OauthLogin|credentials >> BPM::getUser falló para usernick=' . $userInfo->usernick);
-            $this->_showError('Error al conectar con el sistema de procesos. Contacte al administrador.');
-            return;
-        }
-        $userIdBpm = (string) $bpmResult['data']['id'];
-
-        // Consultar membresías vía proxy WSO2 (decisión P03 — Sección 6.8)
-        $memberships = $this->_getMemberships($userIdBpm);
-        if ($memberships === false) {
-            $this->_showError('Error al consultar membresías. Contacte al administrador.');
-            return;
+        if ($bpmResult && !empty($bpmResult['status']) && isset($bpmResult['data']['id'])) {
+            $userIdBpm = (string) $bpmResult['data']['id'];
+        } else {
+            log_message('WARN', '#OauthLogin|credentials >> BPM::getUser no resolvio userIdBpm para usernick='
+                . $userInfo->usernick . ' — el token sale con el claim vacio y las tools que instancian procesos van a fallar');
         }
 
-        $count = count($memberships);
+        // Las empresas salen de la MISMA fuente que el login web (Main::login):
+        // seg.memberships_users JOIN core.empresas. Bonita ya no decide que se
+        // ofrece — ver la nota "Sobre la alineacion con el login web" arriba.
+        $empresas = $this->user_model->getEmpresasDeUsuario($userInfo->email);
+        $this->_logGruposHuerfanos($userInfo->email);
+
+        $count = count($empresas);
 
         if ($count === 0) {
+            log_message('ERROR', '#OauthLogin|credentials >> usuario sin empresa resoluble. email=' . $userInfo->email);
             $this->_showError('El usuario no tiene empresa asignada en el sistema. Contacte al administrador.');
             return;
         }
@@ -149,17 +170,17 @@ class Oauthlogin extends CI_Controller
             'role'      => $userInfo->role,
             'userIdBpm' => $userIdBpm,
         ]);
-        $this->session->set_userdata('oauth_memberships', $memberships);
 
         // Con una sola empresa no hay nada que preguntar: se sigue derecho.
         // Con varias, el usuario elige (paso 2). Antes de esto, mas de una
         // empresa era un error de configuracion; ver la nota de TAD-IDENT-02
         // en la cabecera de esta clase.
         if ($count === 1) {
-            $this->_resolveCompany($memberships[0]);
+            $this->_resolveCompany($empresas[0]);
             return;
         }
 
+        log_message('INFO', '#OauthLogin|credentials >> usuario con ' . $count . ' empresas, va a seleccion. email=' . $userInfo->email);
         redirect(base_url() . 'oauth/login/empresa');
     }
 
@@ -172,56 +193,31 @@ class Oauthlogin extends CI_Controller
      *
      * GET  muestra las tarjetas. POST valida y emite el authorization code.
      *
-     * La lista que se MUESTRA sale de PostgreSQL (getEmpresasDeUsuario trae
-     * nombre y logo, que Bonita no tiene), pero la que AUTORIZA es la de
-     * Bonita: solo se ofrecen —y solo se aceptan— empresas que esten en
-     * oauth_memberships. Si las dos fuentes discrepan, manda Bonita.
+     * La lista sale de getEmpresasDeUsuario(), la MISMA fuente y la misma
+     * consulta que usa el login web (Main::seleccionar_empresa). Se reconsulta
+     * en cada request en vez de leerla de sesion, para que una sesion
+     * manipulada no pueda agregar empresas.
      */
     public function empresa()
     {
         $pending     = $this->session->userdata('oauth_pending');
         $loginState  = $this->session->userdata('oauth_login_state');
-        $memberships = $this->session->userdata('oauth_memberships');
 
-        if (empty($pending) || empty($loginState) || empty($memberships)) {
+        if (empty($pending) || empty($loginState)) {
             $this->_showError('Sesión expirada. Inicie el proceso nuevamente desde el cliente.');
             return;
         }
 
-        // indice empr_id -> membership de Bonita: es la fuente de autorizacion
-        $porEmprId = [];
-        foreach ($memberships as $m) {
-            $porEmprId[(string) $m['empr_id']] = $m;
-        }
+        $empresas = $this->user_model->getEmpresasDeUsuario($loginState['email']);
 
-        if ($this->input->server('REQUEST_METHOD') === 'POST') {
-            $this->_confirmarEmpresa($porEmprId);
+        if (empty($empresas)) {
+            $this->_showError('El usuario no tiene empresa asignada en el sistema. Contacte al administrador.');
             return;
         }
 
-        $todas = $this->user_model->getEmpresasDeUsuario($loginState['email']);
-
-        // Solo las que Bonita autoriza. Si PostgreSQL no devolvio ninguna que
-        // coincida, se arman tarjetas con lo que si tenemos de Bonita para no
-        // dejar al usuario sin poder elegir.
-        $empresas = [];
-        foreach ($todas as $e) {
-            if (isset($porEmprId[(string) $e->empr_id])) {
-                $empresas[] = $e;
-            }
-        }
-        if (empty($empresas)) {
-            log_message('ERROR', '#OauthLogin|empresa >> ninguna empresa de PostgreSQL coincide con las membresias de Bonita. email='
-                . $loginState['email']);
-            foreach ($memberships as $m) {
-                $obj = new stdClass();
-                $obj->empr_id     = $m['empr_id'];
-                $obj->descripcion = $m['groupBpm'];
-                $obj->nombre      = $m['groupBpm'];
-                $obj->image       = null;
-                $obj->imagepath   = null;
-                $empresas[] = $obj;
-            }
+        if ($this->input->server('REQUEST_METHOD') === 'POST') {
+            $this->_confirmarEmpresa($empresas);
+            return;
         }
 
         $logo = $this->_getLogo();
@@ -237,11 +233,12 @@ class Oauthlogin extends CI_Controller
 
     /**
      * Procesa el POST del paso 2: verifica CSRF y que el empr_id elegido sea
-     * una de las empresas que Bonita le reconoce al usuario.
+     * una de las empresas del usuario.
      *
-     * @param array $porEmprId  empr_id => membership, armado desde la sesion
+     * @param array $empresas  Filas de getEmpresasDeUsuario(), reconsultadas
+     *                         en este mismo request — no vienen de la sesion.
      */
-    private function _confirmarEmpresa(array $porEmprId)
+    private function _confirmarEmpresa(array $empresas)
     {
         $fromForm    = (string) $this->input->post('oauth_csrf');
         $fromSession = (string) $this->session->userdata('oauth_csrf');
@@ -254,16 +251,24 @@ class Oauthlogin extends CI_Controller
 
         $elegida = (string) $this->input->post('empr_id');
 
-        // No alcanza con que el empr_id exista: tiene que estar entre las
-        // membresias que Bonita reporto para ESTE usuario en ESTA sesion.
-        if ($elegida === '' || !isset($porEmprId[$elegida])) {
-            log_message('ERROR', '#OauthLogin|_confirmarEmpresa >> empr_id fuera de las membresias del usuario. elegida=' . $elegida);
+        // No alcanza con que el empr_id exista: tiene que ser una de las
+        // empresas que la consulta devolvio para ESTE usuario, recien ahora.
+        $empresa = null;
+        foreach ($empresas as $e) {
+            if ((string) $e->empr_id === $elegida) {
+                $empresa = $e;
+                break;
+            }
+        }
+
+        if ($elegida === '' || $empresa === null) {
+            log_message('ERROR', '#OauthLogin|_confirmarEmpresa >> empr_id fuera de las empresas del usuario. elegida=' . $elegida);
             $this->session->set_flashdata('oauth_error', 'La empresa seleccionada no es válida. Elegí una de la lista.');
             redirect(base_url() . 'oauth/login/empresa');
             return;
         }
 
-        $this->_resolveCompany($porEmprId[$elegida]);
+        $this->_resolveCompany($empresa);
     }
 
     // -----------------------------------------------------------------------
@@ -335,7 +340,7 @@ class Oauthlogin extends CI_Controller
      * Emite el authorization code y redirige al redirect_uri del cliente.
      * Limpia todos los datos temporales de sesión OAuth.
      */
-    private function _resolveCompany(array $membership)
+    private function _resolveCompany($empresa)
     {
         $pending    = $this->session->userdata('oauth_pending');
         $loginState = $this->session->userdata('oauth_login_state');
@@ -346,8 +351,8 @@ class Oauthlogin extends CI_Controller
         }
 
         $email         = $loginState['email'];
-        $emprId        = (int) $membership['empr_id'];
-        $groupBpm      = $membership['groupBpm'];
+        $emprId        = (int) $empresa->empr_id;
+        $groupBpm      = $this->_groupBpmDe($empresa);
         $userIdBpm     = $loginState['userIdBpm'];
         $codeChallenge = $pending['code_challenge'];
         $redirectUri   = $pending['redirect_uri'];
@@ -367,7 +372,6 @@ class Oauthlogin extends CI_Controller
         $this->session->unset_userdata([
             'oauth_pending',
             'oauth_login_state',
-            'oauth_memberships',
             'oauth_csrf',
         ]);
 
@@ -401,59 +405,44 @@ class Oauthlogin extends CI_Controller
     }
 
     /**
-     * Consulta las membresías del usuario vía el proxy WSO2 MI (decisión P03).
+     * Nombre del grupo BPM de una empresa, para el claim groupBpm del token.
      *
-     * URL: REST_BPM/memberships/xUserid/{userIdBpm}/session/dd
+     * Sale de seg.memberships_users."group" (la columna `grupo` que devuelve
+     * getEmpresasDeUsuario), que es el mismo string con el que el login web
+     * identifica a la empresa. Si viniera vacio se cae a descripcion y despues
+     * a nombre, que son los dos campos contra los que esa consulta hace el join.
      *
-     * @param  string       $userIdBpm  ID del usuario en Bonita.
-     * @return array|false  Lista de membresías parseadas, o false si hay error.
+     * @param  object $empresa  Fila de getEmpresasDeUsuario()
+     * @return string
      */
-    private function _getMemberships($userIdBpm)
+    private function _groupBpmDe($empresa)
     {
-        $url    = REST_BPM . '/memberships/xUserid/' . rawurlencode($userIdBpm) . '/session/dd';
-        $result = $this->rest->callAPI('GET', $url);
-
-        if (!$result || !$result['status'] || empty($result['data'])) {
-            log_message('ERROR', '#OauthLogin|_getMemberships >> callAPI falló. userIdBpm=' . $userIdBpm
-                . ' code=' . (isset($result['code']) ? $result['code'] : 'N/A'));
-            return false;
-        }
-
-        $decoded = json_decode($result['data']);
-        if (!$decoded || !isset($decoded->payload) || !is_array($decoded->payload)) {
-            log_message('ERROR', '#OauthLogin|_getMemberships >> respuesta inesperada: ' . $result['data']);
-            return false;
-        }
-
-        // El proxy expande group_id como objeto (d=group_id en la query Bonita).
-        // Solo se consideran grupos con formato "{empr_id_numerico}-{groupBpm}".
-        // Grupos sin prefijo numérico (legacy, pruebas, etc.) se ignoran.
-        // Se deduplica por empr_id: un usuario puede tener múltiples roles en el mismo grupo.
-        $memberships = [];
-        $seen = [];
-        foreach ($decoded->payload as $m) {
-            $groupObj = isset($m->group_id) && is_object($m->group_id) ? $m->group_id : null;
-            $rawName  = $groupObj ? (string) $groupObj->name : '';
-            if (!preg_match('/^(\d+)-(.+)$/', $rawName, $parts)) {
-                continue; // ignorar grupos sin formato {id}-{nombre}
+        foreach (['grupo', 'descripcion', 'nombre'] as $campo) {
+            if (isset($empresa->$campo) && trim((string) $empresa->$campo) !== '') {
+                return trim((string) $empresa->$campo);
             }
-            $emprId  = $parts[1];
-            $groupBpm = $parts[2];
-            if (isset($seen[$emprId])) {
-                continue; // deduplicar: ya registrada esta empresa
-            }
-            $seen[$emprId] = true;
-            $memberships[] = [
-                'key'         => $rawName,
-                'empr_id'     => $emprId,
-                'groupBpm'    => trim($groupBpm),
-                'displayName' => $groupObj && isset($groupObj->displayName) ? $groupObj->displayName : $rawName,
-            ];
         }
-
-        return $memberships;
+        log_message('WARN', '#OauthLogin|_groupBpmDe >> sin nombre de grupo para empr_id='
+            . (isset($empresa->empr_id) ? $empresa->empr_id : '?'));
+        return '';
     }
 
+    /**
+     * Deja rastro de las membresias que no resuelven a ninguna empresa.
+     *
+     * Son las que el usuario tiene en seg.memberships_users pero cuyo "group"
+     * no coincide con el nombre ni la descripcion de ninguna empresa vigente:
+     * no se le ofrecen, y sin esto desaparecerian sin dejar registro. Mismo
+     * mecanismo que Main::_logGruposHuerfanos() en el login web.
+     */
+    private function _logGruposHuerfanos($email)
+    {
+        $huerfanos = $this->user_model->gruposSinEmpresa($email);
+        if (!empty($huerfanos)) {
+            log_message('ERROR', '#OauthLogin|credentials >> membresias sin empresa en core.empresas (no se ofrecen al usuario). email='
+                . $email . ' grupos=' . implode(' | ', $huerfanos));
+        }
+    }
     /**
      * Verifica el CSRF token del formulario contra el almacenado en sesión.
      */
