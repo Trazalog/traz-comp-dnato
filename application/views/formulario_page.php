@@ -91,7 +91,7 @@ body {
 <div class="form-container">
     <div class="form-left">
         <div class="logo-container">
-            <img src="<?php echo base_url() . (defined('REGISTER_IMG_LOGO') ? REGISTER_IMG_LOGO : 'public/img/toolsgrey.png'); ?>" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . marca_constante('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png'); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>">
         </div>
 
         <h1 class="form-title">Información Adicional de Registro</h1>

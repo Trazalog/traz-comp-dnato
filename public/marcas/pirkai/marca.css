@@ -1,0 +1,72 @@
+/*
+ * Marca pirkai.net en el ingreso y la registración (REQ-019, ADR-015)
+ *
+ * Se carga desde views/header.php SOLO cuando el usuario entra por un dominio
+ * de Pirkai (application/config/marcas.php). Con el dominio de Trazalog no se carga.
+ *
+ * ⚠ Colores PROVISORIOS, los mismos que lib/marcas/pirkai/marca.css de traz-tools.
+ *   Si se cambian, cambiarlos en los dos archivos.
+ *
+ * No se tocan los colores de mensajes de error, aviso y éxito.
+ */
+
+body[data-marca="pirkai"] {
+    --marca-primario: #0f766e;
+    --marca-primario-oscuro: #115e59;
+    --marca-lateral: #134e4a;
+}
+
+/* Botones principales */
+body[data-marca="pirkai"] .tz-btn,
+body[data-marca="pirkai"] .btn-register,
+body[data-marca="pirkai"] .btn-guardar,
+body[data-marca="pirkai"] .btn-complete {
+    background: var(--marca-primario) !important;
+    background-color: var(--marca-primario) !important;
+    border-color: var(--marca-primario) !important;
+}
+body[data-marca="pirkai"] .tz-btn:hover,
+body[data-marca="pirkai"] .btn-register:hover,
+body[data-marca="pirkai"] .btn-guardar:hover,
+body[data-marca="pirkai"] .btn-complete:hover {
+    background: var(--marca-primario-oscuro) !important;
+    background-color: var(--marca-primario-oscuro) !important;
+}
+
+/* Links y realces */
+body[data-marca="pirkai"] .tz-login__links a,
+body[data-marca="pirkai"] .tz-sel__foot a,
+body[data-marca="pirkai"] .tz-field__toggle:hover,
+body[data-marca="pirkai"] .login-link,
+body[data-marca="pirkai"] .welcome-content h3 {
+    color: var(--marca-primario) !important;
+}
+
+/* Campos con foco */
+body[data-marca="pirkai"] .tz-field__input:focus,
+body[data-marca="pirkai"] .form-control:focus {
+    border-color: var(--marca-primario) !important;
+}
+
+/* Selección de empresa */
+body[data-marca="pirkai"] .tz-sel__card-btn:hover,
+body[data-marca="pirkai"] .tz-sel__card-btn:focus {
+    border-color: var(--marca-primario) !important;
+}
+
+/* Paneles oscuros detrás de la foto */
+body[data-marca="pirkai"] .tz-login__visual,
+body[data-marca="pirkai"] .tz-sel {
+    background-color: var(--marca-lateral) !important;
+}
+body[data-marca="pirkai"] .register-right {
+    background-color: var(--marca-lateral) !important;
+}
+
+/* Logo provisorio en SVG: que no se deforme */
+body[data-marca="pirkai"] .tz-login__logo,
+body[data-marca="pirkai"] .tz-sel__logo,
+body[data-marca="pirkai"] .logo-container img {
+    height: auto;
+    max-width: 240px;
+}

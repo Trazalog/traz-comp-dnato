@@ -29,7 +29,7 @@ if (!empty($flash['danger_message'])) {
 }
 
 $imagenLogin = defined('LOGIN_IMG_BACKGROUND') ? LOGIN_IMG_BACKGROUND : 'public/img/toolslogin.jpg';
-$logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ? LOGIN_IMG_LOGO : 'public/img/logotzl.png');
+$logoSitio   = isset($logoEmpresa) ? $logoEmpresa : marca_constante('LOGIN_IMG_LOGO', 'public/img/logotzl.png');
 ?>
 <style>
     html, body {
@@ -218,7 +218,7 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
     <div class="tz-login__form">
         <div class="tz-login__inner">
 
-            <img src="<?php echo base_url($logoSitio); ?>" alt="Trazalog Tools" class="tz-login__logo">
+            <img src="<?php echo base_url($logoSitio); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>" class="tz-login__logo">
 
             <h1 class="tz-login__title">Restablecer contraseña</h1>
             <p class="tz-login__subtitle">
@@ -279,7 +279,7 @@ $logoSitio   = isset($logoEmpresa) ? $logoEmpresa : (defined('LOGIN_IMG_LOGO') ?
 
             <div class="tz-login__foot">
                 <?php if (isset($copyright) && $copyright == 'true'): ?>
-                    Copyright &middot; <a href="http://trazalog.com/" target="_blank" rel="noopener">TRAZALOG</a>
+                    Copyright &middot; <a href="<?php echo marca('url_sitio', 'http://trazalog.com/'); ?>" target="_blank" rel="noopener"><?php echo marca('nombre', 'TRAZALOG'); ?></a>
                     &middot;
                 <?php endif; ?>
                 <span class="tz-login__version"><?php echo html_escape(ApplicationVersion::getVersion()); ?></span>

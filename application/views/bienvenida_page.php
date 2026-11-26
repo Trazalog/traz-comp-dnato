@@ -144,11 +144,11 @@ body {
 <div class="welcome-container">
     <div class="welcome-left">
         <div class="logo-container">
-            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . marca_constante('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png'); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>">
         </div>
         
         <h1 class="welcome-title">¡Registro Completado Exitosamente!</h1>
-        <h2 class="welcome-subtitle">¡Bienvenido a Trazalog Tools!</h2>
+        <h2 class="welcome-subtitle">¡Bienvenido a <?php echo marca('producto', 'Trazalog Tools'); ?>!</h2>
         
         <div class="welcome-content">
             <p>Tu registro ha sido completado exitosamente. Ahora puedes acceder a todas las funcionalidades de la plataforma gratuitamente.</p>
@@ -161,7 +161,7 @@ body {
                 <li>Comienza a usar la plataforma</li>
             </ul>
             
-            <p>Se generaron los siguientes usuarios para que puedas utilizar Trazalog Tools:</p>
+            <p>Se generaron los siguientes usuarios para que puedas utilizar <?php echo marca('producto', 'Trazalog Tools'); ?>:</p>
             
             <?php
             $pwdHint = isset($welcome_password_hint) ? $welcome_password_hint : (defined('REGISTRACION_PASSWORD_DEFAULT') ? REGISTRACION_PASSWORD_DEFAULT : '123456');
@@ -217,7 +217,7 @@ body {
     
     <div class="welcome-right">
         <div class="image-container">
-            <img src="<?php echo base_url() . REGISTER_IMG_BIENVENIDA; ?>" alt="Bienvenida a Trazalog Tools">
+            <img src="<?php echo base_url() . REGISTER_IMG_BIENVENIDA; ?>" alt="Bienvenida a <?php echo marca('producto', 'Trazalog Tools'); ?>">
         </div>
     </div>
 </div>

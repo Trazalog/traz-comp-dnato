@@ -10,7 +10,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="alert alert-success">
-                            <h4><i class="icon fa fa-check"></i> ¡Bienvenido a Trazalog!</h4>
+                            <h4><i class="icon fa fa-check"></i> ¡Bienvenido a <?php echo marca('nombre', 'Trazalog'); ?>!</h4>
                             <p>Tu registro ha sido completado exitosamente. Ahora puedes acceder a todas las funcionalidades de la plataforma.</p>
                         </div>
                     </div>

@@ -316,7 +316,7 @@ if (!empty($arr['danger_message'])) {
     <!-- register-inner: centra la columna dentro del panel, igual que el login -->
     <div class="register-inner">
         <div class="logo-container">
-            <img src="<?php echo base_url() . REGISTER_IMG_LOGO; ?>" alt="Trazalog Tools">
+            <img src="<?php echo base_url() . marca_constante('REGISTER_IMG_LOGO', 'public/img/toolsgrey.png'); ?>" alt="<?php echo marca('producto', 'Trazalog Tools'); ?>">
         </div>
         
         <h1 class="register-title">Regístrese Gratis</h1>
@@ -372,10 +372,10 @@ if (!empty($arr['danger_message'])) {
         <input type="tel" name="telefono" id="telefono" class="form-control" placeholder="Teléfono *" value="<?php echo isset($form_data['telefono']) ? htmlspecialchars($form_data['telefono']) : ''; ?>" required>
     </div>
         
-        <button type="submit" class="btn-register">Utilizar Trazalog Tools Gratis</button>
+        <button type="submit" class="btn-register">Utilizar <?php echo marca('producto', 'Trazalog Tools'); ?> Gratis</button>
         
         <div class="terms-text">
-            Al registrarme, acepto los Términos y Condiciones y las Políticas de Privacidad de Trazalog.
+            Al registrarme, acepto los Términos y Condiciones y las Políticas de Privacidad de <?php echo marca('nombre', 'Trazalog'); ?>.
         </div>
         
         

@@ -33,5 +33,6 @@ $theme = $result->theme;
         <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.dataTables.min.css">
         <link rel="stylesheet" href="<?php echo base_url();?>assets/plugin/datatables/extensions/Buttons/css/buttons.bootstrap.min.css">
 
+        <?php /* Marca por dominio (REQ-019): vacío con el dominio de Trazalog */ echo marca_head(base_url()); ?>
     </head>
-<body>
+<body<?php echo marca_atributo_body(); ?>>
